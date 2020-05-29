@@ -23,13 +23,13 @@ extern RouteMgr *routeMgr;
 class RouteMgr
 {
 public:
-  RouteMgr() {}
-  ~RouteMgr() { // TODO: reset();
-  } 
-  bool readCircuit(const string&);
-  void optimize();
+    RouteMgr() {}
+    ~RouteMgr() { // TODO: reset();
+    } 
+    bool readCircuit(const string&);
+    void optimize();
 private:
-  
+    unsigned maxMoveCnt;
 };
 
 #endif // ROUTE_MGR_H

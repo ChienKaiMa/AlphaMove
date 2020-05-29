@@ -16,5 +16,9 @@ using namespace std;
 // TODO: define your own typedef or enum
 
 class RouteMgr;
+class MC;
+class Ggrid;
+class Net;
+class CellInst;
 
 #endif // ROUTE_DEF_H
