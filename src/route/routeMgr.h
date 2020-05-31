@@ -13,10 +13,9 @@
 #include <string>
 #include <fstream>
 #include <iostream>
+#include "routeNet.h"
 
 using namespace std;
-
-#include "routeDef.h"
 
 extern RouteMgr *routeMgr;
 
@@ -30,6 +29,9 @@ public:
     void optimize();
 private:
     unsigned maxMoveCnt;
+    MCList mcList; // id->MC*
+    vector<bool> layDir; // layId -> Horizontal or Vertical
+    vector<unsigned> layDemand; // layId -> default demand
 };
 
 #endif // ROUTE_MGR_H

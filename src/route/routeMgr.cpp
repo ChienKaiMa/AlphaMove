@@ -14,7 +14,6 @@
 #include <cassert>
 #include <cstring>
 #include "routeMgr.h"
-#include "util.h"
 
 using namespace std;
 
@@ -150,13 +149,21 @@ parseError(RouteParseError err)
 bool
 RouteMgr::readCircuit(const string& fileName)
 {
-  lineNo = 0;
-  colNo = 0;
-  ifstream ifs(fileName.c_str());
-  if (!ifs) {
-    cerr << "Error: \"" << fileName << "\" does not exist!!" << endl;
-    return false;
-  }
+    ifstream ifs(fileName.c_str());
+    if (!ifs) {
+        cerr << "Error: \"" << fileName << "\" does not exist!!" << endl;
+        return false;
+    }
+    string buffer;
+    unsigned bndCoord[4];
+    ifs >> buffer; // MaxCellMove
+    ifs >> maxMoveCnt; 
+    ifs >> buffer; // GGridBoundaryIdx
+    for(unsigned i=0; i<4; ++i)
+        ifs >> bndCoord[i];
+    Ggrid::setBoundary(bndCoord[0], bndCoord[1], bndCoord[2], bndCoord[3]);
 
-  return false;
+
+
+    return true;
 }

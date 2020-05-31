@@ -8,6 +8,8 @@
 
 #ifndef ROUTE_DEF_H
 #define ROUTE_DEF_H
+#define H 0 // horizontal
+#define V 1 // Vertical
 
 #include <vector>
 
@@ -20,5 +22,9 @@ class MC;
 class Ggrid;
 class Net;
 class CellInst;
+class Layer;
+typedef vector<MC*> MCList;
+typedef pair<unsigned, unsigned> Pos;
+typedef vector<Layer*> LayerList;
 
 #endif // ROUTE_DEF_H
