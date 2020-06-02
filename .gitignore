@@ -2,3 +2,4 @@ src/cmd/._cmdCharDef.h
 src/cmd/._cmdParser.h
 src/route/*.o
 src/main/main.o
+.vscode/launch.json

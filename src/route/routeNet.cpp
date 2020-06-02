@@ -27,9 +27,9 @@ void
 MC::printMC() const{
     cout << "MasterCell MC" << mcId << " " << layerOfPin.size() << " " << blkgList.size() << endl;
     for (unsigned i=0; i<layerOfPin.size(); ++i)
-        cout << "Pin " << "P" << i << " " << "M" << layerOfPin[i] << endl; 
+        cout << "Pin " << "P" << i+1 << " " << "M" << layerOfPin[i] << endl; 
     for (unsigned i=0; i<blkgList.size(); ++i)
-        cout << "Blkg " << "B" << i << " " << "M" << blkgList[i].first << " " << blkgList[i].second << endl; 
+        cout << "Blkg " << "B" << i+1 << " " << "M" << blkgList[i].first << " " << blkgList[i].second << endl; 
 }
 
 

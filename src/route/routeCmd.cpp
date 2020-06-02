@@ -23,10 +23,11 @@ initRouteCmd()
 {
    if (!(cmdMgr->regCmd("Read", 1, new RouteReadCmd) &&
          cmdMgr->regCmd("Write", 1, new RouteWriteCmd) &&
-         cmdMgr->regCmd("OPTimize", 3, new RouteOptCmd) &&
-         cmdMgr->regCmd("LAYPrint", 4, new LayPrintCmd) &&
-         cmdMgr->regCmd("NETPrint", 4, new NetPrintCmd) &&
-         cmdMgr->regCmd("CELLPrint", 5, new CellPrintCmd)
+         cmdMgr->regCmd("Optimize", 1, new RouteOptCmd) &&
+         cmdMgr->regCmd("Mgrprint", 1, new MgrPrintCmd) &&
+         cmdMgr->regCmd("Layprint", 1, new LayPrintCmd) &&
+         cmdMgr->regCmd("Netprint", 1, new NetPrintCmd) &&
+         cmdMgr->regCmd("Cellprint", 1, new CellPrintCmd)
       )) {
       cerr << "Registering \"route\" commands fails... exiting" << endl;
       return false;
@@ -225,6 +226,51 @@ RouteOptCmd::help() const
 }
 
 //----------------------------------------------------------------------
+//    MgrPrint [-Summary | -Netlist]
+//----------------------------------------------------------------------
+CmdExecStatus
+MgrPrintCmd::exec(const string& option)
+{
+   // check option
+   string token;
+   if (!CmdExec::lexSingleOption(option, token))
+      return CMD_EXEC_ERROR;
+
+   if (!routeMgr) {
+      cerr << "Error: circuit is not yet constructed!!" << endl;
+      return CMD_EXEC_ERROR;
+   }
+   if (token.empty() || myStrNCmp("-Summary", token, 2) == 0)
+      routeMgr->printRouteSummary();
+   else if (myStrNCmp("-Netlist", token, 2) == 0)
+      cout << "routeMgr->printNetlist()" << endl;
+   else if (myStrNCmp("-MC", token, 3) == 0)
+      routeMgr->printMCList();
+   else if (myStrNCmp("-PO", token, 3) == 0)
+      cout << "routeMgr->printPOs()" << endl;
+   else if (myStrNCmp("-FLoating", token, 3) == 0)
+      cout << "routeMgr->printFloatGates()" << endl;
+   else if (myStrNCmp("-FECpairs", token, 4) == 0)
+      cout << "routeMgr->printFECPairs()" << endl;
+   else
+      return CmdExec::errorOption(CMD_OPT_ILLEGAL, token);
+
+   return CMD_EXEC_DONE;
+}
+
+void
+MgrPrintCmd::usage(ostream& os) const
+{  
+   os << "Usage: MgrPrint [-Summary | -Netlist]" << endl;
+}
+
+void
+MgrPrintCmd::help() const
+{  
+   cout << setw(15) << left << "MgrPrint: " << "print RouteMgr summary\n";
+}
+
+//----------------------------------------------------------------------
 //    CELLPrint [-Summary | -Netlist]
 //----------------------------------------------------------------------
 CmdExecStatus
@@ -243,8 +289,8 @@ CellPrintCmd::exec(const string& option)
       cout << "routeMgr->printSummary()" << endl;
    else if (myStrNCmp("-Netlist", token, 2) == 0)
       cout << "routeMgr->printNetlist()" << endl;
-   else if (myStrNCmp("-PI", token, 3) == 0)
-      cout << "routeMgr->printPIs()" << endl;
+   else if (myStrNCmp("-MC", token, 3) == 0)
+      routeMgr->printMCList();
    else if (myStrNCmp("-PO", token, 3) == 0)
       cout << "routeMgr->printPOs()" << endl;
    else if (myStrNCmp("-FLoating", token, 3) == 0)
@@ -284,13 +330,13 @@ LayPrintCmd::exec(const string& option)
       cerr << "Error: circuit is not yet constructed!!" << endl;
       return CMD_EXEC_ERROR;
    }
-   if (token.empty() || myStrNCmp("-Summary", token, 2) == 0)
+   if (token.empty() || myStrNCmp("-SUMmary", token, 4) == 0)
       cout << "routeMgr->printSummary()" << endl;
    else if (myStrNCmp("-Netlist", token, 2) == 0)
       cout << "routeMgr->printNetlist()" << endl;
-   else if (myStrNCmp("-PI", token, 3) == 0)
-      cout << "routeMgr->printPIs()" << endl;
-   else if (myStrNCmp("-PO", token, 3) == 0)
+   else if (myStrNCmp("-SUPply", token, 4) == 0)
+      routeMgr->printLaySupply();
+   else if (myStrNCmp("-Demand", token, 2) == 0)
       cout << "routeMgr->printPOs()" << endl;
    else if (myStrNCmp("-FLoating", token, 3) == 0)
       cout << "routeMgr->printFloatGates()" << endl;
