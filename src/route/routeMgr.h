@@ -19,6 +19,7 @@ using namespace std;
 
 extern RouteMgr *routeMgr;
 
+
 class RouteMgr
 {
 public:
@@ -35,6 +36,9 @@ private:
     MCList mcList; // id->MC*
     vector<bool> layDir; // layId -> Horizontal or Vertical
     vector<unsigned> laySupply; // layId -> default supply
+    unordered_map<MCTri, unsigned, TriHash> sameGridDemand;
+    unordered_map<MCTri, unsigned, TriHash> adjGridDemand;
+    unordered_map<MCTri, int, TriHash> nonDefaultSupply; // supply offset row,col,lay
 };
 
 #endif // ROUTE_MGR_H

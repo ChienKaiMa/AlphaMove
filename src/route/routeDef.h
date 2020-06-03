@@ -25,6 +25,7 @@ class CellInst;
 class Layer;
 typedef vector<MC*> MCList;
 typedef pair<unsigned, unsigned> Pos;
+typedef pair<unsigned, unsigned> PinPair;
 typedef vector<Layer*> LayerList;
 
 #endif // ROUTE_DEF_H

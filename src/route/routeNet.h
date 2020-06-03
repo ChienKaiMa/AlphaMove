@@ -12,6 +12,8 @@
 #include <vector>
 #include <iostream>
 #include <utility>
+#include <unordered_map>
+#include <unordered_set>
 #include "routeDef.h"
 
 using namespace std;
@@ -26,6 +28,39 @@ typedef vector< pair<unsigned, unsigned> > BlkgList;
 
 extern RouteMgr *routeMgr;
 
+//--------------------------
+// Self-Defined Hasher& Key
+//--------------------------
+//self defined struct for sameGrid & adjGrid MC pairs & nonDefault
+struct MCTri{
+  unsigned idx1, idx2, layNum;
+  MCTri(unsigned n1, unsigned n2, unsigned layN){
+    idx1 = n1 < n2 ? n1 : n2 ;
+    idx2 = n1 < n2 ? n2 : n1 ;
+    layNum = layN;
+  }
+  bool operator == (const MCTri& p ) const{
+    return (this->idx1==p.idx1) && (this->idx2==p.idx2) && 
+            (this->layNum==p.layNum);
+  }
+};
+// hasher for triple
+struct TriHash{
+  size_t operator()(const MCTri& p) const{
+    return ((p.idx1<<27)+(p.idx2<<27)+p.layNum);
+  }
+};
+// hasher for ordered pair
+struct PairHash{
+  size_t operator() (const pair<unsigned, unsigned>& p) const{
+    return ((p.first<<32)+p.second);
+  }
+};
+
+
+//--------------------
+// MasterCell class
+//--------------------
 class MC  // MasterCell 
 {
     friend CellInst;
@@ -53,6 +88,10 @@ private:
     BlkgList    blkgList;   // value pair < LayerNum, demand >
 };
 
+
+//-------------------
+// CellInst class
+//-------------------
 class CellInst
 {
     friend MC;
@@ -69,7 +108,11 @@ private:
 };
 
 
+
 // Multi Layer in a gGrid , i.e. layerGrid
+//-----------------------
+// Layer & gGrid class
+//----------------------
 class Layer 
 {
     friend Ggrid;
@@ -89,10 +132,10 @@ public:
     const Layer& operator [] (unsigned layId) { return *layerList[layId]; }
     void initLayer( unsigned layNum ){ layerList.resize(layNum); }
     static void setBoundary(unsigned rBeg, unsigned cBeg, unsigned rEnd, unsigned cEnd){
-        xMin = rBeg;
-        yMin = cBeg;
-        xMax = rEnd;
-        yMax = cEnd;
+        yMin = rBeg;
+        xMin = cBeg;
+        yMax = rEnd;
+        xMax = cEnd;
     }
     static unsigned xMin;
     static unsigned yMin;
@@ -103,19 +146,19 @@ private:
     LayerList  layerList;
 };
 
+//---------------
+//   Net Class
+//---------------
 
-
-
-
-
-
-
-
-
-
-
-
-
+// TODO
+class Net
+{
+public:
+    Net();
+    ~Net();
+private:
+    unsigned minLayCons; // minimum layer Constraint
+};
 
 
 
