@@ -162,6 +162,8 @@ RouteMgr::readCircuit(const string& fileName)
     uint tmpCnt1;
     uint tmpCnt2;
     uint tmpCnt3;
+    bool tempQ;
+
     unsigned bndCoord[4];
     unsigned gridCoord[3];
     ifs >> buffer; // MaxCellMove
@@ -239,15 +241,28 @@ RouteMgr::readCircuit(const string& fileName)
     ifs >> buffer; // NumNeighborCellExtraDemand or NumCellInst
     if (buffer == "NumNeighborCellExtraDemand")
     {
+        
         ifs >> tmpCnt; // count
         for(unsigned i=1; i<tmpCnt+1; ++i)
         {
             // TODO: sameGGrid and adjHGGrid
             ifs >> buffer; // sameGGrid or adjHGGrid
+            tempQ = buffer == "sameGGrid" ? true : false;
             ifs >> buffer; // masterCellName1
+            tmpCnt1 = stoi(buffer.substr(2));
             ifs >> buffer; // masterCellName2
+            tmpCnt2 = stoi(buffer.substr(2));
             ifs >> buffer; // layerName
+            tmpCnt3 = stoi(buffer.substr(1));
+            MCTri dent(tmpCnt1, tmpCnt2, tmpCnt3);
             ifs >> tmpCnt1; // demand
+
+            pair<MCTri, unsigned> sGd(dent, tmpCnt1);
+            if (tempQ == true) {
+                routeMgr->sameGridDemand.insert(sGd);
+            } else {
+                routeMgr->adjHGridDemand.insert(sGd);
+            }
         }
         ifs >> buffer; // NumCellInst
     }
@@ -335,3 +350,23 @@ RouteMgr::printLaySupply()
         cout << laySupply[i] << endl;
     }
 }
+
+void
+RouteMgr::printExtraDemand()
+{
+    for(auto const& pair : sameGridDemand)
+    {
+        cout << endl;
+        cout << "sameGGrid MC" << pair.first.idx1 << " MC" << pair.first.idx2
+        << " M" << pair.first.layNum << endl;
+        cout << "demand " << pair.second << endl;
+    }
+    for(auto const& pair : adjHGridDemand)
+    {
+        cout << endl;
+        cout << "adjHGGrid MC" << pair.first.idx1 << " MC" << pair.first.idx2
+        << " M" << pair.first.layNum << endl;
+        cout << "demand " << pair.second << endl;
+    }
+}
+
