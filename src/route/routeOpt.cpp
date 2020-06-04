@@ -28,7 +28,17 @@ extern RouteMgr* routeMgr;
 /**************************************************/
 /*   Public member functions about optimization   */
 /**************************************************/
-void RouteMgr::optimize()
+void RouteMgr::place()
 {
-    cout << "Optimizing..." << "(Not function-ready!)" << endl;
+    cout << "Place..." << "(Not function-ready!)" << endl;
+}
+
+void RouteMgr::route()
+{
+    cout << "Route..." << "(Not function-ready!)" << endl;
+}
+
+void RouteMgr::layerassign()
+{
+    cout << "LayerAssign..." << "(Not function-ready!)" << endl;
 }

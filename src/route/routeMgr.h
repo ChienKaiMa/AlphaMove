@@ -27,11 +27,13 @@ public:
     ~RouteMgr() { // TODO: reset();
     } 
     bool readCircuit(const string&);
-    void optimize();
     void printRouteSummary();
     void printMCList();
     void printLaySupply();
     void printExtraDemand();
+    void place();
+    void route();
+    void layerassign();
 private:
     unsigned maxMoveCnt;
     MCList mcList; // id->MC*

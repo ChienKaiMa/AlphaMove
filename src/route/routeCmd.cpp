@@ -189,7 +189,7 @@ RouteWriteCmd::help() const
 }
 
 //----------------------------------------------------------------------
-//    OPTimize
+//    OPTimize < -Place | -Route | -Layerassign >
 //----------------------------------------------------------------------
 CmdExecStatus
 RouteOptCmd::exec(const string& option)
@@ -199,11 +199,22 @@ RouteOptCmd::exec(const string& option)
       return CMD_EXEC_ERROR;
    }
    // check option
-   vector<string> options;
-   CmdExec::lexOptions(option, options);
+   //vector<string> options;
+   string token;
+   if (!CmdExec::lexSingleOption(option, token))
+      return CMD_EXEC_ERROR;
+   //CmdExec::lexOptions(option, token);
 
-   if (!options.empty())
-      return CmdExec::errorOption(CMD_OPT_EXTRA, options[0]);
+   /*if (!options.empty())
+      return CmdExec::errorOption(CMD_OPT_EXTRA, options[0]);*/
+   if (myStrNCmp("-Place", token, 2) == 0)
+      routeMgr->place();
+   else if (myStrNCmp("-Route", token, 2) == 0)
+      routeMgr->route();
+   else if (myStrNCmp("-Layerassign", token, 2) == 0)
+      routeMgr->layerassign();
+   else 
+      return CmdExec::errorOption(CMD_OPT_ILLEGAL, token);
 
    assert(curCmd != ROUTEINIT);
    // routeMgr->optimize();
