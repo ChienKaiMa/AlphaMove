@@ -25,7 +25,7 @@ unsigned Ggrid::yMin = 0;
 /*****************************/
 void 
 MC::printMC() const{
-    cout << "MasterCell MC" << mcId << " " << _layerOfPin.size() << " " << _blkgList.size() << endl;
+    cout << "MasterCell MC" << _mcId << " " << _layerOfPin.size() << " " << _blkgList.size() << endl;
     for (unsigned i=0; i<_layerOfPin.size(); ++i)
         cout << "Pin " << "P" << i+1 << " " << "M" << _layerOfPin[i] << endl; 
     for (unsigned i=0; i<_blkgList.size(); ++i)

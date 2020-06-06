@@ -46,6 +46,7 @@ private:
     unordered_map<MCTri, unsigned, TriHash> _sameGridDemand;
     unordered_map<MCTri, unsigned, TriHash> _adjHGridDemand;
     unordered_map<MCTri, int, TriHash> _nonDefaultSupply; // supply offset row,col,lay
+    
 };
 
 #endif // ROUTE_MGR_H

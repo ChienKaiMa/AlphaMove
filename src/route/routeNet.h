@@ -13,7 +13,7 @@
 #include <iostream>
 #include <utility>
 #include <unordered_map>
-#include <unordered_set>
+#include <set>
 #include "routeDef.h"
 
 using namespace std;
@@ -65,23 +65,23 @@ class MC  // MasterCell
 {
     friend CellInst;
 public:
-    MC(unsigned id, unsigned pinCnt, unsigned blkgCnt) : mcId(id) {
-        layerOfPin.resize(pinCnt);
-        blkgList.resize(blkgCnt);
+    MC(unsigned id, unsigned pinCnt, unsigned blkgCnt) : _mcId(id) {
+        _layerOfPin.resize(pinCnt);
+        _blkgList.resize(blkgCnt);
     }
     ~MC(){}
     void printMC() const;
     bool addPin(unsigned id, unsigned layer) {
         // TODO Error handling
-        layerOfPin[id-1] = layer;
+        _layerOfPin[id-1] = layer;
         return true;
     }
     bool addBlkg(unsigned id, unsigned layer, unsigned demand){
         // TODO Error handling
-        blkgList[id-1] = pair<unsigned, unsigned>(layer, demand);
+        _blkgList[id-1] = pair<unsigned, unsigned>(layer, demand);
         return true;
     }
-    unsigned getId() { return mcId; }
+    unsigned getId() { return _mcId; }
 private:
     unsigned    _mcId;
     UintList    _layerOfPin; // idx: pin  value: layerNum 
@@ -97,7 +97,7 @@ class CellInst
     friend MC;
 public:
     CellInst(unsigned id, Ggrid* grid, MC* mc, bool move): 
-    cellId(id), grid(grid), mc(mc), movable(move) {}
+    _cellId(id), _grid(grid), _mc(mc), _movable(move) {}
     ~CellInst(){}
     Pos getPos();
 private:
@@ -117,7 +117,7 @@ class Layer
 {
     friend Ggrid;
 public:
-    Layer(){ demand = 0;}
+    Layer(){ _demand = 0;}
     ~Layer(){}
     inline void addDemand(int offset){ _demand+=offset; }
 private:
@@ -128,10 +128,10 @@ class Ggrid
 {
     friend CellInst;
 public:
-    Ggrid(Pos coord): pos(coord) {}
+    Ggrid(Pos coord): _pos(coord) {}
     ~Ggrid(){}
-    const Layer& operator [] (unsigned layId) { return *layerList[layId]; }
-    inline void initLayer( unsigned layNum ){ layerList.resize(layNum); }
+    const Layer& operator [] (unsigned layId) { return *_layerList[layId]; }
+    inline void initLayer( unsigned layNum ){ _layerList.resize(layNum); }
     static void setBoundary(unsigned rBeg, unsigned cBeg, unsigned rEnd, unsigned cEnd){
         yMin = rBeg;
         xMin = cBeg;
