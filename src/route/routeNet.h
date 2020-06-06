@@ -34,7 +34,7 @@ extern RouteMgr *routeMgr;
 //self defined struct for sameGrid & adjGrid MC pairs & nonDefault
 struct MCTri{
   unsigned idx1, idx2, layNum;
-  MCTri(unsigned n1, unsigned n2, unsigned layN){
+  MCTri(const unsigned n1, const unsigned n2, const unsigned layN){
     idx1 = n1 < n2 ? n1 : n2 ;
     idx2 = n1 < n2 ? n2 : n1 ;
     layNum = layN;
