@@ -37,12 +37,15 @@ public:
     void layerassign();
 private:
     unsigned maxMoveCnt;
-    MCList mcList; // id->MC*
-    vector<bool> layDir; // layId -> Horizontal or Vertical
-    vector<unsigned> laySupply; // layId -> default supply
-    unordered_map<MCTri, unsigned, TriHash> sameGridDemand;
-    unordered_map<MCTri, unsigned, TriHash> adjHGridDemand;
-    unordered_map<MCTri, int, TriHash> nonDefaultSupply; // supply offset row,col,lay
+    MCList   _mcList; // id->MC*
+    InstList _instList; // 1D array
+    GridList _gridList; // 2D array
+    NetList  _netList;  // Net
+    vector<bool> _layDir; // layId -> Horizontal or Vertical
+    vector<unsigned> _laySupply; // layId -> default supply
+    unordered_map<MCTri, unsigned, TriHash> _sameGridDemand;
+    unordered_map<MCTri, unsigned, TriHash> _adjHGridDemand;
+    unordered_map<MCTri, int, TriHash> _nonDefaultSupply; // supply offset row,col,lay
 };
 
 #endif // ROUTE_MGR_H

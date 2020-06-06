@@ -83,9 +83,9 @@ public:
     }
     unsigned getId() { return mcId; }
 private:
-    unsigned    mcId;
-    UintList    layerOfPin; // idx: pin  value: layerNum 
-    BlkgList    blkgList;   // value pair < LayerNum, demand >
+    unsigned    _mcId;
+    UintList    _layerOfPin; // idx: pin  value: layerNum 
+    BlkgList    _blkgList;   // value pair < LayerNum, demand >
 };
 
 
@@ -101,10 +101,10 @@ public:
     ~CellInst(){}
     Pos getPos();
 private:
-    unsigned cellId;
-    bool     movable;
-    Ggrid*   grid;   // in which grid;
-    MC*      mc; // storing MasterCell Info.
+    unsigned _cellId;
+    bool     _movable;
+    Ggrid*   _grid;   // in which grid;
+    MC*      _mc; // storing MasterCell Info.
 };
 
 
@@ -119,8 +119,9 @@ class Layer
 public:
     Layer(){ demand = 0;}
     ~Layer(){}
+    inline void addDemand(int offset){ _demand+=offset; }
 private:
-    unsigned demand;
+    unsigned _demand;
 };
 
 class Ggrid
@@ -130,7 +131,7 @@ public:
     Ggrid(Pos coord): pos(coord) {}
     ~Ggrid(){}
     const Layer& operator [] (unsigned layId) { return *layerList[layId]; }
-    void initLayer( unsigned layNum ){ layerList.resize(layNum); }
+    inline void initLayer( unsigned layNum ){ layerList.resize(layNum); }
     static void setBoundary(unsigned rBeg, unsigned cBeg, unsigned rEnd, unsigned cEnd){
         yMin = rBeg;
         xMin = cBeg;
@@ -142,8 +143,8 @@ public:
     static unsigned xMax;
     static unsigned yMax;
 private:
-    Pos        pos;
-    LayerList  layerList;
+    Pos        _pos;
+    LayerList  _layerList;
 };
 
 //---------------
@@ -154,30 +155,13 @@ private:
 class Net
 {
 public:
-    Net();
+    Net(unsigned layCons): _minLayCons(layCons) {};
     ~Net();
+    inline void addPin(pair<unsigned, unsigned> pin){ _pinSet.insert(pin); }
 private:
-    unsigned minLayCons; // minimum layer Constraint
+    unsigned _minLayCons; // minimum layer Constraints
+    set<pair<unsigned,unsigned>> _pinSet; // a set of pins i.e. <instance id, pin id>  pair
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 #endif // ROUTE_NET_H

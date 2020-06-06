@@ -25,11 +25,11 @@ unsigned Ggrid::yMin = 0;
 /*****************************/
 void 
 MC::printMC() const{
-    cout << "MasterCell MC" << mcId << " " << layerOfPin.size() << " " << blkgList.size() << endl;
-    for (unsigned i=0; i<layerOfPin.size(); ++i)
-        cout << "Pin " << "P" << i+1 << " " << "M" << layerOfPin[i] << endl; 
-    for (unsigned i=0; i<blkgList.size(); ++i)
-        cout << "Blkg " << "B" << i+1 << " " << "M" << blkgList[i].first << " " << blkgList[i].second << endl; 
+    cout << "MasterCell MC" << mcId << " " << _layerOfPin.size() << " " << _blkgList.size() << endl;
+    for (unsigned i=0; i<_layerOfPin.size(); ++i)
+        cout << "Pin " << "P" << i+1 << " " << "M" << _layerOfPin[i] << endl; 
+    for (unsigned i=0; i<_blkgList.size(); ++i)
+        cout << "Blkg " << "B" << i+1 << " " << "M" << _blkgList[i].first << " " << _blkgList[i].second << endl; 
 }
 
 
@@ -39,7 +39,7 @@ MC::printMC() const{
 /***********************************/
 Pos
 CellInst::getPos(){
-	return grid->pos; 
+	return _grid->_pos; 
 }
 
 

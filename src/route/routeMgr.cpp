@@ -182,7 +182,7 @@ RouteMgr::readCircuit(const string& fileName)
         ifs >> buffer; // Idx
         ifs >> buffer; // RoutingDirection
         ifs >> supply; // defaultSupplyOfOneGGrid
-        laySupply.push_back(supply);
+        _laySupply.push_back(supply);
         // myLayers.push_back(lay);
     }
     ifs >> buffer; // NumNonDefaultSupplyGGrid or NumMasterCell
@@ -208,10 +208,10 @@ RouteMgr::readCircuit(const string& fileName)
             if (myStr2Int(buffer.substr(1), supply)) {
                 if (tempQ == true) {
                     pair<MCTri, unsigned> sGd(dent, supply);
-                    routeMgr->nonDefaultSupply.insert(sGd);
+                    this->_nonDefaultSupply.insert(sGd);
                 } else {
                     pair<MCTri, unsigned> sGd(dent, -supply);
-                    routeMgr->nonDefaultSupply.insert(sGd);
+                    this->_nonDefaultSupply.insert(sGd);
                 }
             }
         }
@@ -247,7 +247,7 @@ RouteMgr::readCircuit(const string& fileName)
                 Laren->addBlkg(j, layer, tmpCnt3);
             }
         }
-        mcList.push_back(Laren);
+        _mcList.push_back(Laren);
     }
     ifs >> buffer; // NumNeighborCellExtraDemand or NumCellInst
     if (buffer == "NumNeighborCellExtraDemand")
@@ -270,9 +270,9 @@ RouteMgr::readCircuit(const string& fileName)
 
             pair<MCTri, unsigned> sGd(dent, tmpCnt1);
             if (tempQ == true) {
-                routeMgr->sameGridDemand.insert(sGd);
+                this->_sameGridDemand.insert(sGd);
             } else {
-                routeMgr->adjHGridDemand.insert(sGd);
+                this->_adjHGridDemand.insert(sGd);
             }
         }
         ifs >> buffer; // NumCellInst
@@ -333,8 +333,8 @@ RouteMgr::printRouteSummary()
     cout << "CurrentMove" << setw(8) << 0 << endl;
     cout << "Boundary" << setw(5) << Ggrid::xMin << " " << Ggrid::yMin << " " << Ggrid::xMax
     << " " << Ggrid::yMax << endl;
-    cout << "Total layer" << setw(8) << laySupply.size() << endl;
-    cout << "Total MC" << setw(11) << mcList.size() << endl;
+    cout << "Total layer" << setw(8) << _laySupply.size() << endl;
+    cout << "Total MC" << setw(11) << _mcList.size() << endl;
     // TODO: Support more information
     // cout << "CellInst" << setw(11) << numCellInst << endl;
     // cout << "OrigNet" << setw(12) << numNet << endl;
@@ -346,33 +346,33 @@ RouteMgr::printRouteSummary()
 void
 RouteMgr::printMCList()
 {
-    for(unsigned i=0; i<mcList.size(); ++i)
+    for(unsigned i=0; i<_mcList.size(); ++i)
     {
         cout << endl;
-        mcList[i]->printMC();
+        _mcList[i]->printMC();
     }
 }
 
 void
 RouteMgr::printLaySupply()
 {
-    for(unsigned i=0; i<laySupply.size(); ++i)
+    for(unsigned i=0; i<_laySupply.size(); ++i)
     {
-        cout << laySupply[i] << endl;
+        cout << _laySupply[i] << endl;
     }
 }
 
 void
 RouteMgr::printExtraDemand()
 {
-    for(auto const& pair : sameGridDemand)
+    for(auto const& pair : _sameGridDemand)
     {
         cout << endl;
         cout << "sameGGrid MC" << pair.first.idx1 << " MC" << pair.first.idx2
         << " M" << pair.first.layNum << endl;
         cout << "demand " << pair.second << endl;
     }
-    for(auto const& pair : adjHGridDemand)
+    for(auto const& pair : _adjHGridDemand)
     {
         cout << endl;
         cout << "adjHGGrid MC" << pair.first.idx1 << " MC" << pair.first.idx2
@@ -384,7 +384,7 @@ RouteMgr::printExtraDemand()
 void
 RouteMgr::printNonDefaultSupply()
 {
-    for(auto const& pair : nonDefaultSupply)
+    for(auto const& pair : _nonDefaultSupply)
     {
         cout << endl;
         cout << pair.first.idx1 << " " << pair.first.idx2
