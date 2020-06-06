@@ -237,7 +237,7 @@ RouteOptCmd::help() const
 }
 
 //----------------------------------------------------------------------
-//    MgrPrint [-Summary | -MC | -Extra]
+//    MgrPrint [-Summary | -MC | -Extra | -NOndefaultsupply]
 //----------------------------------------------------------------------
 CmdExecStatus
 MgrPrintCmd::exec(const string& option)
@@ -253,14 +253,14 @@ MgrPrintCmd::exec(const string& option)
    }
    if (token.empty() || myStrNCmp("-Summary", token, 2) == 0)
       routeMgr->printRouteSummary();
-   else if (myStrNCmp("-Netlist", token, 2) == 0)
+   else if (myStrNCmp("-NEtlist", token, 3) == 0)
       cout << "routeMgr->printNetlist()" << endl;
    else if (myStrNCmp("-MC", token, 3) == 0)
       routeMgr->printMCList();
    else if (myStrNCmp("-Extra", token, 2) == 0)
       routeMgr->printExtraDemand();
-   else if (myStrNCmp("-FLoating", token, 3) == 0)
-      cout << "routeMgr->printFloatGates()" << endl;
+   else if (myStrNCmp("-NOndefaultsupply", token, 3) == 0)
+      routeMgr->printNonDefaultSupply();
    else if (myStrNCmp("-FECpairs", token, 4) == 0)
       cout << "routeMgr->printFECPairs()" << endl;
    else
@@ -272,7 +272,7 @@ MgrPrintCmd::exec(const string& option)
 void
 MgrPrintCmd::usage(ostream& os) const
 {  
-   os << "Usage: MgrPrint [-Summary | -MC | -Extra]" << endl;
+   os << "Usage: MgrPrint [-Summary | -MC | -Extra | -NOndefaultsupply]" << endl;
 }
 
 void

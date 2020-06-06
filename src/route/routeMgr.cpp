@@ -194,15 +194,26 @@ RouteMgr::readCircuit(const string& fileName)
             // TODO: hash for the offset supply
             // default+check(idx)
             // if yes return offset if no return 0
-            for(unsigned i=0; i<3; ++i)
-                ifs >> gridCoord[i];
-            /*
-            ifs >> buffer; // rowIdx
-            ifs >> buffer; // colIdx
-            ifs >> buffer; // LayIdx
-            */
-            // TODO: handle negative number
-            ifs >> tmpCnt1; // incrOrDecrValue
+            ifs >> tmpCnt1; // rowIdx
+            ifs >> tmpCnt2; // colIdx
+            ifs >> tmpCnt3; // LayIdx
+            MCTri dent(tmpCnt1, tmpCnt2, tmpCnt3);
+            int supply;
+            ifs >> buffer; // incrOrDecrValue
+            if (buffer[0] == '+') {
+                tempQ = true;
+            } else {
+                tempQ = false;
+            }
+            if (myStr2Int(buffer.substr(1), supply)) {
+                if (tempQ == true) {
+                    pair<MCTri, unsigned> sGd(dent, supply);
+                    routeMgr->nonDefaultSupply.insert(sGd);
+                } else {
+                    pair<MCTri, unsigned> sGd(dent, -supply);
+                    routeMgr->nonDefaultSupply.insert(sGd);
+                }
+            }
         }
         ifs >> buffer; // NumMasterCell
     }
@@ -367,6 +378,18 @@ RouteMgr::printExtraDemand()
         cout << "adjHGGrid MC" << pair.first.idx1 << " MC" << pair.first.idx2
         << " M" << pair.first.layNum << endl;
         cout << "demand " << pair.second << endl;
+    }
+}
+
+void
+RouteMgr::printNonDefaultSupply()
+{
+    for(auto const& pair : nonDefaultSupply)
+    {
+        cout << endl;
+        cout << pair.first.idx1 << " " << pair.first.idx2
+        << " " << pair.first.layNum << endl;
+        cout << "supply " << pair.second << endl;
     }
 }
 

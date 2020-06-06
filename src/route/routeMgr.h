@@ -30,6 +30,7 @@ public:
     void printRouteSummary();
     void printMCList();
     void printLaySupply();
+    void printNonDefaultSupply();
     void printExtraDemand();
     void place();
     void route();
