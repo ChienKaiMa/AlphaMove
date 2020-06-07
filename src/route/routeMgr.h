@@ -27,11 +27,15 @@ public:
     ~RouteMgr() { // TODO: reset();
     } 
     bool readCircuit(const string&);
+
     void printRouteSummary();
+    void printNetlist();
     void printMCList();
     void printLaySupply();
     void printNonDefaultSupply();
     void printExtraDemand();
+    void printCellInst();
+    
     void place();
     void route();
     void layerassign();

@@ -1,5 +1,5 @@
 /****************************************************************************
-  FileName     [ cirNet.cpp ]
+  FileName     [ routeNet.cpp ]
   PackageName  [ cir ]
   Synopsis     [ Define class in routeNet.h member functions ]
   Author       [ TBD ]

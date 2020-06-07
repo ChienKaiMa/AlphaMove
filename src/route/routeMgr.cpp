@@ -24,7 +24,7 @@ using namespace std;
 /*   Global variable and enum  */
 /*******************************/
 RouteMgr* routeMgr = 0;
-
+/*
 enum RouteParseError {
   EXTRA_SPACE,
   MISSING_SPACE,
@@ -51,6 +51,7 @@ enum RouteParseError {
 /**************************************/
 /*   Static variables and functions   */
 /**************************************/
+/*
 static unsigned lineNo = 0;  // in printint, lineNo needs to ++
 static unsigned colNo  = 0;  // in printing, colNo needs to ++
 static char buf[1024];
@@ -143,7 +144,7 @@ parseError(RouteParseError err)
   }
   return false;
 }
-
+*/
 /**************************************************************/
 /*   class RouteMgr member functions for circuit construction   */
 /**************************************************************/
@@ -191,8 +192,6 @@ RouteMgr::readCircuit(const string& fileName)
         ifs >> tmpCnt; // nonDefaultSupplyGGridCount
         for(unsigned i=0; i<tmpCnt; ++i)
         {
-            // TODO: hash for the offset supply
-            // default+check(idx)
             // if yes return offset if no return 0
             ifs >> tmpCnt1; // rowIdx
             ifs >> tmpCnt2; // colIdx
@@ -256,7 +255,6 @@ RouteMgr::readCircuit(const string& fileName)
         ifs >> tmpCnt; // count
         for(unsigned i=1; i<tmpCnt+1; ++i)
         {
-            // TODO: sameGGrid and adjHGGrid
             ifs >> buffer; // sameGGrid or adjHGGrid
             tempQ = buffer == "sameGGrid" ? true : false;
             ifs >> buffer; // masterCellName1
@@ -279,17 +277,21 @@ RouteMgr::readCircuit(const string& fileName)
     }
 
     // Initial cell and net placement
-    ifs >> buffer; // NumCellInst
     ifs >> tmpCnt; // cellInstCount
+    int mcNum;
     for(unsigned i=0; i<tmpCnt; ++i)
     {
         ifs >> buffer; // CellInst
         ifs >> buffer; // instName
         ifs >> buffer; // masterCellName
-        // TODO
-        ifs >> buffer; // gGridRowIdx
-        ifs >> buffer; // gGridColIdx
+        myStr2Int(buffer.substr(2), mcNum);
+        ifs >> tmpCnt1; // gGridRowIdx
+        ifs >> tmpCnt2; // gGridColIdx
         ifs >> buffer; // movableCstr
+        tempQ = (buffer == "Movable") ? true : false;
+        Ggrid* cool = new Ggrid(Pos(tmpCnt1, tmpCnt2));
+        CellInst* love = new CellInst(i+1, cool, this->_mcList[mcNum-1], tempQ);
+        _instList.push_back(love);
     }
     ifs >> buffer; // NumNets
     ifs >> tmpCnt; // netCount
@@ -298,14 +300,26 @@ RouteMgr::readCircuit(const string& fileName)
         ifs >> buffer; // Net
         ifs >> buffer; // netName
         ifs >> tmpCnt1; // numPins
-        // TODO
         ifs >> buffer; // minRoutingLayConstraint
+        Net* brook;
+        if (buffer != "NoCstr") {
+            int layCons = stoi(buffer.substr(1));
+            brook = new Net(layCons);
+        } else {
+            brook = new Net(0); // [Important] NoCstr
+        }
         for(unsigned j=0; j<tmpCnt1; ++j)
         {
             ifs >> buffer; // Pin
-            // TODO
             ifs >> buffer; // instName/masterPinName
+            tmpCnt2 = buffer.find_first_of('/');
+            string instName = buffer.substr(0, tmpCnt2);
+            string masterPinName = buffer.substr(tmpCnt2);
+            int inst = stoi(instName.substr(1));
+            int mstrPin = stoi(masterPinName.substr(2));
+            brook->addPin(Pos(inst, mstrPin));
         }
+        _netList.push_back(brook);
     }
 
     // Initial routing data
@@ -341,6 +355,17 @@ RouteMgr::printRouteSummary()
     // cout << "CurrNet" << setw(12) << numNet << endl;
     // cout << "OrigRoute" << setw(10) << numRoute << endl;    
     // cout << "CurrRoute" << setw(10) << numRoute << endl;
+}
+
+void
+RouteMgr::printNetlist()
+{
+    for(unsigned i=0; i<_netList.size(); ++i)
+    {
+        cout << endl;
+        cout << "MinLayerConstr " << _netList[i]->getMinLayCons() << endl;
+        _netList[i]->printPinSet();
+    }
 }
 
 void
@@ -390,6 +415,16 @@ RouteMgr::printNonDefaultSupply()
         cout << pair.first.idx1 << " " << pair.first.idx2
         << " " << pair.first.layNum << endl;
         cout << "supply " << pair.second << endl;
+    }
+}
+
+void
+RouteMgr::printCellInst()
+{
+    for(unsigned i=0; i<_instList.size(); ++i)
+    {
+        cout << endl;
+        _instList[i]->printCell();
     }
 }
 

@@ -101,6 +101,16 @@ public:
     ~CellInst(){}
     Pos getPos();
     Ggrid* getGrid() {return _grid;}
+    void printCell() {
+        cout << _cellId << endl;
+        if (_movable) {
+            cout << "Movable" << endl;
+        } else {
+            cout << "Not movable" << endl;
+        }
+        cout << " " << getPos().first << " " << getPos().second << endl;
+        _mc->printMC();
+    }
 private:
     unsigned _cellId;
     bool     _movable;
@@ -170,6 +180,16 @@ public:
     Net(unsigned layCons): _minLayCons(layCons) {};
     ~Net();
     inline void addPin(pair<unsigned, unsigned> pin){ _pinSet.insert(pin); }
+    unsigned getMinLayCons() { return _minLayCons; }
+    set<pair<unsigned, unsigned>> getPinSet() { return _pinSet; }
+    void printPinSet()
+    {
+        for(auto it = _pinSet.begin(); it != _pinSet.end(); ++it)
+        {
+            auto a = *it;
+            cout << a.first << " " << a.second << endl;
+        }
+    }
 private:
     unsigned _minLayCons; // minimum layer Constraints
     set<pair<unsigned,unsigned>> _pinSet; // a set of pins i.e. <instance id, pin id>  pair
