@@ -189,7 +189,7 @@ RouteWriteCmd::help() const
 }
 
 //----------------------------------------------------------------------
-//    OPTimize < -Place | -Route | -Layerassign >
+//    OPTimize
 //----------------------------------------------------------------------
 CmdExecStatus
 RouteOptCmd::exec(const string& option)
@@ -199,22 +199,11 @@ RouteOptCmd::exec(const string& option)
       return CMD_EXEC_ERROR;
    }
    // check option
-   //vector<string> options;
-   string token;
-   if (!CmdExec::lexSingleOption(option, token))
-      return CMD_EXEC_ERROR;
-   //CmdExec::lexOptions(option, token);
+   vector<string> options;
+   CmdExec::lexOptions(option, options);
 
-   /*if (!options.empty())
-      return CmdExec::errorOption(CMD_OPT_EXTRA, options[0]);*/
-   if (myStrNCmp("-Place", token, 2) == 0)
-      routeMgr->place();
-   else if (myStrNCmp("-Route", token, 2) == 0)
-      routeMgr->route();
-   else if (myStrNCmp("-Layerassign", token, 2) == 0)
-      routeMgr->layerassign();
-   else 
-      return CmdExec::errorOption(CMD_OPT_ILLEGAL, token);
+   if (!options.empty())
+      return CmdExec::errorOption(CMD_OPT_EXTRA, options[0]);
 
    assert(curCmd != ROUTEINIT);
    // routeMgr->optimize();
@@ -237,7 +226,7 @@ RouteOptCmd::help() const
 }
 
 //----------------------------------------------------------------------
-//    MgrPrint [-Summary | -MC | -Extra | -NOndefaultsupply]
+//    MgrPrint [-Summary | -Netlist]
 //----------------------------------------------------------------------
 CmdExecStatus
 MgrPrintCmd::exec(const string& option)
@@ -253,14 +242,14 @@ MgrPrintCmd::exec(const string& option)
    }
    if (token.empty() || myStrNCmp("-Summary", token, 2) == 0)
       routeMgr->printRouteSummary();
-   else if (myStrNCmp("-NEtlist", token, 3) == 0)
+   else if (myStrNCmp("-Netlist", token, 2) == 0)
       cout << "routeMgr->printNetlist()" << endl;
    else if (myStrNCmp("-MC", token, 3) == 0)
       routeMgr->printMCList();
-   else if (myStrNCmp("-Extra", token, 2) == 0)
-      routeMgr->printExtraDemand();
-   else if (myStrNCmp("-NOndefaultsupply", token, 3) == 0)
-      routeMgr->printNonDefaultSupply();
+   else if (myStrNCmp("-PO", token, 3) == 0)
+      cout << "routeMgr->printPOs()" << endl;
+   else if (myStrNCmp("-FLoating", token, 3) == 0)
+      cout << "routeMgr->printFloatGates()" << endl;
    else if (myStrNCmp("-FECpairs", token, 4) == 0)
       cout << "routeMgr->printFECPairs()" << endl;
    else
@@ -272,7 +261,7 @@ MgrPrintCmd::exec(const string& option)
 void
 MgrPrintCmd::usage(ostream& os) const
 {  
-   os << "Usage: MgrPrint [-Summary | -MC | -Extra | -NOndefaultsupply]" << endl;
+   os << "Usage: MgrPrint [-Summary | -Netlist]" << endl;
 }
 
 void
@@ -300,6 +289,8 @@ CellPrintCmd::exec(const string& option)
       cout << "routeMgr->printSummary()" << endl;
    else if (myStrNCmp("-Netlist", token, 2) == 0)
       cout << "routeMgr->printNetlist()" << endl;
+   else if (myStrNCmp("-MC", token, 3) == 0)
+      routeMgr->printMCList();
    else if (myStrNCmp("-PO", token, 3) == 0)
       cout << "routeMgr->printPOs()" << endl;
    else if (myStrNCmp("-FLoating", token, 3) == 0)

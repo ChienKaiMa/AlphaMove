@@ -35,6 +35,9 @@ public:
     void place();
     void route();
     void layerassign();
+    void initSupply();
+    void add2DDemand(Net*);
+    void remove2DDemand(Net*);
 private:
     unsigned maxMoveCnt;
     MCList   _mcList; // id->MC*
@@ -46,7 +49,7 @@ private:
     unordered_map<MCTri, unsigned, TriHash> _sameGridDemand;
     unordered_map<MCTri, unsigned, TriHash> _adjHGridDemand;
     unordered_map<MCTri, int, TriHash> _nonDefaultSupply; // supply offset row,col,lay
-    
+    bool _placeStrategy;//0 for force-directed, 1 for congestion-based move
 };
 
 #endif // ROUTE_MGR_H

@@ -393,3 +393,38 @@ RouteMgr::printNonDefaultSupply()
     }
 }
 
+void
+RouteMgr::initSupply()
+{
+    /*Psuedo Code
+    total_default_supply = 0;
+    for i=1 to _layerSupply.length
+        total_default_supply += _layerSupply[i];
+    for i=1 to gridList.length
+        gridList[i]._2dSupply = total_default_supply;
+        for i=1 to _layerSupply.length
+            use unorder_map to add/sub nondefault supply
+    */
+}
+
+void
+RouteMgr::add2DDemand(Net* net) //Intialize、after each route
+{
+    /*Psuedo Code
+    unsigned available_layer = _layerSupply.length - net->_minLayCons;
+    double constraint = _layerSupply.length/available_layer;
+
+    go through net, for every passing grid g, call g.updateDemand(constraint)
+    */
+}
+
+void 
+RouteMgr::remove2DDemand(Net* net) //before each route
+{
+    /*Psuedo Code
+    unsigned available_layer = _layerSupply.length - net->_minLayCons;
+    double constraint = _layerSupply.length/available_layer;
+
+    go through net, for every passing grid g, call g.updateDemand(-constraint)
+    */
+}

@@ -7,6 +7,7 @@
 
 #ifndef ROUTE_NET_H
 #define ROUTE_NET_H
+#define CONGESTION_PARAMETER 1.0
 
 #include <string>
 #include <vector>
@@ -20,7 +21,6 @@ using namespace std;
 
 typedef vector<unsigned> UintList;
 typedef vector< pair<unsigned, unsigned> > BlkgList;
-
 
 //---------------------
 // class Definition
@@ -100,6 +100,7 @@ public:
     _cellId(id), _grid(grid), _mc(mc), _movable(move) {}
     ~CellInst(){}
     Pos getPos();
+    Ggrid* getGrid() {return _grid;}
 private:
     unsigned _cellId;
     bool     _movable;
@@ -128,7 +129,7 @@ class Ggrid
 {
     friend CellInst;
 public:
-    Ggrid(Pos coord): _pos(coord) {}
+    Ggrid(Pos coord): _pos(coord), _2dDemand(0), _2dSupply(0), _2dCongestion(0) {}
     ~Ggrid(){}
     const Layer& operator [] (unsigned layId) { return *_layerList[layId]; }
     inline void initLayer( unsigned layNum ){ _layerList.resize(layNum); }
@@ -142,9 +143,20 @@ public:
     static unsigned yMin;
     static unsigned xMax;
     static unsigned yMax;
+    void updateDemand( int deltaDemand ) { 
+        _2dDemand = _2dDemand + deltaDemand;
+        _2dCongestion = (double)((_2dSupply - _2dDemand * CONGESTION_PARAMETER) / _2dSupply); 
+    }
+    double getCongestion() {return _2dCongestion;}
+    void updatePos( Pos newpos ){
+        _pos = newpos;
+    }
 private:
     Pos        _pos;
     LayerList  _layerList;
+    unsigned   _2dSupply;
+    unsigned   _2dDemand;
+    double     _2dCongestion;
 };
 
 //---------------
