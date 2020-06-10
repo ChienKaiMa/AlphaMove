@@ -100,17 +100,12 @@ public:
     _cellId(id), _grid(grid), _mc(mc), _movable(move) {}
     ~CellInst(){}
     Pos getPos();
+    Pos getPos() const;
     Ggrid* getGrid() {return _grid;}
-    void printCell() {
-        cout << _cellId << endl;
-        if (_movable) {
-            cout << "Movable" << endl;
-        } else {
-            cout << "Not movable" << endl;
-        }
-        cout << " " << getPos().first << " " << getPos().second << endl;
-        _mc->printMC();
-    }
+    unsigned getId() const { return _cellId; }
+    void printPos(ostream&) const;
+    void printPos() const;
+    void printCell() const;
 private:
     unsigned _cellId;
     bool     _movable;
@@ -153,6 +148,8 @@ public:
     static unsigned yMin;
     static unsigned xMax;
     static unsigned yMax;
+
+    void set2dSupply(int supply) { _2dSupply = supply; }
     void updateDemand( int deltaDemand ) { 
         _2dDemand = _2dDemand + deltaDemand;
         _2dCongestion = (double)((_2dSupply - _2dDemand * CONGESTION_PARAMETER) / _2dSupply); 
@@ -161,13 +158,41 @@ public:
     void updatePos( Pos newpos ){
         _pos = newpos;
     }
+    Pos getPos() const { return _pos; }
+
 private:
     Pos        _pos;
     LayerList  _layerList;
+    InstList   _cellOnGridList;
     unsigned   _2dSupply;
     unsigned   _2dDemand;
     double     _2dCongestion;
 };
+
+//-------------------
+//   Segment Class
+//-------------------
+
+// TODO
+class Segment
+{
+public:
+    Segment() {}
+    ~Segment() {}
+    Segment(unsigned scol, unsigned srow, unsigned slay, unsigned ecol, unsigned erow, unsigned elay)
+    {
+        startPos[0] = scol;
+        startPos[1] = srow;
+        startPos[2] = slay;
+        endPos[0] = ecol;
+        endPos[1] = erow;
+        endPos[2] = elay;
+    }
+    void print() const;
+    unsigned startPos[3];
+    unsigned endPos[3];
+};
+
 
 //---------------
 //   Net Class
@@ -180,19 +205,15 @@ public:
     Net(unsigned layCons): _minLayCons(layCons) {};
     ~Net();
     inline void addPin(pair<unsigned, unsigned> pin){ _pinSet.insert(pin); }
+    void addSeg(Segment* s) { _netSegs.push_back(s); }
     unsigned getMinLayCons() { return _minLayCons; }
     set<pair<unsigned, unsigned>> getPinSet() { return _pinSet; }
-    void printPinSet()
-    {
-        for(auto it = _pinSet.begin(); it != _pinSet.end(); ++it)
-        {
-            auto a = *it;
-            cout << a.first << " " << a.second << endl;
-        }
-    }
+    void printPinSet() const;
+    void printAllSeg() const;
 private:
     unsigned _minLayCons; // minimum layer Constraints
     set<pair<unsigned,unsigned>> _pinSet; // a set of pins i.e. <instance id, pin id>  pair
+    vector<Segment*> _netSegs;
 };
 
 

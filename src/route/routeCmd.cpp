@@ -129,13 +129,17 @@ RouteWriteCmd::exec(const string& option)
    CmdExec::lexOptions(option, options);
 
    if (options.empty()) {
-      cout << "routeMgr->writeAag(cout)" << endl;
+      // TODO
+      cout << "Constructing..." << endl;
+      routeMgr->writeCircuit(cout);
       return CMD_EXEC_DONE;
    }
    bool hasFile = false;
    /*
    int gateId;
    CirGate *thisGate = NULL;
+   */
+
    ofstream outfile;
    for (size_t i = 0, n = options.size(); i < n; ++i) {
       if (myStrNCmp("-Output", options[i], 2) == 0) {
@@ -148,6 +152,7 @@ RouteWriteCmd::exec(const string& option)
             return CmdExec::errorOption(CMD_OPT_FOPEN_FAIL, options[1]);
          hasFile = true;
       }
+      /*
       else if (myStr2Int(options[i], gateId) && gateId >= 0) {
          if (thisGate != NULL)
             return CmdExec::errorOption(CMD_OPT_EXTRA, options[i]);
@@ -161,9 +166,11 @@ RouteWriteCmd::exec(const string& option)
             return CmdExec::errorOption(CMD_OPT_ILLEGAL, options[i]);
          }
       }
+      */
       else return CmdExec::errorOption(CMD_OPT_ILLEGAL, options[i]);
    }
-
+   routeMgr->writeCircuit(outfile);
+   /*
    if (!thisGate) {
       assert (hasFile);
       routeMgr->writeAag(outfile);
@@ -374,7 +381,7 @@ LayPrintCmd::help() const
 }
 
 //----------------------------------------------------------------------
-//    NETPrint [-Summary | -Netlist | -PI | -PO | -FLoating | -FECpairs]
+//    NETPrint [-SUmmary | -SEgment]
 //----------------------------------------------------------------------
 CmdExecStatus
 NetPrintCmd::exec(const string& option)
@@ -388,10 +395,10 @@ NetPrintCmd::exec(const string& option)
       cerr << "Error: circuit is not yet constructed!!" << endl;
       return CMD_EXEC_ERROR;
    }
-   if (token.empty() || myStrNCmp("-Summary", token, 2) == 0)
+   if (token.empty() || myStrNCmp("-SUmmary", token, 3) == 0)
       cout << "routeMgr->printSummary()" << endl;
-   else if (myStrNCmp("-Netlist", token, 2) == 0)
-      cout << "routeMgr->printNetlist()" << endl;
+   else if (myStrNCmp("-SEgment", token, 3) == 0)
+      routeMgr->printInitSegs();
    else if (myStrNCmp("-PI", token, 3) == 0)
       cout << "routeMgr->printPIs()" << endl;
    else if (myStrNCmp("-PO", token, 3) == 0)

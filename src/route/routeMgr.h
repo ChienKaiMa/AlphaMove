@@ -27,14 +27,17 @@ public:
     ~RouteMgr() { // TODO: reset();
     } 
     bool readCircuit(const string&);
+    void writeCircuit(ostream&) const;
+    void setRouteLog(ofstream *logFile) { _tempRoute = logFile; }
 
-    void printRouteSummary();
-    void printNetlist();
-    void printMCList();
-    void printLaySupply();
-    void printNonDefaultSupply();
-    void printExtraDemand();
-    void printCellInst();
+    void printRouteSummary() const;
+    void printNetlist() const;
+    void printMCList() const;
+    void printLaySupply() const;
+    void printNonDefaultSupply() const;
+    void printExtraDemand() const;
+    void printCellInst() const;
+    void printInitSegs() const;
     
     void place();
     void route();
@@ -44,6 +47,8 @@ public:
     void remove2DDemand(Net*);
 private:
     unsigned maxMoveCnt;
+    unsigned initTotalWL; // wirelength
+    vector<Segment*> initRouteSegs; // TODO: check redundancy
     MCList   _mcList; // id->MC*
     InstList _instList; // 1D array
     GridList _gridList; // 2D array
@@ -53,7 +58,14 @@ private:
     unordered_map<MCTri, unsigned, TriHash> _sameGridDemand;
     unordered_map<MCTri, unsigned, TriHash> _adjHGridDemand;
     unordered_map<MCTri, int, TriHash> _nonDefaultSupply; // supply offset row,col,lay
-    bool _placeStrategy;//0 for force-directed, 1 for congestion-based move
+    bool _placeStrategy; // 0 for force-directed, 1 for congestion-based move
+
+    // Results
+    // TODO: maintain and prepare for output
+    unsigned curMoveCnt = 0;
+    unsigned curTotalWL;
+    InstList _movedList;
+    ofstream *_tempRoute;
 };
 
 #endif // ROUTE_MGR_H
