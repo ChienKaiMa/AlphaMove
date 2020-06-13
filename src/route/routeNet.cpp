@@ -73,6 +73,12 @@ CellInst::printCell() const
     _mc->printMC();
 }
 
+void
+CellInst::move(Pos newPos)
+{
+    _grid->updatePos(newPos);
+}
+
 /**********************************/
 /* class Segment member functions */
 /**********************************/
@@ -80,7 +86,14 @@ void
 Segment::print() const
 {
     cout << startPos[0] << " " << startPos[1] << " " << startPos[2];
-    cout << " " << endPos[0] << " " << endPos[1] << " " << endPos[2] << endl;
+    cout << " " << endPos[0] << " " << endPos[1] << " " << endPos[2];
+}
+
+void
+Segment::print(ostream& outfile) const
+{
+    outfile << startPos[0] << " " << startPos[1] << " " << startPos[2];
+    outfile << " " << endPos[0] << " " << endPos[1] << " " << endPos[2];
 }
 
 
@@ -102,9 +115,18 @@ Net::printAllSeg() const
 {
     for (unsigned i=0; i<_netSegs.size(); ++i) {
         _netSegs[i]->print();
+        cout << " N" << _netId << endl;
     }
 }
 
+void
+Net::printAllSeg(ostream& outfile) const
+{
+    for (unsigned i=0; i<_netSegs.size(); ++i) {
+        _netSegs[i]->print(outfile);
+        outfile << " N" << _netId << endl;
+    }
+}
 
 
 

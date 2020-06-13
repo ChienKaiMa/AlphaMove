@@ -89,3 +89,23 @@ void RouteMgr::layerassign()
 {
     cout << "LayerAssign..." << "(Not function-ready!)" << endl;
 }
+
+void
+RouteMgr::koova_place()
+{
+    // heuristicly move the first cell instance
+    unsigned fst = _instList[0]->getPos().first;
+    unsigned sec = _instList[0]->getPos().second;
+    _instList[0]->move(Pos((Ggrid::yMax + fst)/2, (Ggrid::xMax + sec)/2));
+    _movedList.push_back(_instList[0]);
+    ++curMoveCnt;
+}
+
+void
+RouteMgr::koova_route()
+{
+    for (auto m : _movedList)
+    {
+        
+    }
+}

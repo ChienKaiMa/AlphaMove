@@ -41,6 +41,8 @@ public:
     
     void place();
     void route();
+    void koova_place();
+    void koova_route();
     void layerassign();
     void initSupply();
     void add2DDemand(Net*);

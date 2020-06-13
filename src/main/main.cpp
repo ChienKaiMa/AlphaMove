@@ -56,8 +56,10 @@ main(int argc, char** argv)
       rMgr->readCircuit(inputFile);
       rMgr->printRouteSummary();
       rMgr->initSupply();
-      rMgr->place();
-      rMgr->route();
+      //rMgr->place();
+      //rMgr->route();
+      rMgr->koova_place();
+      rMgr->koova_route();
       ofstream outfile;
       outfile.open(argv[2], ios::out);
       if (!outfile) {

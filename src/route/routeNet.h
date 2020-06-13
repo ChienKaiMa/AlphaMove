@@ -106,6 +106,7 @@ public:
     void printPos(ostream&) const;
     void printPos() const;
     void printCell() const;
+    void move(Pos);
 private:
     unsigned _cellId;
     bool     _movable;
@@ -189,6 +190,7 @@ public:
         endPos[2] = elay;
     }
     void print() const;
+    void print(ostream&) const;
     unsigned startPos[3];
     unsigned endPos[3];
 };
@@ -202,7 +204,7 @@ public:
 class Net
 {
 public:
-    Net(unsigned layCons): _minLayCons(layCons) {};
+    Net(unsigned id, unsigned layCons): _netId(id), _minLayCons(layCons) {};
     ~Net();
     inline void addPin(pair<unsigned, unsigned> pin){ _pinSet.insert(pin); }
     void addSeg(Segment* s) { _netSegs.push_back(s); }
@@ -210,7 +212,9 @@ public:
     set<pair<unsigned, unsigned>> getPinSet() { return _pinSet; }
     void printPinSet() const;
     void printAllSeg() const;
+    void printAllSeg(ostream&) const;
 private:
+    unsigned _netId;
     unsigned _minLayCons; // minimum layer Constraints
     set<pair<unsigned,unsigned>> _pinSet; // a set of pins i.e. <instance id, pin id>  pair
     vector<Segment*> _netSegs;

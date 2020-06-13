@@ -191,9 +191,9 @@ RouteMgr::readCircuit(const string& fileName)
         Net* brook;
         if (buffer != "NoCstr") {
             int layCons = stoi(buffer.substr(1));
-            brook = new Net(layCons);
+            brook = new Net(i+1, layCons);
         } else {
-            brook = new Net(0); // [Important] NoCstr
+            brook = new Net(i+1, 0); // [Important] NoCstr
         }
         for(unsigned j=0; j<tmpCnt1; ++j)
         {
@@ -235,10 +235,12 @@ RouteMgr::writeCircuit(ostream& outfile) const
     {
         outfile << "CellInst C" << m->getId();
         m->printPos(outfile);
-        outfile << endl;
     }
     // TODO: output routes
-
+    outfile << "NumRoutes " << initTotalWL << endl;
+    for (unsigned i=0; i<_netList.size(); ++i) {
+        _netList[i]->printAllSeg(outfile);
+    }
 }
 
 
