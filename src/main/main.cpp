@@ -8,6 +8,8 @@
 
 #include "util.h"
 #include "cmdParser.h"
+#include "../route/routeMgr.h"
+#include <cassert>
 
 using namespace std;
 
@@ -22,7 +24,7 @@ extern bool initRouteCmd();
 static void
 usage()
 {
-   cout << "Usage: routeTest [ < inputFile > < outputFile > ]" << endl;
+   cout << "Usage: ./cell_move_router [ < inputFile > < outputFile > ]" << endl;
 }
 
 static void
@@ -41,12 +43,30 @@ main(int argc, char** argv)
 
    if (argc == 3) {  // < inputFile > < outputFile >
       // TODO: handle input file instead of cmd dofile
+      /*
       if (!cmdMgr->openDofile(argv[1])) {
          cerr << "Error: cannot open file \"" << argv[1] << "\"!!\n";
          myexit();
       }
+      */
       // TODO: generate output file
+      string inputFile = argv[1];
       string outFileName = argv[2];
+      RouteMgr *rMgr = new RouteMgr;
+      rMgr->readCircuit(inputFile);
+      rMgr->printRouteSummary();
+      rMgr->initSupply();
+      rMgr->place();
+      rMgr->route();
+      ofstream outfile;
+      outfile.open(argv[2], ios::out);
+      if (!outfile) {
+         cerr << "Output file open fail!" << endl;
+         return 1;
+      }
+      rMgr->writeCircuit(outfile);
+      myUsage.report(true, true);
+      return 0;
    }
    else if (argc != 1) {
       cerr << "Error: illegal number of argument (" << argc << ")!!\n";

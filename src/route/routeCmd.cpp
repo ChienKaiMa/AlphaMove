@@ -169,6 +169,7 @@ RouteWriteCmd::exec(const string& option)
       */
       else return CmdExec::errorOption(CMD_OPT_ILLEGAL, options[i]);
    }
+   assert (hasFile);
    routeMgr->writeCircuit(outfile);
    /*
    if (!thisGate) {
