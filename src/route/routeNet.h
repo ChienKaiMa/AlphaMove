@@ -35,8 +35,8 @@ extern RouteMgr *routeMgr;
 struct MCTri{
   unsigned idx1, idx2, layNum;
   MCTri(const unsigned n1, const unsigned n2, const unsigned layN){
-    idx1 = n1 < n2 ? n1 : n2 ;
-    idx2 = n1 < n2 ? n2 : n1 ;
+    idx1 = n1;
+    idx2 = n2;
     layNum = layN;
   }
   bool operator == (const MCTri& p ) const{
@@ -47,7 +47,7 @@ struct MCTri{
 // hasher for triple
 struct TriHash{
   size_t operator()(const MCTri& p) const{
-    return ((p.idx1<<27)+(p.idx2<<27)+p.layNum);
+    return ((p.idx1<<13)+(p.idx2<<27)+p.layNum);
   }
 };
 // hasher for ordered pair
@@ -103,9 +103,11 @@ public:
     Pos getPos() const;
     Ggrid* getGrid() {return _grid;}
     unsigned getId() const { return _cellId; }
+    vector<int> assoNet; // associated net index // Koova
     void printPos(ostream&) const;
     void printPos() const;
     void printCell() const;
+    void printAssoNet() const;
     void move(Pos);
 private:
     unsigned _cellId;
@@ -151,6 +153,8 @@ public:
     static unsigned yMax;
 
     void set2dSupply(int supply) { _2dSupply = supply; }
+    unsigned get2dSupply() const { return _2dSupply; }
+    unsigned get2dSupply() { return _2dSupply; }
     void updateDemand( int deltaDemand ) { 
         _2dDemand = _2dDemand + deltaDemand;
         _2dCongestion = (double)((_2dSupply - _2dDemand * CONGESTION_PARAMETER) / _2dSupply); 
@@ -211,6 +215,9 @@ public:
     unsigned getMinLayCons() { return _minLayCons; }
     set<pair<unsigned, unsigned>> getPinSet() { return _pinSet; }
     void printPinSet() const;
+    void shouldReroute(bool q) { _toReroute = q; }
+    bool shouldReroute() { return _toReroute; }
+    void printSummary() const;
     void printAllSeg() const;
     void printAllSeg(ostream&) const;
 private:
@@ -218,6 +225,7 @@ private:
     unsigned _minLayCons; // minimum layer Constraints
     set<pair<unsigned,unsigned>> _pinSet; // a set of pins i.e. <instance id, pin id>  pair
     vector<Segment*> _netSegs;
+    bool _toReroute = false;
 };
 
 

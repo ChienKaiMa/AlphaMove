@@ -29,19 +29,23 @@ public:
     bool readCircuit(const string&);
     void writeCircuit(ostream&) const;
     void setRouteLog(ofstream *logFile) { _tempRoute = logFile; }
+    void genGridList();
 
     void printRouteSummary() const;
     void printNetlist() const;
     void printMCList() const;
     void printLaySupply() const;
     void printNonDefaultSupply() const;
+    void print2DSupply() const;
     void printExtraDemand() const;
     void printCellInst() const;
+    void printAssoNet() const;
     void printInitSegs() const;
     
     void place();
     void route();
     void koova_place();
+    void change_notifier(CellInst*);
     void koova_route();
     void layerassign();
     void initSupply();
@@ -67,6 +71,7 @@ private:
     unsigned curMoveCnt = 0;
     unsigned curTotalWL;
     InstList _movedList;
+    vector<Segment*> curRouteSegs; // TODO: check redundancy
     ofstream *_tempRoute;
 };
 

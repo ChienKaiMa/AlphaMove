@@ -74,6 +74,17 @@ CellInst::printCell() const
 }
 
 void
+CellInst::printAssoNet() const
+{
+    cout << "CellInst" << _cellId << endl;
+    for (auto const m : assoNet)
+    {
+        cout << "N" << m << " ";
+    }
+    cout << endl;
+}
+
+void
 CellInst::move(Pos newPos)
 {
     _grid->updatePos(newPos);
@@ -100,6 +111,14 @@ Segment::print(ostream& outfile) const
 /******************************/
 /* class Net member functions */
 /******************************/
+void
+Net::printSummary() const
+{
+    cout << "N" << _netId << endl;
+    cout << "MinLayerConstr " << _minLayCons << endl;
+    printPinSet();
+}
+
 void
 Net::printPinSet() const
 {

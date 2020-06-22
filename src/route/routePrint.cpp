@@ -39,9 +39,8 @@ RouteMgr::printNetlist() const
 {
     for(unsigned i=0; i<_netList.size(); ++i)
     {
+        _netList[i]->printSummary();
         cout << endl;
-        cout << "MinLayerConstr " << _netList[i]->getMinLayCons() << endl;
-        _netList[i]->printPinSet();
     }
 }
 
@@ -96,12 +95,34 @@ RouteMgr::printNonDefaultSupply() const
 }
 
 void
+RouteMgr::print2DSupply() const
+{
+    for (auto const rows : _gridList)
+    {
+        for (auto const g : rows)
+        {
+            cout << g->get2dSupply() << " ";
+        }
+        cout << endl;
+    }
+}
+
+void
 RouteMgr::printCellInst() const
 {
     for(unsigned i=0; i<_instList.size(); ++i)
     {
         cout << endl;
         _instList[i]->printCell();
+    }
+}
+
+void
+RouteMgr::printAssoNet() const
+{
+    for (auto& m : _instList)
+    {
+        m->printAssoNet();
     }
 }
 

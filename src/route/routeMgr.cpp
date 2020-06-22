@@ -100,6 +100,8 @@ RouteMgr::readCircuit(const string& fileName)
         }
         ifs >> buffer; // NumMasterCell
     }
+
+    genGridList();
     initSupply();
 
     // MasterCell and demand
@@ -205,6 +207,8 @@ RouteMgr::readCircuit(const string& fileName)
             int inst = stoi(instName.substr(1));
             int mstrPin = stoi(masterPinName.substr(2));
             brook->addPin(Pos(inst, mstrPin));
+            // TODO: genAssoNet
+            _instList[inst-1]->assoNet.push_back(i+1);
         }
         _netList.push_back(brook);
     }
@@ -223,7 +227,6 @@ RouteMgr::readCircuit(const string& fileName)
         int netIdx = stoi(buffer.substr(1));
         _netList[netIdx-1]->addSeg(damn);
     }
-
     return true;
 }
 
@@ -243,25 +246,45 @@ RouteMgr::writeCircuit(ostream& outfile) const
     }
 }
 
-
+void
+RouteMgr::genGridList()
+{
+    for (int i=1; i<=Ggrid::xMax; ++i) {
+        vector<Ggrid*> bar;
+        for (int j=1; j<=Ggrid::yMax; ++j) {
+            Ggrid* g = new Ggrid(Pos(i, j));
+            bar.push_back(g);
+        }
+        _gridList.push_back(bar);
+    }
+}
 
 void
 RouteMgr::initSupply()
 {
-    unsigned total_default_supply = 0;
+    int total_default_supply = 0;
     for (auto const m : _laySupply) {
         total_default_supply += m;
     }
+    int total_supply;
 
-    // TODO: implement the pseudo code below
-    for (auto& rows : _gridList) {
-        for (auto& m : rows) {
-            // TODO: get nondefaultSupply
-            m->getPos();
-            m->set2dSupply(total_default_supply);
+    for (int i=0; i<Ggrid::xMax; ++i) {
+        for (int j=0; j<Ggrid::yMax; ++j) {
+            total_supply = total_default_supply;
+            for (int k=1; k<=_laySupply.size(); ++k)
+            {
+                MCTri good = MCTri(i+1, j+1, k);
+                auto yeah = _nonDefaultSupply.find(good);
+                if (yeah != _nonDefaultSupply.cend())
+                {
+                    total_supply += yeah->second;
+                }
+            }
+            _gridList[i][j]->set2dSupply(total_supply);
         }
     }
     /*
+    Pseudo code
     for i=1 to gridList.length
         gridList[i]._2dSupply = total_default_supply;
         for i=1 to _layerSupply.length

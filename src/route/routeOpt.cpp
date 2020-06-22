@@ -98,14 +98,30 @@ RouteMgr::koova_place()
     unsigned sec = _instList[0]->getPos().second;
     _instList[0]->move(Pos((Ggrid::yMax + fst)/2, (Ggrid::xMax + sec)/2));
     _movedList.push_back(_instList[0]);
+    change_notifier(_instList[0]);
     ++curMoveCnt;
+}
+
+void
+RouteMgr::change_notifier(CellInst* su)
+{
+    for(int i=0; i<su->assoNet.size(); ++i)
+    {
+        _netList[su->assoNet[i]-1]->shouldReroute(true);
+    }
 }
 
 void
 RouteMgr::koova_route()
 {
-    for (auto m : _movedList)
+    if (curRouteSegs.empty()) { curRouteSegs = initRouteSegs; }
+    for (auto m : _netList)
     {
-        
+        if (m->shouldReroute())
+        {
+            m->getPinSet();
+            // TODO: Reroute Net m
+            m->shouldReroute(false);
+        }
     }
 }

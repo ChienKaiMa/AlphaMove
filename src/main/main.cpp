@@ -55,7 +55,6 @@ main(int argc, char** argv)
       RouteMgr *rMgr = new RouteMgr;
       rMgr->readCircuit(inputFile);
       rMgr->printRouteSummary();
-      rMgr->initSupply();
       //rMgr->place();
       //rMgr->route();
       rMgr->koova_place();

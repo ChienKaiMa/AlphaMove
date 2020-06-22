@@ -291,7 +291,7 @@ MgrPrintCmd::help() const
 }
 
 //----------------------------------------------------------------------
-//    CELLPrint [-Summary | -All]
+//    CELLPrint [-Summary | -ALl | -AssoNet]
 //----------------------------------------------------------------------
 CmdExecStatus
 CellPrintCmd::exec(const string& option)
@@ -307,12 +307,13 @@ CellPrintCmd::exec(const string& option)
    }
    if (token.empty() || myStrNCmp("-Summary", token, 2) == 0)
       cout << "routeMgr->printSummary()" << endl;
-   else if (myStrNCmp("-All", token, 2) == 0)
+   else if (myStrNCmp("-ALl", token, 3) == 0)
       routeMgr->printCellInst();
    else if (myStrNCmp("-MC", token, 3) == 0)
+      // TODO: 3-token queries for MC
       routeMgr->printMCList();
-   else if (myStrNCmp("-PO", token, 3) == 0)
-      cout << "routeMgr->printPOs()" << endl;
+   else if (myStrNCmp("-ASsonet", token, 3) == 0)
+      routeMgr->printAssoNet();
    else if (myStrNCmp("-FLoating", token, 3) == 0)
       cout << "routeMgr->printFloatGates()" << endl;
    else if (myStrNCmp("-FECpairs", token, 4) == 0)
@@ -326,7 +327,7 @@ CellPrintCmd::exec(const string& option)
 void
 CellPrintCmd::usage(ostream& os) const
 {  
-   os << "Usage: CELLPrint [-Summary | -All]" << endl;
+   os << "Usage: CELLPrint [-Summary | -ALl | -ASsonet]" << endl;
 }
 
 void
@@ -336,7 +337,7 @@ CellPrintCmd::help() const
 }
 
 //----------------------------------------------------------------------
-//    LAYPrint [-Summary | -Netlist | -PI | -PO | -FLoating | -FECpairs]
+//    LAYPrint [-SUMmary | -SUPply | -Demand | -2DSupply | -2DDemand]
 //----------------------------------------------------------------------
 CmdExecStatus
 LayPrintCmd::exec(const string& option)
@@ -352,15 +353,13 @@ LayPrintCmd::exec(const string& option)
    }
    if (token.empty() || myStrNCmp("-SUMmary", token, 4) == 0)
       cout << "routeMgr->printSummary()" << endl;
-   else if (myStrNCmp("-Netlist", token, 2) == 0)
-      cout << "routeMgr->printNetlist()" << endl;
    else if (myStrNCmp("-SUPply", token, 4) == 0)
       routeMgr->printLaySupply();
    else if (myStrNCmp("-Demand", token, 2) == 0)
       cout << "routeMgr->printPOs()" << endl;
-   else if (myStrNCmp("-FLoating", token, 3) == 0)
-      cout << "routeMgr->printFloatGates()" << endl;
-   else if (myStrNCmp("-FECpairs", token, 4) == 0)
+   else if (myStrNCmp("-2DSupply", token, 4) == 0)
+      routeMgr->print2DSupply();
+   else if (myStrNCmp("-2DDemand", token, 4) == 0)
       cout << "routeMgr->printFECPairs()" << endl;
    else
       return CmdExec::errorOption(CMD_OPT_ILLEGAL, token);
@@ -371,8 +370,8 @@ LayPrintCmd::exec(const string& option)
 void
 LayPrintCmd::usage(ostream& os) const
 {  
-   os << "Usage: LAYPrint [-Summary | -Netlist | -PI | -PO | -FLoating "
-      << "| -FECpairs]" << endl;
+   os << "Usage: LAYPrint [-SUMmary | -SUPply | -Demand | -2DSupply | "
+      << "| -2DDemand]" << endl;
 }
 
 void
@@ -417,8 +416,7 @@ NetPrintCmd::exec(const string& option)
 void
 NetPrintCmd::usage(ostream& os) const
 {  
-   os << "Usage: NETPrint [-Summary | -Netlist | -PI | -PO | -FLoating "
-      << "| -FECpairs]" << endl;
+   os << "Usage: NETPrint [-Summary | -SEgment]" << endl;
 }
 
 void
