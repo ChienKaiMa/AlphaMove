@@ -10,6 +10,7 @@
 #include "routeMgr.h"
 #include "util.h"
 #include <algorithm>
+#include "stlastar.h"
 
 using namespace std;
 
@@ -82,6 +83,12 @@ void RouteMgr::place()
 
 void RouteMgr::route()
 {
+    // 1.   for each to-be routed net , sorted by #Pins
+    //      route the largest Net first with Bounds(initially bounding box)
+    // 2.   performing A*search based on congestion + manhattan distance(s,t) (routability&routing length)
+    //      dynamically update the congestion 
+    // 3.   if can't route, rip-up the pre-exist segments , enlarge the bound, and goto 2.
+    // 4.   iteratively untill all net is routed in 2D Grid graph.
     cout << "Route..." << "(Not function-ready!)" << endl;
 }
 

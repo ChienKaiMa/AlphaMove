@@ -42,6 +42,9 @@ public:
     void printAssoNet() const;
     void printInitSegs() const;
     
+    /**********************************/
+    /*        Placement&Routing       */
+    /**********************************/
     void place();
     void route();
     void koova_place();
@@ -51,6 +54,9 @@ public:
     void initSupply();
     void add2DDemand(Net*);
     void remove2DDemand(Net*);
+
+
+
 private:
     unsigned maxMoveCnt;
     unsigned initTotalWL; // wirelength
@@ -73,6 +79,9 @@ private:
     InstList _movedList;
     vector<Segment*> curRouteSegs; // TODO: check redundancy
     ofstream *_tempRoute;
+
+
+    //Routing Helper function
 };
 
 #endif // ROUTE_MGR_H

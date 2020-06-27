@@ -147,11 +147,6 @@ public:
         yMax = rEnd;
         xMax = cEnd;
     }
-    static unsigned xMin;
-    static unsigned yMin;
-    static unsigned xMax;
-    static unsigned yMax;
-
     void set2dSupply(int supply) { _2dSupply = supply; }
     unsigned get2dSupply() const { return _2dSupply; }
     unsigned get2dSupply() { return _2dSupply; }
@@ -164,6 +159,11 @@ public:
         _pos = newpos;
     }
     Pos getPos() const { return _pos; }
+
+    static unsigned xMin;
+    static unsigned yMin;
+    static unsigned xMax;
+    static unsigned yMax;
 
 private:
     Pos        _pos;
@@ -205,6 +205,7 @@ public:
 //---------------
 
 // TODO
+// How to get segment's position
 class Net
 {
 public:
@@ -224,7 +225,8 @@ private:
     unsigned _netId;
     unsigned _minLayCons; // minimum layer Constraints
     set<pair<unsigned,unsigned>> _pinSet; // a set of pins i.e. <instance id, pin id>  pair
-    vector<Segment*> _netSegs;
+    vector<Segment*> _netSegs; //TODO pointer?
+    unordered_map< unsigned, Pos > _pinPos; // a map from instance id->Pos(current placement);
     bool _toReroute = false;
 };
 
