@@ -211,10 +211,10 @@ class Net
 public:
     Net(unsigned id, unsigned layCons): _netId(id), _minLayCons(layCons) {};
     ~Net();
-    inline void addPin(pair<unsigned, unsigned> pin){ _pinSet.insert(pin); }
+    inline void addPin(PinPair pin){ _pinSet.insert(pin); }
     void addSeg(Segment* s) { _netSegs.push_back(s); }
     unsigned getMinLayCons() { return _minLayCons; }
-    set<pair<unsigned, unsigned>> getPinSet() { return _pinSet; }
+    set<PinPair> getPinSet() { return _pinSet; }
     void printPinSet() const;
     void shouldReroute(bool q) { _toReroute = q; }
     bool shouldReroute() { return _toReroute; }
@@ -224,7 +224,7 @@ public:
 private:
     unsigned _netId;
     unsigned _minLayCons; // minimum layer Constraints
-    set<pair<unsigned,unsigned>> _pinSet; // a set of pins i.e. <instance id, pin id>  pair
+    set<PinPair> _pinSet; // a set of pins i.e. <instance id, pin id>  pair
     vector<Segment*> _netSegs; //TODO pointer?
     unordered_map< unsigned, Pos > _pinPos; // a map from instance id->Pos(current placement);
     bool _toReroute = false;

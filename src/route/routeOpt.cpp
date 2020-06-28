@@ -132,3 +132,9 @@ RouteMgr::koova_route()
         }
     }
 }
+
+Pos
+RouteMgr::getPinPos(const PinPair pin) const
+{
+    return _instList[pin.first-1]->getPos();
+}

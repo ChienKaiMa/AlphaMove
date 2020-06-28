@@ -54,8 +54,7 @@ public:
     void initSupply();
     void add2DDemand(Net*);
     void remove2DDemand(Net*);
-
-
+    Pos getPinPos(const PinPair) const; // 2D
 
 private:
     unsigned maxMoveCnt;

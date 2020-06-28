@@ -206,7 +206,7 @@ RouteMgr::readCircuit(const string& fileName)
             string masterPinName = buffer.substr(tmpCnt2);
             int inst = stoi(instName.substr(1));
             int mstrPin = stoi(masterPinName.substr(2));
-            brook->addPin(Pos(inst, mstrPin));
+            brook->addPin(PinPair(inst, mstrPin));
             // TODO: genAssoNet
             _instList[inst-1]->assoNet.push_back(i+1);
         }
