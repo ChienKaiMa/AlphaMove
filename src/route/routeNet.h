@@ -208,8 +208,9 @@ public:
 // How to get segment's position
 class Net
 {
+    friend RouteMgr;
 public:
-    Net(unsigned id, unsigned layCons): _netId(id), _minLayCons(layCons) {};
+    Net(unsigned id, unsigned layCons): _netId(id), _minLayCons(layCons){};
     ~Net();
     inline void addPin(PinPair pin){ _pinSet.insert(pin); }
     void addSeg(Segment* s) { _netSegs.push_back(s); }
@@ -221,12 +222,13 @@ public:
     void printSummary() const;
     void printAllSeg() const;
     void printAllSeg(ostream&) const;
+    bool operator > (const Net& net ) const { return this->_pinSet.size() > net._pinSet.size(); }
 private:
-    unsigned _netId;
-    unsigned _minLayCons; // minimum layer Constraints
-    set<PinPair> _pinSet; // a set of pins i.e. <instance id, pin id>  pair
-    vector<Segment*> _netSegs; //TODO pointer?
-    unordered_map< unsigned, Pos > _pinPos; // a map from instance id->Pos(current placement);
+    unsigned            _netId;
+    unsigned            _minLayCons; // minimum layer Constraints
+    set<PinPair>        _pinSet; // a set of pins i.e. <instance id, pin id>  pair
+    vector<Segment*>    _netSegs; //TODO pointer?
+    // unordered_map< unsigned, Pos > _pinPos; // a map from instance id->Pos(current placement);
     bool _toReroute = false;
 };
 
