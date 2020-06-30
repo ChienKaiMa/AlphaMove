@@ -13,6 +13,7 @@
 #include <ctype.h>
 #include <cassert>
 #include <cstring>
+#include <math.h>
 #include "routeMgr.h"
 #include "../util/util.h"
 
@@ -295,6 +296,39 @@ RouteMgr::initSupply()
 void
 RouteMgr::add2DDemand(Net* net) //Initialize after each route
 {
+    unsigned availale_layer = _laySupply.size() - net->getMinLayCons();
+    double constraint = (double) (_laySupply.size() / availale_layer);
+
+    for(int i=0; i<net->_netSegs.size();++i){
+        if(net->_netSegs[i]->startPos[2] == net->_netSegs[i]->endPos[2]){
+            if(net->_netSegs[i]->startPos[0] != net->_netSegs[i]->endPos[0]){
+                int max = net->_netSegs[i]->endPos[0];
+                int min = net->_netSegs[i]->startPos[0];
+                if(net->_netSegs[i]->startPos[0] > net->_netSegs[i]->endPos[0]){
+                    max = net->_netSegs[i]->startPos[0];
+                    min = net->_netSegs[i]->endPos[0];
+                }
+                for(int j=min;j<=max;++j){
+                    _gridList[j+1][(net->_netSegs[i]->startPos[1])+1]->updateDemand(constraint);
+                }
+            }
+            else if(net->_netSegs[i]->startPos[1] != net->_netSegs[i]->endPos[1]){
+                int max = net->_netSegs[i]->endPos[1];
+                int min = net->_netSegs[i]->startPos[1];
+                if(net->_netSegs[i]->startPos[1] > net->_netSegs[i]->endPos[1]){
+                    max = net->_netSegs[i]->startPos[1];
+                    min = net->_netSegs[i]->endPos[1];
+                }
+                for(int j=min;j<=max;++j){
+                    _gridList[(net->_netSegs[i]->startPos[0])+1][j+1]->updateDemand(constraint);
+                }
+            }
+        }
+        else{
+            int num_of_layer = abs((int)(net->_netSegs[i]->startPos[2]) - (int)(net->_netSegs[i]->endPos[2]));
+            _gridList[(net->_netSegs[i]->startPos[0])+1][(net->_netSegs[i]->startPos[1])+1]->updateDemand(num_of_layer*constraint);
+        }
+    }
     /*Psuedo Code
     unsigned available_layer = _layerSupply.length - net->_minLayCons;
     double constraint = _layerSupply.length/available_layer;
@@ -306,6 +340,39 @@ RouteMgr::add2DDemand(Net* net) //Initialize after each route
 void 
 RouteMgr::remove2DDemand(Net* net) //before each route
 {
+    unsigned availale_layer = _laySupply.size() - net->getMinLayCons();
+    double constraint = (double) (_laySupply.size() / availale_layer);
+
+    for(int i=0; i<net->_netSegs.size();++i){
+        if(net->_netSegs[i]->startPos[2] == net->_netSegs[i]->endPos[2]){
+            if(net->_netSegs[i]->startPos[0] != net->_netSegs[i]->endPos[0]){
+                int max = net->_netSegs[i]->endPos[0];
+                int min = net->_netSegs[i]->startPos[0];
+                if(net->_netSegs[i]->startPos[0] > net->_netSegs[i]->endPos[0]){
+                    max = net->_netSegs[i]->startPos[0];
+                    min = net->_netSegs[i]->endPos[0];
+                }
+                for(int j=min;j<=max;++j){
+                    _gridList[j+1][(net->_netSegs[i]->startPos[1])+1]->updateDemand(-constraint);
+                }
+            }
+            else if(net->_netSegs[i]->startPos[1] != net->_netSegs[i]->endPos[1]){
+                int max = net->_netSegs[i]->endPos[1];
+                int min = net->_netSegs[i]->startPos[1];
+                if(net->_netSegs[i]->startPos[1] > net->_netSegs[i]->endPos[1]){
+                    max = net->_netSegs[i]->startPos[1];
+                    min = net->_netSegs[i]->endPos[1];
+                }
+                for(int j=min;j<=max;++j){
+                    _gridList[(net->_netSegs[i]->startPos[0])+1][j+1]->updateDemand(-constraint);
+                }
+            }
+        }
+        else{
+            int num_of_layer = abs((int)(net->_netSegs[i]->startPos[2]) - (int)(net->_netSegs[i]->endPos[2]));
+            _gridList[(net->_netSegs[i]->startPos[0])+1][(net->_netSegs[i]->startPos[1])+1]->updateDemand(-num_of_layer*constraint);
+        }
+    }
     /*Psuedo Code
     unsigned available_layer = _layerSupply.length - net->_minLayCons;
     double constraint = _layerSupply.length/available_layer;
