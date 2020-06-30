@@ -228,6 +228,11 @@ RouteMgr::readCircuit(const string& fileName)
         int netIdx = stoi(buffer.substr(1));
         _netList[netIdx-1]->addSeg(damn);
     }
+
+    for(unsigned i=0; i<_netList.size(); ++i){
+        add2DDemand(_netList[i]);
+    }
+    
     return true;
 }
 

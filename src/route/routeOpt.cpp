@@ -72,7 +72,7 @@ void RouteMgr::place()
     }
     else{ //force-directed
         CellInst* moveCell = _instList[0];
-        for(int i=1;i<_instList.size();++i){
+        for(unsigned i=1;i<_instList.size();++i){
             if(_instList[i]->getGrid()->getCongestion() < moveCell->getGrid()->getCongestion())
                 moveCell = _instList[i];
         }
