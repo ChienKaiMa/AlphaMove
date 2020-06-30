@@ -361,6 +361,8 @@ LayPrintCmd::exec(const string& option)
       routeMgr->print2DSupply();
    else if (myStrNCmp("-2DDemand", token, 4) == 0)
       routeMgr->print2DDemand();
+   else if (myStrNCmp("-2DCongestion", token, 4) == 0)
+      routeMgr->print2DCongestion();
    else
       return CmdExec::errorOption(CMD_OPT_ILLEGAL, token);
 
@@ -370,8 +372,8 @@ LayPrintCmd::exec(const string& option)
 void
 LayPrintCmd::usage(ostream& os) const
 {  
-   os << "Usage: LAYPrint [-SUMmary | -SUPply | -Demand | -2DSupply | "
-      << "| -2DDemand]" << endl;
+   os << "Usage: LAYPrint [-SUMmary | -SUPply | -Demand | -2DSupply  "
+      << "| -2DDemand | -2DCongestion]" << endl;
 }
 
 void

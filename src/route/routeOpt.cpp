@@ -73,7 +73,7 @@ void RouteMgr::place()
     else{ //force-directed
         CellInst* moveCell = _instList[0];
         for(unsigned i=1;i<_instList.size();++i){
-            if(_instList[i]->getGrid()->getCongestion() < moveCell->getGrid()->getCongestion())
+            if(_instList[i]->getGrid()->get2dCongestion() < moveCell->getGrid()->get2dCongestion())
                 moveCell = _instList[i];
         }
         //go through _netList, find out all associated nets and thus associated cells and multiplications, then calculating new pos

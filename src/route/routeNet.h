@@ -16,6 +16,7 @@
 #include <utility>
 #include <unordered_map>
 #include <set>
+#include <cassert>
 #include "routeDef.h"
 
 using namespace std;
@@ -138,7 +139,7 @@ class Ggrid
 {
     friend CellInst;
 public:
-    Ggrid(Pos coord): _pos(coord), _2dDemand(0), _2dSupply(0), _2dCongestion(0) {}
+    Ggrid(Pos coord): _pos(coord), _2dDemand(0), _2dSupply(0), _2dCongestion(1) {}
     ~Ggrid(){}
     const Layer& operator [] (unsigned layId) { return *_layerList[layId]; }
     inline void initLayer( unsigned layNum ){ _layerList.resize(layNum); }
@@ -151,8 +152,11 @@ public:
     void set2dSupply(int supply) { _2dSupply = supply; }
     unsigned get2dSupply() const { return _2dSupply; }
     unsigned get2dSupply() { return _2dSupply; }
-    unsigned get2dDemand() const { return _2dDemand; }
-    unsigned get2dDemand() { return _2dDemand; }
+    double get2dDemand() const { return _2dDemand; }
+    double get2dDemand() { return _2dDemand; }
+    double get2dCongestion() const {return _2dCongestion;}
+    double get2dCongestion() {return _2dCongestion;}
+
     void printDemand() const {
         for (auto& m : _layerList)
         {
@@ -160,11 +164,13 @@ public:
         }
         cout << endl;
     }
-    void updateDemand( int deltaDemand ) { 
+    void update2dDemand( double deltaDemand ) { 
+        assert(_2dSupply > 0);
         _2dDemand = _2dDemand + deltaDemand;
-        _2dCongestion = (double)((_2dSupply - _2dDemand * CONGESTION_PARAMETER) / _2dSupply); 
+        //cout << _2dSupply << " " << _2dDemand << "\n";
+        _2dCongestion = ((double)(_2dSupply) - (double)(_2dDemand) /** CONGESTION_PARAMETER*/) / (double)(_2dSupply); 
     }
-    double getCongestion() {return _2dCongestion;}
+    
     void updatePos( Pos newpos ){
         _pos = newpos;
     }
@@ -180,7 +186,7 @@ private:
     LayerList  _layerList;
     InstList   _cellOnGridList;
     unsigned   _2dSupply;
-    unsigned   _2dDemand;
+    double     _2dDemand;
     double     _2dCongestion;
 };
 
@@ -196,11 +202,11 @@ public:
     ~Segment() {}
     Segment(unsigned scol, unsigned srow, unsigned slay, unsigned ecol, unsigned erow, unsigned elay)
     {
-        startPos[0] = scol;
-        startPos[1] = srow;
+        startPos[0] = srow;
+        startPos[1] = scol;
         startPos[2] = slay;
-        endPos[0] = ecol;
-        endPos[1] = erow;
+        endPos[0] = erow;
+        endPos[1] = ecol;
         endPos[2] = elay;
     }
     void print() const;
