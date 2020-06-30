@@ -305,7 +305,7 @@ RouteMgr::add2DDemand(Net* net) //Initialize after each route
     cout << "Net " << net->_netId << "\n";
     cout << "rEnd: " << Ggrid::rEnd << " cEnd: " << Ggrid::cEnd << "\n";
     //cout << "NetSeg.size()" << net->_netSegs.size() << endl;
-    for(unsigned i=1; i<= (net->_netSegs).size(); ++i){
+    for(int i=0; i< (net->_netSegs).size(); ++i){
         //cout << "test " << i << "\n";
         if(net->_netSegs.size() == 0)
             cout << "Empty!\n";
@@ -329,7 +329,7 @@ RouteMgr::add2DDemand(Net* net) //Initialize after each route
                         max = net->_netSegs[i]->startPos[1];
                         min = net->_netSegs[i]->endPos[1];
                     }
-                    for(int j=min;j<=max;++j){
+                    for(int j=min; j<=max; ++j){
                         cout << "Net " << net->_netId << " " << net->_netSegs[i]->startPos[0]-1 << " " << j-1 << "\n";
                         _gridList[(net->_netSegs[i]->startPos[0])-1][j-1]->update2dDemand(constraint);
                     }
