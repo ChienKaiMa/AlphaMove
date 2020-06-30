@@ -255,9 +255,9 @@ RouteMgr::writeCircuit(ostream& outfile) const
 void
 RouteMgr::genGridList()
 {
-    for (int i=1; i<=Ggrid::xMax; ++i) {
+    for (int i=1; i<=Ggrid::rEnd; ++i) {
         vector<Ggrid*> bar;
-        for (int j=1; j<=Ggrid::yMax; ++j) {
+        for (int j=1; j<=Ggrid::cEnd; ++j) {
             Ggrid* g = new Ggrid(Pos(i, j));
             bar.push_back(g);
         }
@@ -274,8 +274,8 @@ RouteMgr::initSupply()
     }
     int total_supply;
 
-    for (int i=0; i<Ggrid::xMax; ++i) {
-        for (int j=0; j<Ggrid::yMax; ++j) {
+    for (int i=0; i<Ggrid::rEnd; ++i) {
+        for (int j=0; j<Ggrid::cEnd; ++j) {
             total_supply = total_default_supply;
             for (int k=1; k<=_laySupply.size(); ++k)
             {

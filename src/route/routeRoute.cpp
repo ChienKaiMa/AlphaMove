@@ -4,7 +4,7 @@
 #include "routeMgr.h"
 #include "util.h"
 
-#define DEBUG
+// #define DEBUG
 
 using namespace std;
 

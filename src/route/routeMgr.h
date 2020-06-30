@@ -47,12 +47,12 @@ public:
     void    printAssoNet() const;
     void    printInitSegs() const;
     double  getCongestion(Pos pos) const { 
-      if( pos.first<Ggrid::xMin  || pos.first>Ggrid::xMax || 
-          pos.second<Ggrid::yMin || pos.second>Ggrid::yMax ){ 
-        return CONGEST_MAX;  
+      if( pos.first<Ggrid::rBeg  || pos.first>Ggrid::rEnd || 
+          pos.second<Ggrid::cBeg || pos.second>Ggrid::cEnd ){ 
+        return -CONGEST_MIN;  
       }
       else { 
-        return _gridList[pos.first-1][pos.second-1]->getCongestion(); 
+        return -_gridList[pos.first-1][pos.second-1]->getCongestion(); 
       }
     }
     

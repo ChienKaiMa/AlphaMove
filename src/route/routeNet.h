@@ -142,11 +142,11 @@ public:
     ~Ggrid(){}
     const Layer& operator [] (unsigned layId) { return *_layerList[layId]; }
     inline void initLayer( unsigned layNum ){ _layerList.resize(layNum); }
-    static void setBoundary(unsigned rBeg, unsigned cBeg, unsigned rEnd, unsigned cEnd){
-        yMin = rBeg;
-        xMin = cBeg;
-        yMax = rEnd;
-        xMax = cEnd;
+    static void setBoundary(unsigned rBeg, unsigned cBeg, unsigned rEnd, unsigned cEnd){ // [row][col]
+        rBeg = rBeg;
+        cBeg = cBeg;
+        rEnd = rEnd;
+        cEnd = cEnd;
     }
     void set2dSupply(int supply) { _2dSupply = supply; }
     unsigned get2dSupply() const { return _2dSupply; }
@@ -170,10 +170,10 @@ public:
     }
     Pos getPos() const { return _pos; }
 
-    static unsigned xMin;
-    static unsigned yMin;
-    static unsigned xMax;
-    static unsigned yMax;
+    static unsigned rBeg;
+    static unsigned rEnd;
+    static unsigned cBeg;
+    static unsigned cEnd;
 
 private:
     Pos        _pos;
