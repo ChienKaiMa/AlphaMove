@@ -43,6 +43,8 @@ public:
     void    printExtraDemand() const;
     void    print2DDemand() const;
 
+    void    print2DCongestion() const;
+
     void    printCellInst() const;
     void    printAssoNet() const;
     void    printInitSegs() const;
@@ -52,7 +54,7 @@ public:
         return CONGEST_MAX;  
       }
       else { 
-        return _gridList[pos.first-1][pos.second-1]->getCongestion(); 
+        return _gridList[pos.first-1][pos.second-1]->get2dCongestion(); 
       }
     }
     

@@ -70,7 +70,7 @@ RouteMgr::print2DDemand() const
     {
         for (auto const g : rows)
         {
-            cout << left << setw(5) << g->get2dDemand();
+            cout << left << setw(5) << setprecision(3) << g->get2dDemand();
         }
         cout << endl;
     }
@@ -129,6 +129,19 @@ RouteMgr::print2DSupply() const
         for (auto const g : rows)
         {
             cout << left << setw(5) << g->get2dSupply();
+        }
+        cout << endl;
+    }
+}
+
+void
+RouteMgr::print2DCongestion() const
+{
+    for (auto const rows : _gridList)
+    {
+        for (auto const g : rows)
+        {
+            cout << left << setw(5) << setprecision(3) << g->get2dCongestion();
         }
         cout << endl;
     }
