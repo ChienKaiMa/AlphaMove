@@ -14,10 +14,10 @@ using namespace std;
 
 
 
-unsigned Ggrid::xMax = 0;
-unsigned Ggrid::yMax = 0;
-unsigned Ggrid::xMin = 0;
-unsigned Ggrid::yMin = 0;
+unsigned Ggrid::rEnd = 0;
+unsigned Ggrid::cEnd = 0;
+unsigned Ggrid::rBeg = 0;
+unsigned Ggrid::cBeg = 0;
 
 
 /*****************************/
@@ -57,7 +57,7 @@ CellInst::printPos(ostream& outfile) const
 void
 CellInst::printPos() const
 {
-    cout << "x: " << getPos().first << ", y: " << getPos().second << endl;
+    cout << "row: " << getPos().first << ", col: " << getPos().second << endl;
 }
 
 void
