@@ -48,7 +48,6 @@ RouteMgr::readCircuit(const string& fileName)
     string buffer;
     bool tempQ;
     unsigned bndCoord[4];
-    unsigned gridCoord[3];
 
     // Start parsing
     ifs >> buffer; // MaxCellMove
@@ -229,8 +228,8 @@ RouteMgr::readCircuit(const string& fileName)
         _netList[netIdx-1]->addSeg(damn);
     }
     
-    for(int i=0; i<_netList.size(); ++i){
-        add2DDemand(_netList[i]);
+    for(auto& m : _netList){
+        add2DDemand(m);
     }
 
     return true;
@@ -255,9 +254,9 @@ RouteMgr::writeCircuit(ostream& outfile) const
 void
 RouteMgr::genGridList()
 {
-    for (int i=1; i<=Ggrid::rEnd; ++i) {
+    for (unsigned i=1; i<=Ggrid::rEnd; ++i) {
         vector<Ggrid*> bar;
-        for (int j=1; j<=Ggrid::cEnd; ++j) {
+        for (unsigned j=1; j<=Ggrid::cEnd; ++j) {
             Ggrid* g = new Ggrid(Pos(i, j));
             bar.push_back(g);
         }
@@ -274,19 +273,19 @@ RouteMgr::initSupply()
     }
     int total_supply;
 
-    for (int i=0; i<Ggrid::rEnd; ++i) {
-        for (int j=0; j<Ggrid::cEnd; ++j) {
+    for (unsigned i=1; i<=Ggrid::rEnd; ++i) {
+        for (unsigned j=1; j<=Ggrid::cEnd; ++j) {
             total_supply = total_default_supply;
-            for (int k=1; k<=_laySupply.size(); ++k)
+            for (unsigned k=1; k<=_laySupply.size(); ++k)
             {
-                MCTri good = MCTri(i+1, j+1, k);
+                MCTri good = MCTri(i, j, k);
                 auto yeah = _nonDefaultSupply.find(good);
                 if (yeah != _nonDefaultSupply.cend())
                 {
                     total_supply += yeah->second;
                 }
             }
-            _gridList[i][j]->set2dSupply(total_supply);
+            _gridList[i-1][j-1]->set2dSupply(total_supply);
         }
     }
     /*
@@ -306,7 +305,7 @@ RouteMgr::add2DDemand(Net* net) //Initialize after each route
     cout << "Net " << net->_netId << "\n";
     cout << "rEnd: " << Ggrid::rEnd << " cEnd: " << Ggrid::cEnd << "\n";
     //cout << "NetSeg.size()" << net->_netSegs.size() << endl;
-    for(int i=0; i< (net->_netSegs).size();++i){
+    for(unsigned i=1; i<= (net->_netSegs).size(); ++i){
         //cout << "test " << i << "\n";
         if(net->_netSegs.size() == 0)
             cout << "Empty!\n";
@@ -356,7 +355,7 @@ RouteMgr::remove2DDemand(Net* net) //before each route
     unsigned availale_layer = _laySupply.size() - net->getMinLayCons();
     double constraint = (double) (_laySupply.size() / availale_layer);
 
-    for(int i=0; i<net->_netSegs.size();++i){
+    for(unsigned i=1; i<= net->_netSegs.size(); ++i){
         if(net->_netSegs[i]->startPos[2] == net->_netSegs[i]->endPos[2]){
             if(net->_netSegs[i]->startPos[0] != net->_netSegs[i]->endPos[0]){
                 int max = net->_netSegs[i]->endPos[0];

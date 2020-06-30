@@ -4,4 +4,6 @@ src/cmd/._cmdParser.h
 .vscode/launch.json
 .vscode/settings.json
 lib/libcmd.a
-
+lib/libroute.a
+lib/libutil.a
+AlphaMove_Work.code-workspace

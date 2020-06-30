@@ -40,7 +40,7 @@ void RouteMgr::route()
     // 4.   iteratively untill all net is routed in 2D Grid graph.      
     NetList toRouteNet = NetList();
     for (auto m : _netList){
-        if (!m->shouldReroute())
+        if (m->shouldReroute())
             toRouteNet.push_back(m);
     }
     // sorted by #pins
@@ -52,7 +52,12 @@ void RouteMgr::route()
         for(auto it=pinSet.begin(); it != --pinSet.end();){
             Pos pos1 = getPinPos(*it);
             Pos pos2 = getPinPos(*(++it));
-            bool canRoute = route2Pin(pos1, pos2);
+            if (!route2Pin(pos1, pos2)) {
+                cout << "route2Pin("
+                << pos1.first << " " << pos1.second << ", " 
+                << pos2.first << " " << pos2.second
+                << " ) failed!" << endl;
+            }
         }
     }
 

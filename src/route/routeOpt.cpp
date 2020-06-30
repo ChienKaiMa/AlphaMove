@@ -101,9 +101,9 @@ RouteMgr::koova_place()
 void
 RouteMgr::change_notifier(CellInst* su)
 {
-    for(int i=0; i<su->assoNet.size(); ++i)
+    for(auto& m : su->assoNet)
     {
-        _netList[su->assoNet[i]-1]->shouldReroute(true);
+        _netList[m-1]->shouldReroute(true);
     }
 }
 

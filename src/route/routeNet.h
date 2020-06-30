@@ -42,20 +42,20 @@ struct MCTri{
     layNum = layN;
   }
   bool operator == (const MCTri& p ) const{
-    return (this->idx1==p.idx1) && (this->idx2==p.idx2) && 
-            (this->layNum==p.layNum);
+    return (this->idx1 == p.idx1) && (this->idx2 == p.idx2) && 
+            (this->layNum == p.layNum);
   }
 };
 // hasher for triple
 struct TriHash{
   size_t operator()(const MCTri& p) const{
-    return ((p.idx1<<13)+(p.idx2<<27)+p.layNum);
+    return ((p.idx1 << 13)+(p.idx2 << 27)+p.layNum);
   }
 };
 // hasher for ordered pair
 struct PairHash{
   size_t operator() (const pair<unsigned, unsigned>& p) const{
-    return ((p.first<<32)+p.second);
+    return ((p.first << 16)+p.second);
   }
 };
 
@@ -113,9 +113,9 @@ public:
     void move(Pos);
 private:
     unsigned _cellId;
-    bool     _movable;
     Ggrid*   _grid;   // in which grid;
     MC*      _mc; // storing MasterCell Info.
+    bool     _movable;
 };
 
 
@@ -139,7 +139,7 @@ class Ggrid
 {
     friend CellInst;
 public:
-    Ggrid(Pos coord): _pos(coord), _2dDemand(0), _2dSupply(0), _2dCongestion(1) {}
+    Ggrid(Pos coord): _pos(coord), _2dSupply(0), _2dDemand(0), _2dCongestion(1) {}
     ~Ggrid(){}
     const Layer& operator [] (unsigned layId) { return *_layerList[layId]; }
     inline void initLayer( unsigned layNum ){ _layerList.resize(layNum); }
