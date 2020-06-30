@@ -356,11 +356,11 @@ LayPrintCmd::exec(const string& option)
    else if (myStrNCmp("-SUPply", token, 4) == 0)
       routeMgr->printLaySupply();
    else if (myStrNCmp("-Demand", token, 2) == 0)
-      cout << "routeMgr->printPOs()" << endl;
+      routeMgr->printGridDemand();
    else if (myStrNCmp("-2DSupply", token, 4) == 0)
       routeMgr->print2DSupply();
    else if (myStrNCmp("-2DDemand", token, 4) == 0)
-      cout << "routeMgr->printFECPairs()" << endl;
+      routeMgr->print2DDemand();
    else
       return CmdExec::errorOption(CMD_OPT_ILLEGAL, token);
 

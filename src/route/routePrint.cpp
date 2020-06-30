@@ -64,6 +64,19 @@ RouteMgr::printLaySupply() const
 }
 
 void
+RouteMgr::print2DDemand() const
+{
+    for (auto const rows : _gridList)
+    {
+        for (auto const g : rows)
+        {
+            cout << left << setw(5) << g->get2dDemand();
+        }
+        cout << endl;
+    }
+}
+
+void
 RouteMgr::printExtraDemand() const
 {
     for(auto const& pair : _sameGridDemand)
@@ -79,6 +92,20 @@ RouteMgr::printExtraDemand() const
         cout << "adjHGGrid MC" << pair.first.idx1 << " MC" << pair.first.idx2
         << " M" << pair.first.layNum << endl;
         cout << "demand " << pair.second << endl;
+    }
+}
+
+void
+RouteMgr::printGridDemand() const
+{
+    cout << "TODO" << endl;
+    for (auto const rows : _gridList)
+    {
+        for (auto const g : rows)
+        {
+            g->printDemand();
+        }
+        cout << endl;
     }
 }
 

@@ -12,6 +12,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <iomanip>
 #include <utility>
 #include <unordered_map>
 #include <set>
@@ -150,6 +151,15 @@ public:
     void set2dSupply(int supply) { _2dSupply = supply; }
     unsigned get2dSupply() const { return _2dSupply; }
     unsigned get2dSupply() { return _2dSupply; }
+    unsigned get2dDemand() const { return _2dDemand; }
+    unsigned get2dDemand() { return _2dDemand; }
+    void printDemand() const {
+        for (auto& m : _layerList)
+        {
+            cout << m->_demand << setw(5);
+        }
+        cout << endl;
+    }
     void updateDemand( int deltaDemand ) { 
         _2dDemand = _2dDemand + deltaDemand;
         _2dCongestion = (double)((_2dSupply - _2dDemand * CONGESTION_PARAMETER) / _2dSupply); 

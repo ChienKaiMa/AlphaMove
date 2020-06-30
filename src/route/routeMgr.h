@@ -34,10 +34,15 @@ public:
     void    printRouteSummary() const;
     void    printNetlist() const;
     void    printMCList() const;
+
     void    printLaySupply() const;
     void    printNonDefaultSupply() const;
     void    print2DSupply() const;
+
+    void    printGridDemand() const;
     void    printExtraDemand() const;
+    void    print2DDemand() const;
+
     void    printCellInst() const;
     void    printAssoNet() const;
     void    printInitSegs() const;
