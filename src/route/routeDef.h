@@ -10,6 +10,7 @@
 #define ROUTE_DEF_H
 #define H 0 // horizontal
 #define V 1 // Vertical
+#define CONGEST_MAX 2147483647 // INT_MAX
 
 #include <vector>
 

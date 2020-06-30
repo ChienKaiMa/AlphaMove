@@ -41,7 +41,15 @@ public:
     void    printCellInst() const;
     void    printAssoNet() const;
     void    printInitSegs() const;
-    double  getCongestion(Pos pos) const { return _gridList[pos.first-1][pos.second-1]->getCongestion(); }
+    double  getCongestion(Pos pos) const { 
+      if( pos.first<Ggrid::xMin  || pos.first>Ggrid::xMax || 
+          pos.second<Ggrid::yMin || pos.second>Ggrid::yMax ){ 
+        return CONGEST_MAX;  
+      }
+      else { 
+        return _gridList[pos.first-1][pos.second-1]->getCongestion(); 
+      }
+    }
     
     /**********************************/
     /*        Placement&Routing       */

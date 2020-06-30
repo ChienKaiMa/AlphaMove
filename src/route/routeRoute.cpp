@@ -1,9 +1,10 @@
 #include <cassert>
-#include "routeMgr.h"
-#include "util.h"
 #include <algorithm>
 #include "routeRoute.h"
+#include "routeMgr.h"
+#include "util.h"
 
+#define DEBUG
 
 using namespace std;
 
@@ -66,6 +67,63 @@ bool RouteMgr::route2Pin(Pos p1, Pos p2)
     MapSearchNode s = MapSearchNode(p1.first, p1.second); // start node
     MapSearchNode t = MapSearchNode(p2.first, p2.second); // terminal node
     searchSolver.SetStartAndGoalStates(s, t);
+
+    unsigned searchState;
+    unsigned searchSteps = 0;
+    do{
+        searchState = searchSolver.SearchStep();
+        searchSteps++;
+        #ifdef DEBUG
+            cout << "Step: " << searchSteps << endl;
+            int len = 0;
+            // open lists
+            cout << "Open:\n";
+            MapSearchNode* p = searchSolver.GetOpenListStart();
+            while(p){
+                len++;
+                p->PrintNodeInfo();
+                p = searchSolver.GetOpenListNext();
+            }
+            cout << "Open list has " << len <<  " nodes\n";
+            len = 0;
+
+            // closed list
+            cout << "Closed:\n";
+            p = searchSolver.GetClosedListStart();
+            while(p){
+                len++;
+                p->PrintNodeInfo();
+                p = searchSolver.GetClosedListNext();
+            }
+            cout << "Closed list has " << len << " nodes\n";
+        #endif
+    }
+    while(searchState == AStarSearch<MapSearchNode>::SEARCH_STATE_SEARCHING);
+
+    if(searchState == AStarSearch<MapSearchNode>::SEARCH_STATE_SUCCEEDED){
+        cout << "Search found goal state\n";
+        MapSearchNode* node =  searchSolver.GetSolutionStart();
+        cout << "Displaying solution\n";
+        int steps = 0;
+        while(!node){
+            node->PrintNodeInfo();
+            node = searchSolver.GetSolutionNext();
+            steps++;
+        }
+        cout << "Solution steps " << steps << endl;
+        searchSolver.FreeSolutionNodes();
+    }
+    else if(searchState == AStarSearch<MapSearchNode>::SEARCH_STATE_FAILED){
+        cout << "Search terminated. Failed to find goal state" << endl;
+    }
+    else{
+        cout << "Unexpected search states!!" << endl;
+    }
+
+    cout << "SearchSteps : " << searchSteps << endl;
+
+    searchSolver.EnsureMemoryFreed();
+
 }
 
 Pos
