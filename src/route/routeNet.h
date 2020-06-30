@@ -143,11 +143,11 @@ public:
     ~Ggrid(){}
     const Layer& operator [] (unsigned layId) { return *_layerList[layId]; }
     inline void initLayer( unsigned layNum ){ _layerList.resize(layNum); }
-    static void setBoundary(unsigned rBeg, unsigned cBeg, unsigned rEnd, unsigned cEnd){ // [row][col]
-        rBeg = rBeg;
-        cBeg = cBeg;
-        rEnd = rEnd;
-        cEnd = cEnd;
+    static void setBoundary(unsigned rrBeg, unsigned ccBeg, unsigned rrEnd, unsigned ccEnd){ // [row][col]
+        rBeg = rrBeg;
+        cBeg = ccBeg;
+        rEnd = rrEnd;
+        cEnd = ccEnd;
     }
     void set2dSupply(int supply) { _2dSupply = supply; }
     unsigned get2dSupply() const { return _2dSupply; }
@@ -200,7 +200,7 @@ class Segment
 public:
     Segment() {}
     ~Segment() {}
-    Segment(unsigned scol, unsigned srow, unsigned slay, unsigned ecol, unsigned erow, unsigned elay)
+    Segment(unsigned srow, unsigned scol, unsigned slay, unsigned erow, unsigned ecol, unsigned elay)
     {
         startPos[0] = srow;
         startPos[1] = scol;

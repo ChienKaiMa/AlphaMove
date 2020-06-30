@@ -54,11 +54,7 @@ public:
         return -CONGEST_MIN;  
       }
       else { 
-<<<<<<< HEAD
-        return -_gridList[pos.first-1][pos.second-1]->getCongestion(); 
-=======
-        return _gridList[pos.first-1][pos.second-1]->get2dCongestion(); 
->>>>>>> e23da765f12ab7690075c53ec77bdafe3e4e4cdc
+        return -_gridList[pos.first-1][pos.second-1]->get2dCongestion(); 
       }
     }
     

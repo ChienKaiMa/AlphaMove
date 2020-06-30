@@ -304,9 +304,9 @@ RouteMgr::add2DDemand(Net* net) //Initialize after each route
     unsigned availale_layer = _laySupply.size() - net->getMinLayCons() + 1;
     double constraint = ((double)_laySupply.size() / (double)availale_layer);
     cout << "Net " << net->_netId << "\n";
-    cout << "xmax: " << Ggrid::xMax << " ymax: " << Ggrid::yMax << "\n";
-
-    for(int i=0; i<net->_netSegs.size();++i){
+    cout << "rEnd: " << Ggrid::rEnd << " cEnd: " << Ggrid::cEnd << "\n";
+    //cout << "NetSeg.size()" << net->_netSegs.size() << endl;
+    for(int i=0; i< (net->_netSegs).size();++i){
         //cout << "test " << i << "\n";
         if(net->_netSegs.size() == 0)
             cout << "Empty!\n";

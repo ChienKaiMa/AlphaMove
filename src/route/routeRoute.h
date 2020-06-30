@@ -50,28 +50,28 @@ public:
         MapSearchNode newNode;
 
         // push each possible node 
-        if( (GetMap( x-1, y ) < CONGEST_MAX) && 
+        if( (GetMap( x-1, y ) < -CONGEST_MIN) && 
             !((parentX == x-1) && (parentY == y)) ) 
 	    {
 		    newNode = MapSearchNode( x-1, y );
 		    astarsearch->AddSuccessor( newNode );
 	    }
 
-        if( (GetMap( x, y-1 ) < CONGEST_MAX) && 
+        if( (GetMap( x, y-1 ) < -CONGEST_MIN) && 
             !((parentX == x) && (parentY == y-1)) ) 
 	    {
 		    newNode = MapSearchNode( x, y-1 );
 		    astarsearch->AddSuccessor( newNode );
 	    }
 
-        if( (GetMap( x+1, y ) < CONGEST_MAX) && 
+        if( (GetMap( x+1, y ) < -CONGEST_MIN) && 
             !((parentX == x+1) && (parentY == y)) ) 
 	    {
 		    newNode = MapSearchNode( x+1, y );
 		    astarsearch->AddSuccessor( newNode );
 	    }
 
-        if( (GetMap( x, y+1 ) < CONGEST_MAX) && 
+        if( (GetMap( x, y+1 ) < -CONGEST_MIN) && 
             !((parentX == x) && (parentY == y+1)) ) 
 	    {
 		    newNode = MapSearchNode( x, y+1 );
