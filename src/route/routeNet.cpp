@@ -57,7 +57,7 @@ CellInst::printPos(ostream& outfile) const
 void
 CellInst::printPos() const
 {
-    cout << " " << getPos().first << " " << getPos().second << endl;
+    cout << "x: " << getPos().first << ", y: " << getPos().second << endl;
 }
 
 void
