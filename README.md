@@ -22,6 +22,9 @@ make
 ./cell_move_router <input.txt> <output.txt>
 ```
 
+## Access Order
+gridList[row][col][lay]
+
 ## Team members
 NTUEE 張凱鈞 范育瑋 馬健凱
 
