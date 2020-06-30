@@ -70,7 +70,7 @@ RouteMgr::print2DDemand() const
     {
         for (auto const g : rows)
         {
-            cout << left << setw(5) << setprecision(3) << g->get2dDemand();
+            cout << left << setw(7) << setprecision(3) << g->get2dDemand();
         }
         cout << endl;
     }
@@ -141,7 +141,7 @@ RouteMgr::print2DCongestion() const
     {
         for (auto const g : rows)
         {
-            cout << left << setw(5) << setprecision(3) << g->get2dCongestion();
+            cout << left << setw(8) << setprecision(3) << g->get2dCongestion();
         }
         cout << endl;
     }
