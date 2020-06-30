@@ -2,5 +2,6 @@ src/cmd/._cmdCharDef.h
 src/cmd/._cmdParser.h
 *.o
 .vscode/launch.json
+.vscode/settings.json
 lib/libcmd.a
 
