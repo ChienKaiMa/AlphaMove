@@ -235,7 +235,7 @@ RouteOptCmd::exec(const string& option)
 void
 RouteOptCmd::usage(ostream& os) const
 {
-   os << "Usage: OPTimize" << endl;
+   os << "Usage: OPTimize < -Place | -Route | -Layerassign >" << endl;
 }
 
 void

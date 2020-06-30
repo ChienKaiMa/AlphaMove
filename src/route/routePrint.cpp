@@ -101,7 +101,7 @@ RouteMgr::print2DSupply() const
     {
         for (auto const g : rows)
         {
-            cout << g->get2dSupply() << " ";
+            cout << left << setw(5) << g->get2dSupply();
         }
         cout << endl;
     }

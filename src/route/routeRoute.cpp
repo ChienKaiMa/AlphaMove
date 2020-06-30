@@ -40,7 +40,7 @@ void RouteMgr::route()
     // 4.   iteratively untill all net is routed in 2D Grid graph.      
     NetList toRouteNet = NetList();
     for (auto m : _netList){
-        if (m->shouldReroute())
+        if (!m->shouldReroute())
             toRouteNet.push_back(m);
     }
     // sorted by #pins
@@ -48,7 +48,8 @@ void RouteMgr::route()
 
     for (auto n : toRouteNet){
         auto pinSet = n->_pinSet;
-        for(auto it=pinSet.begin(); it != --pinSet.end(); it++ ){
+        cout << "Currently routing Net : " << n->_netId << endl;
+        for(auto it=pinSet.begin(); it != --pinSet.end();){
             Pos pos1 = getPinPos(*it);
             Pos pos2 = getPinPos(*(++it));
             bool canRoute = route2Pin(pos1, pos2);
@@ -57,7 +58,7 @@ void RouteMgr::route()
 
 
 
-    cout << "Route..." << "(Not function-ready!)" << endl;
+    // cout << "Route..." << "(Not function-ready!)" << endl;
 }
 
 
@@ -105,7 +106,7 @@ bool RouteMgr::route2Pin(Pos p1, Pos p2)
         MapSearchNode* node =  searchSolver.GetSolutionStart();
         cout << "Displaying solution\n";
         int steps = 0;
-        while(!node){
+        while(node){
             node->PrintNodeInfo();
             node = searchSolver.GetSolutionNext();
             steps++;
@@ -123,7 +124,7 @@ bool RouteMgr::route2Pin(Pos p1, Pos p2)
     cout << "SearchSteps : " << searchSteps << endl;
 
     searchSolver.EnsureMemoryFreed();
-
+    return true;
 }
 
 Pos
