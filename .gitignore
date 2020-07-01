@@ -3,6 +3,7 @@ src/cmd/._cmdParser.h
 *.o
 .vscode/launch.json
 .vscode/settings.json
+.vscode/c_cpp_properties.json
 lib/libcmd.a
 lib/libroute.a
 lib/libutil.a

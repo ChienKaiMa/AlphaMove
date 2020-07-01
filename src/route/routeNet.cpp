@@ -87,7 +87,7 @@ CellInst::printAssoNet() const
 void
 CellInst::move(Pos newPos)
 {
-    _grid->updatePos(newPos);
+    _grid = routeMgr->_gridList[newPos.first-1][newPos.second-1];
 }
 
 /**********************************/

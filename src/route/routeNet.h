@@ -105,12 +105,14 @@ public:
     Pos getPos() const;
     Ggrid* getGrid() {return _grid;}
     unsigned getId() const { return _cellId; }
+    bool is_movable() { return _movable; }
     vector<int> assoNet; // associated net index // Koova
     void printPos(ostream&) const;
     void printPos() const;
     void printCell() const;
     void printAssoNet() const;
     void move(Pos);
+    bool     _hasmovedbyfd = false;
 private:
     unsigned _cellId;
     Ggrid*   _grid;   // in which grid;
@@ -154,7 +156,7 @@ public:
     unsigned get2dSupply() { return _2dSupply; }
     double get2dDemand() const { return _2dDemand; }
     double get2dDemand() { return _2dDemand; }
-    double get2dCongestion() const {return _2dCongestion;}
+    //double get2dCongestion() const {return _2dCongestion;}
     double get2dCongestion() {return _2dCongestion;}
 
     void printDemand() const {

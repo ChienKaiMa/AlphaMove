@@ -164,7 +164,6 @@ RouteMgr::readCircuit(const string& fileName)
         }
         ifs >> buffer; // NumCellInst
     }
-
     // CellInst and initial placement
     ifs >> tmpCnt; // cellInstCount
     int mcNum;
@@ -178,8 +177,8 @@ RouteMgr::readCircuit(const string& fileName)
         ifs >> tmpCnt2; // gGridColIdx
         ifs >> buffer; // movableCstr
         tempQ = (buffer == "Movable") ? true : false;
-        Ggrid* cool = new Ggrid(Pos(tmpCnt1, tmpCnt2));
-        CellInst* love = new CellInst(i+1, cool, this->_mcList[mcNum-1], tempQ);
+        // Ggrid* cool = new Ggrid(Pos(tmpCnt1, tmpCnt2));
+        CellInst* love = new CellInst(i+1, _gridList[tmpCnt1-1][tmpCnt2-1], this->_mcList[mcNum-1], tempQ);
         _instList.push_back(love);
     }
     ifs >> buffer; // NumNets
@@ -238,8 +237,8 @@ RouteMgr::readCircuit(const string& fileName)
 void
 RouteMgr::writeCircuit(ostream& outfile) const
 {
-    outfile << "NumMovedCellInst " << curMoveCnt << endl;
-    for(auto m : _movedList)
+    outfile << "NumMovedCellInst " << _curMoveCnt << endl;
+    for(auto m : _movedSet)
     {
         outfile << "CellInst C" << m->getId();
         m->printPos(outfile);
@@ -302,11 +301,11 @@ RouteMgr::add2DDemand(Net* net) //Initialize after each route
 {
     unsigned availale_layer = _laySupply.size() - net->getMinLayCons() + 1;
     double constraint = ((double)_laySupply.size() / (double)availale_layer);
-    cout << "Net " << net->_netId << "\n";
-    cout << "rEnd: " << Ggrid::rEnd << " cEnd: " << Ggrid::cEnd << "\n";
+    //cout << "Net " << net->_netId << "\n";
+    //cout << "rEnd: " << Ggrid::rEnd << " cEnd: " << Ggrid::cEnd << "\n";
     //cout << "NetSeg.size()" << net->_netSegs.size() << endl;
     if(net->_netSegs.size() == 0) {
-        cout << "Net" << net->_netId << " is empty!\n";
+        //cout << "Net" << net->_netId << " is empty!\n";
     }
     for(auto& s : net->_netSegs) {
         if(s->startPos[2] == s->endPos[2]){
@@ -329,7 +328,7 @@ RouteMgr::add2DDemand(Net* net) //Initialize after each route
                     min = s->endPos[1];
                 }
                 for(int j=min; j<=max; ++j){
-                    cout << "Net " << net->_netId << " " << s->startPos[0]-1 << " " << j-1 << "\n";
+                    //cout << "Net " << net->_netId << " " << s->startPos[0]-1 << " " << j-1 << "\n";
                     _gridList[(s->startPos[0])-1][j-1]->update2dDemand(constraint);
                 }
             }

@@ -22,6 +22,7 @@ extern RouteMgr *routeMgr;
 
 class RouteMgr
 {
+friend CellInst;
 public:
     RouteMgr() {}
     ~RouteMgr() { // TODO: reset();
@@ -88,10 +89,10 @@ private:
 
     // Results
     // TODO: maintain and prepare for output
-    unsigned          curMoveCnt = 0;
-    unsigned          curTotalWL;
-    InstList          _movedList;
-    vector<Segment*>  curRouteSegs; // TODO: check redundancy
+    unsigned          _curMoveCnt = 0;
+    unsigned          _curTotalWL;
+    InstSet           _movedSet;
+    vector<Segment*>  _curRouteSegs; // TODO: check redundancy
     ofstream*         _tempRoute;
 
 

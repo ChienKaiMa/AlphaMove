@@ -25,6 +25,7 @@ class Net;
 class CellInst;
 class Layer;
 typedef vector<CellInst*> InstList;
+typedef set<CellInst*> InstSet;
 typedef vector<MC*> MCList;
 typedef vector<vector<Ggrid*>> GridList;
 typedef vector<Net*> NetList;

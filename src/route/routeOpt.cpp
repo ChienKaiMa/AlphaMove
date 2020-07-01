@@ -11,6 +11,7 @@
 #include "util.h"
 #include <algorithm>
 #include "stlastar.h"
+#include "math.h"
 
 using namespace std;
 
@@ -31,7 +32,7 @@ extern RouteMgr* routeMgr;
 /**************************************************/
 void RouteMgr::place()
 {
-    cout << "Place..." << "(Not function-ready!)" << endl;
+    cout << "Place..." << endl;
     if(_placeStrategy){ //Congestion-based
     /*Psuedo code
         1: for net i=1 to n do
@@ -71,14 +72,61 @@ void RouteMgr::place()
     */
     }
     else{ //force-directed
-        CellInst* moveCell = _instList[0];
-        for(unsigned i=1;i<_instList.size();++i){
-            if(_instList[i]->getGrid()->get2dCongestion() < moveCell->getGrid()->get2dCongestion())
+        CellInst* moveCell;
+        unsigned s;
+        for(unsigned i=0; i<_instList.size(); ++i){
+            if(_instList[i]->is_movable() && (_instList[i]->_hasmovedbyfd == false)){
+                cout << "CellInst " << i+1 << " on (" << _instList[i]->getPos().first << "," << _instList[i]->getPos().second << ") has 2dcongestion " << setprecision(3) << _instList[i]->getGrid()->get2dCongestion() << "\n";
+                moveCell = _instList[i];
+                s = i;
+                break;
+            }
+        }
+        
+        for(unsigned i=s+1; i<_instList.size(); ++i){
+            // cout << "Grid addr : " << _instList[i]->getGrid() << " Mgr Grid Addr : " << _gridList[_instList[i]->getPos().first-1][_instList[i]->getPos().second-1] << endl; 
+            cout << "CellInst " << i+1 << " on (" << _instList[i]->getPos().first << "," << _instList[i]->getPos().second << ") has 2dcongestion " << setprecision(3) << _instList[i]->getGrid()->get2dCongestion() << "\n";
+            if((_instList[i]->is_movable()) && (_instList[i]->getGrid()->get2dCongestion() < moveCell->getGrid()->get2dCongestion()) && (_instList[i]->_hasmovedbyfd == false))
                 moveCell = _instList[i];
         }
+
         //go through _netList, find out all associated nets and thus associated cells and multiplications, then calculating new pos
+        double row_numerator = 0;
+        double row_denominator = 0;
+        double col_numerator = 0;
+        double col_denominator = 0;
+        int new_row;
+        int new_col;
+        change_notifier(moveCell);
+        if(_movedSet.insert(moveCell).second == true){
+            ++_curMoveCnt;
+        }
+        moveCell->_hasmovedbyfd = true;
+        cout << "CellInst " << moveCell->getId() << " is moved!\n";
+        cout << "CurMoveCnt: " << _curMoveCnt << "\n";
+        for(unsigned i=0; i<moveCell->assoNet.size(); ++i){
+            //cout << "Associated net " << _netList[moveCell->assoNet[i]-1]->_netId << "\n";
+            int pin_num = _netList[moveCell->assoNet[i]-1]->getPinSet().size() - 1;
+            std::set<PinPair>::iterator it = _netList[moveCell->assoNet[i]-1]->getPinSet().begin();
+            if(pin_num > 0){
+                for(int j=0; j<pin_num+1; ++j){
+                    if(_instList[(*it).first-1] != moveCell){
+                        //cout << _instList[(*it).first-1]->getPos().first << " " << _instList[(*it).first-1]->getPos().second << "\n";
+                        //cout << "Pin_num: " << (double)pin_num << "\n";
+                        row_numerator += ((double)(_instList[(*it).first-1]->getPos().first))/((double)(pin_num));
+                        col_numerator += ((double)(_instList[(*it).first-1]->getPos().second))/((double)(pin_num));
+                        row_denominator += 1.0/((double)(pin_num));
+                        col_denominator += 1.0/((double)(pin_num));
+                    }
+                    ++it;
+                }
+            }
+        }
+        new_row = (int)(round((double)(row_numerator) / (double)(row_denominator)));
+        new_col = (int)(round((double)(col_numerator) / (double)(col_denominator)));
+        moveCell->move(Pos(new_row,new_col));
+        cout << "New position: " << moveCell->getPos().first << " " << moveCell->getPos().second << "\n";
     }
-    
 }
 
 void RouteMgr::layerassign()
@@ -93,9 +141,9 @@ RouteMgr::koova_place()
     unsigned fst = _instList[0]->getPos().first;
     unsigned sec = _instList[0]->getPos().second;
     _instList[0]->move(Pos((Ggrid::cEnd + fst)/2, (Ggrid::rEnd + sec)/2));
-    _movedList.push_back(_instList[0]);
+    _movedSet.insert(_instList[0]);
     change_notifier(_instList[0]);
-    ++curMoveCnt;
+    ++_curMoveCnt;
 }
 
 void
@@ -110,7 +158,7 @@ RouteMgr::change_notifier(CellInst* su)
 void
 RouteMgr::koova_route()
 {
-    if (curRouteSegs.empty()) { curRouteSegs = initRouteSegs; }
+    if (_curRouteSegs.empty()) { _curRouteSegs = initRouteSegs; }
     NetList toRouteNet = NetList();
     for (auto m : _netList)
     {
