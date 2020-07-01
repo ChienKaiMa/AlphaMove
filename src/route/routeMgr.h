@@ -62,7 +62,10 @@ public:
     /**********************************/
     /*        Placement&Routing       */
     /**********************************/
-    void    place();
+    void     place();
+    unsigned Share(Net*,Net*);
+    pair<unsigned,unsigned> Move(Net*,Net*);
+
     void    route();
     void    koova_place();
     void    change_notifier(CellInst*);
