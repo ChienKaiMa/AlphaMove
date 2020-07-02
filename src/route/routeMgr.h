@@ -68,11 +68,12 @@ public:
     unsigned Share(Net*,Net*);
     pair<double,double> Move(Net*,Net*,double);
 
+    void    route2D(NetList&);
     void    route();
     void    koova_place();
     void    change_notifier(CellInst*);
     void    koova_route();
-    void    layerassign();
+    void    layerassign(NetList&);
     void    initSupply();
     void    add2DDemand(Net*);
     void    remove2DDemand(Net*);
@@ -102,8 +103,9 @@ private:
 
 
     //Routing Helper function
-    bool route2Pin(Pos p1, Pos p2, Net* net);
+    bool route2Pin(Pos p1, Pos p2, Net* net, double demand, unsigned lay1, unsigned lay2);
     Pos getPinPos(const PinPair) const; // 2D
+    unsigned getPinLay(const PinPair) const;
 };
 
 #endif // ROUTE_MGR_H

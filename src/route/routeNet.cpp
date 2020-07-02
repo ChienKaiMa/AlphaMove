@@ -90,6 +90,12 @@ CellInst::move(Pos newPos)
     _grid = routeMgr->_gridList[newPos.first-1][newPos.second-1];
 }
 
+unsigned
+CellInst::getPinLay(unsigned idx) const
+{
+    return _mc->_layerOfPin[idx-1];
+}
+
 /**********************************/
 /* class Segment member functions */
 /**********************************/
@@ -107,6 +113,19 @@ Segment::print(ostream& outfile) const
     outfile << " " << endPos[0] << " " << endPos[1] << " " << endPos[2];
 }
 
+char
+Segment::checkDir() const
+{
+    if (startPos[0] == endPos[0]) {
+        if (startPos[1] == endPos[1]) {
+            return 'Z';
+        } else {
+            return 'H';
+        }
+    } else {
+        return 'V';
+    }
+}
 
 /******************************/
 /* class Net member functions */

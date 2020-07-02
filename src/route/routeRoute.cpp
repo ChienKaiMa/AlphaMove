@@ -29,8 +29,27 @@ bool netCompare(Net* n1, Net* n2) // greater than , decsending order
 /*   Public member functions about optimization   */
 /**************************************************/
 
+void
+RouteMgr::route()
+{
+    cout << "Route..." << endl;
+    NetList targetNet = NetList();
+    for (auto m : _netList){
+        if (m->shouldReroute()){
+            targetNet.push_back(m);
+            m->ripUp();
+            // cout << m->_netSegs.size() << " " << m->_netSegs.capacity() << endl;
+        }
+    }
+    // sorted by #pins
+    sort( targetNet.begin(), targetNet.end(), netCompare);
 
-void RouteMgr::route()
+    route2D(targetNet);
+    cout << endl;
+    layerassign(targetNet);
+}
+
+void RouteMgr::route2D(NetList& toRouteNet)
 {
     // 1.   for each to-be routed net , sorted by #Pins
     //      route the largest Net first with Bounds(initially bounding box)
@@ -38,25 +57,19 @@ void RouteMgr::route()
     //      dynamically update the congestion 
     // 3.   if can't route, rip-up the pre-exist segments , enlarge the bound, and goto 2.
     // 4.   iteratively untill all net is routed in 2D Grid graph.      
-    cout << "Route..." << endl;
-    NetList toRouteNet = NetList();
-    for (auto m : _netList){
-        if (m->shouldReroute()){
-            toRouteNet.push_back(m);
-            m->ripUp();
-            // cout << m->_netSegs.size() << " " << m->_netSegs.capacity() << endl;
-        }
-    }
-    // sorted by #pins
-    sort( toRouteNet.begin(), toRouteNet.end(), netCompare);
-
+    cout << "2D-Routing..." << endl;
+    
     for (auto n : toRouteNet){
         auto pinSet = n->_pinSet;
-        cout << "Currently routing Net : " << n->_netId << endl;
+        cout << "Routing N" << n->_netId << endl;
+        unsigned availale_layer = _laySupply.size() - n->getMinLayCons() + 1;
+        double demand = ((double)_laySupply.size() / (double)availale_layer);
         for(auto it=pinSet.begin(); it != --pinSet.end();){
             Pos pos1 = getPinPos(*it);
             Pos pos2 = getPinPos(*(++it));
-            if (!route2Pin(pos1, pos2, n)) {
+            unsigned lay1 = getPinLay(*(--it));
+            unsigned lay2 = getPinLay(*(++it));
+            if (!route2Pin(pos1, pos2, n, demand, lay1, lay2)) {
                 cout << "route2Pin("
                 << pos1.first << " " << pos1.second << ", " 
                 << pos2.first << " " << pos2.second
@@ -65,14 +78,10 @@ void RouteMgr::route()
         }
         n->shouldReroute(false);
     }
-
-
-
-    // cout << "Route..." << "(Not function-ready!)" << endl;
 }
 
 
-bool RouteMgr::route2Pin(Pos p1, Pos p2, Net* net)
+bool RouteMgr::route2Pin(Pos p1, Pos p2, Net* net, double demand, unsigned lay1, unsigned lay2)
 {
     AStarSearch<MapSearchNode> searchSolver;
     MapSearchNode s = MapSearchNode(p1.first, p1.second); // start node
@@ -121,10 +130,10 @@ bool RouteMgr::route2Pin(Pos p1, Pos p2, Net* net)
         if(next){
             dir = (node->x - next->x)==0; // 1:col 0:row
         }else{
-            Segment* news = new Segment(node->x, node->y, 0,
-                                        node->x, node->y, 0);
-            cout << "New Segment!! : " << node->x << " " << node->y << " ,"
-                                       << node->x        << " " << node->y << endl; 
+            Segment* news = new Segment(node->x, node->y, lay1,
+                                        node->x, node->y, lay2);
+            cout << "New Segment!! : " << node->x << " " << node->y << " " << lay1 << ", "
+                                       << node->x << " " << node->y << " " << lay2 << endl; 
             net->addSeg(news);
         }
         Pos segStart = Pos(node->x, node->y);
@@ -133,10 +142,10 @@ bool RouteMgr::route2Pin(Pos p1, Pos p2, Net* net)
         int steps = 0;
         while(next){
             if( dir != ((node->x-next->x)==0)) { // changing direction
-                Segment* news = new Segment(segStart.first, segStart.second, 0,
-                                            node->x       , node->y        , 0);
-                cout << "New Segment!! : " << segStart.first << " " << segStart.second << " ,"
-                                           << node->x        << " " << node->y << endl; 
+                Segment* news = new Segment(segStart.first, segStart.second, lay1,
+                                            node->x       , node->y        , lay2);
+                cout << "New Segment!! : " << segStart.first << " " << segStart.second << " " << lay1 << " , "
+                                           << node->x        << " " << node->y         << " " << lay2 << endl; 
                 net->addSeg(news);
                 segStart.first = node->x;
                 segStart.second = node->y;
@@ -145,11 +154,11 @@ bool RouteMgr::route2Pin(Pos p1, Pos p2, Net* net)
             if( next==goal ){
                 Segment* news = new Segment(segStart.first, segStart.second, 0,
                                             next->x       , next->y        , 0 );
-                cout << "New Segment!! : " << segStart.first << " " << segStart.second << " ,"
-                                           << next->x        << " " << next->y << endl; 
+                cout << "New Segment!! : " << segStart.first << " " << segStart.second << " " << lay1 << " , "
+                                           << node->x        << " " << node->y         << " " << lay2 << endl; 
                 net->addSeg(news);                           
             }
-            (routeMgr->_gridList[next->x-1][next->y-1])->update2dDemand(1);
+            (routeMgr->_gridList[next->x-1][next->y-1])->update2dDemand(demand);
             // node->PrintNodeInfo();
             // next->PrintNodeInfo();
             node = next;
@@ -176,4 +185,11 @@ Pos
 RouteMgr::getPinPos(const PinPair pin) const
 {
     return _instList[pin.first-1]->getPos();
+}
+
+unsigned
+RouteMgr::getPinLay(const PinPair pin) const
+{
+    CellInst* cell = _instList[pin.first-1];
+    return cell->getPinLay(pin.second);
 }
