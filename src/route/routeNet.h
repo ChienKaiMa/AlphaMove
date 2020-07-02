@@ -215,6 +215,7 @@ public:
     void print() const;
     void print(ostream&) const;
     char checkDir() const;
+    unsigned getWL() const ;
     unsigned startPos[3];
     unsigned endPos[3];
 };

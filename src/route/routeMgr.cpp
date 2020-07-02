@@ -52,7 +52,7 @@ RouteMgr::readCircuit(const string& fileName)
 
     // Start parsing
     ifs >> buffer; // MaxCellMove
-    ifs >> maxMoveCnt; 
+    ifs >> _maxMoveCnt; 
     ifs >> buffer; // GGridBoundaryIdx
     for(unsigned i=0; i<4; ++i)
         ifs >> bndCoord[i];
@@ -408,4 +408,14 @@ RouteMgr::remove2DDemand(Net* net) //before each route
 
     go through net, for every passing grid g, call g.updateDemand(-constraint)
     */
+}
+
+unsigned 
+RouteMgr::evaluateWireLen() const{
+    unsigned newWL = 0;
+    for (auto n : _netList){
+        for(auto seg: n->_netSegs){
+            newWL+=seg->getWL();
+        }
+    }
 }
