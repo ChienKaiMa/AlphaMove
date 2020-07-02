@@ -30,6 +30,18 @@ extern RouteMgr* routeMgr;
 /**************************************************/
 /*   Public member functions about optimization   */
 /**************************************************/
+void
+RouteMgr::placeCong()
+{
+    cout << "Congestion-directed placement..." << endl;
+}
+
+void
+RouteMgr::placeForce()
+{
+    cout << "Force-directed placement..." << endl;
+}
+
 void RouteMgr::place()
 {
     cout << "Place..." << endl;

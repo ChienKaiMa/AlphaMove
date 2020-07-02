@@ -62,6 +62,8 @@ public:
     /**********************************/
     /*        Placement&Routing       */
     /**********************************/
+    void     placeCong();
+    void     placeForce();
     void     place();
     void     forcedirectedPlace ();
     unsigned Share(Net*,Net*);
