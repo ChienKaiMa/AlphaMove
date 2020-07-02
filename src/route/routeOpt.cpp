@@ -336,6 +336,8 @@ bool RouteMgr::layerassign(NetList& toLayNet)
                             seg->endPos[2] = layCons;
                         } else {
                             toDel.push_back(seg);
+                            auto it = net->_netSegs.begin()+i;
+                            net->_netSegs.erase(it);
                         }
                     } else if (!(seg->startPos[2] > layCons || seg->endPos[2] > layCons)) {
                         // Add a Z-seg
@@ -427,6 +429,8 @@ bool RouteMgr::layerassign(NetList& toLayNet)
                 if (seg->checkDir() == 'Z') {
                     if (seg->startPos[2] == seg->endPos[2]) {
                         toDel.push_back(seg);
+                        auto it = net->_netSegs.begin()+i;
+                        net->_netSegs.erase(it);
                     }
                 } else { // H or V
                     if (curLayer != seg->startPos[2]) {
