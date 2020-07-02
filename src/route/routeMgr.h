@@ -84,6 +84,11 @@ public:
     void    add2DDemand(Net*);
     void    remove2DDemand(Net*);
 
+    /**********************************/
+    /*            Output              */
+    /**********************************/ 
+    void    storeBestResult();
+
 private:
     // Initial
     unsigned          _maxMoveCnt;
@@ -103,9 +108,6 @@ private:
     // Current
     bool              _placeStrategy; // 0 for force-directed, 1 for congestion-based move
     clock_t           _startTime;
-
-    // Results
-    // TODO: maintain and prepare for output
     unsigned          _curMoveCnt = 0;
     unsigned          _curTotalWL;
     InstSet           _curMovedSet;

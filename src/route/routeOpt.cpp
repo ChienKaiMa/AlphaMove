@@ -57,7 +57,7 @@ void RouteMgr::mainPnR()
 
 void RouteMgr::place()
 {
-    cout << "Place..." << endl;
+    cout << "Place...\n";
     if(_placeStrategy){ //Congestion-based
         netbasedPlace();
     }

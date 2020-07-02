@@ -271,6 +271,25 @@ RouteMgr::writeCircuit(ostream& outfile) const
 }
 
 void
+RouteMgr::storeBestResult(){
+    _bestMovedCells.resize(0);
+    std::set<CellInst*>::iterator ite = _curMovedSet.begin();
+    for(unsigned i=0;i<_curMovedSet.size();++i){
+        OutputCell cell((*ite)->getId(),(*ite)->getPos().first,(*ite)->getPos().second);
+        _bestMovedCells.push_back(cell);
+        ++ite;
+    }
+
+    _bestRouteSegs.resize(0);
+    for(unsigned i=0;i<_netList.size();++i){
+        for(unsigned j=0;j<_netList[i]->_netSegs.size();++j){
+            OutputSeg seg(*(_netList[i]->_netSegs[j]),i+1);
+            _bestRouteSegs.push_back(seg);
+        }
+    }
+}
+
+void
 RouteMgr::genGridList()
 {
     for (unsigned i=1; i<=Ggrid::rEnd; ++i) {

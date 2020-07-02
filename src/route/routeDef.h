@@ -35,6 +35,6 @@ typedef pair<unsigned, unsigned> Pos;
 typedef pair<unsigned, unsigned> PinPair;
 typedef vector<Layer*> LayerList;
 typedef tuple<unsigned,unsigned,unsigned> OutputCell; //CellID, row, col
-typedef pair<Segment,unsigned> OutputSeg;
+typedef pair<Segment,unsigned> OutputSeg; //Segment, netID
 
 #endif // ROUTE_DEF_H

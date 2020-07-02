@@ -9,3 +9,4 @@ lib/libroute.a
 lib/libutil.a
 AlphaMove_Work.code-workspace
 bin/cell_move_router
+*.out
