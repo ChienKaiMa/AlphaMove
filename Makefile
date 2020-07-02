@@ -37,7 +37,7 @@ clean:
 	@echo "Removing $(SRCLIBS)..."
 	@cd lib; rm -f $(SRCLIBS)
 	@echo "Removing $(EXEC)..."
-	# @rm -f bin/$(EXEC)
+	@rm -f bin/$(EXEC)
 
 cleanall: clean
 	@echo "Removing bin/*..."
