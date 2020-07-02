@@ -264,6 +264,7 @@ private:
 
     //associated cell instances
     vector<unsigned>    _assoCellInst; //Represents the pin numbers of the cell instances in the net
+    bool                _toRemoveDemand = false;
 };
 
 

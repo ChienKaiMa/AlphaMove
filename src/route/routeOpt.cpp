@@ -48,33 +48,8 @@ void RouteMgr::netbasedPlace(){
     double moveNetCongestion;
     unsigned minRow = Ggrid::rEnd;
     unsigned minCol = Ggrid::cEnd;
-    unsigned maxRow = 0;
-    unsigned maxCol = 0;
-    /*for(unsigned i=0;i<moveNet->_netSegs.size();++i){
-        if(moveNet->_netSegs[i]->startPos[0] < minRow)
-            minRow = moveNet->_netSegs[i]->startPos[0];
-        else if(moveNet->_netSegs[i]->startPos[0] > maxRow)
-            maxRow = moveNet->_netSegs[i]->startPos[0];
-        if(moveNet->_netSegs[i]->endPos[0] < minRow)
-            minRow = moveNet->_netSegs[i]->endPos[0];
-        else if(moveNet->_netSegs[i]->endPos[0] > maxRow)
-            maxRow = moveNet->_netSegs[i]->endPos[0];
-        
-        if(moveNet->_netSegs[i]->startPos[1] < minCol)
-            minCol = moveNet->_netSegs[i]->startPos[1];
-        else if(moveNet->_netSegs[i]->startPos[1] > maxCol)
-            maxCol = moveNet->_netSegs[i]->startPos[1];
-        if(moveNet->_netSegs[i]->endPos[1] < minCol)
-            minCol = moveNet->_netSegs[i]->endPos[1];
-        else if(moveNet->_netSegs[i]->endPos[1] > maxCol)
-            maxCol = moveNet->_netSegs[i]->endPos[1];
-    }
-    for(unsigned i=minRow;i<=maxRow;++i){
-        for(unsigned j=minCol;j<=minCol;++j){
-            moveNetCongestion += _gridList[i-1][j-1]->get2dCongestion();
-        }
-    }
-    moveNetCongestion = moveNetCongestion / ((double)((maxRow-minRow+1)*(maxCol-minCol+1)));*/
+    unsigned maxRow = Ggrid::rBeg;
+    unsigned maxCol = Ggrid::cBeg;
 
     //Store the net congestions and bouding boxes
     for(unsigned i=0;i<_netList.size();++i){
@@ -83,25 +58,25 @@ void RouteMgr::netbasedPlace(){
         if(!(net->_netSegs.empty())){
             minRow = Ggrid::rEnd;
             minCol = Ggrid::cEnd;
-            maxRow = 0;
-            maxCol = 0;
+            maxRow = Ggrid::rBeg;
+            maxCol = Ggrid::cBeg;
             for(unsigned j=0;j<net->_netSegs.size();++j){
                 if(net->_netSegs[j]->startPos[0] < minRow)
                     minRow = net->_netSegs[j]->startPos[0];
-                else if(net->_netSegs[j]->startPos[0] > maxRow)
+                if(net->_netSegs[j]->startPos[0] > maxRow)
                     maxRow = net->_netSegs[j]->startPos[0];
                 if(net->_netSegs[j]->endPos[0] < minRow)
                     minRow = net->_netSegs[j]->endPos[0];
-                else if(net->_netSegs[j]->endPos[0] > maxRow)
+                if(net->_netSegs[j]->endPos[0] > maxRow)
                     maxRow = net->_netSegs[j]->endPos[0];
 
                 if(net->_netSegs[j]->startPos[1] < minCol)
                     minCol = net->_netSegs[j]->startPos[1];
-                else if(net->_netSegs[j]->startPos[1] > maxCol)
+                if(net->_netSegs[j]->startPos[1] > maxCol)
                     maxCol = net->_netSegs[j]->startPos[1];
                 if(net->_netSegs[j]->endPos[1] < minCol)
                     minCol = net->_netSegs[j]->endPos[1];
-                else if(net->_netSegs[j]->endPos[1] > maxCol)
+                if(net->_netSegs[j]->endPos[1] > maxCol)
                     maxCol = net->_netSegs[j]->endPos[1];
             }
             for(unsigned j=minRow;j<=maxRow;++j){
@@ -113,6 +88,8 @@ void RouteMgr::netbasedPlace(){
             net->_avgCongestion = netcongestion / ((double)((maxRow-minRow+1)*(maxCol-minCol+1)));
             net->_centerRow     = (int)(round(((double)minRow + (double)maxRow)/2.0));
             net->_centerCol     = (int)(round(((double)minCol + (double)maxCol)/2.0));
+            //cout << "Net " << i+1 << " " << setprecision(3) <<  _netList[i]->_avgCongestion << " " <<  _netList[i]->_centerRow << " " << _netList[i]->_centerCol << "\n";
+            //cout << minRow << " " << maxRow << " " << minCol << " " << maxCol << "\n";
         }
         else{
             net->_avgCongestion = 1;
@@ -128,7 +105,8 @@ void RouteMgr::netbasedPlace(){
             moveNetCongestion = _netList[i]->_avgCongestion;
         }
     }
-    
+    //cout << "Net " << moveNet->_netId << " is moved!\n";
+
     //Find NewCenter for the most congested net
     double bestCH = -100;
     double newCenterRow = moveNet->_centerRow;
@@ -142,6 +120,7 @@ void RouteMgr::netbasedPlace(){
             }
         }
     }
+    //cout << "BestCH = " << setprecision(3) << bestCH << "\n";
     for(unsigned i=0;i<_netList.size();++i){
         if((_netList[i] != moveNet) && (!_netList[i]->_pinSet.empty())){
             if((Share(moveNet,_netList[i]) > 0) && (moveNet->_avgCongestion < _netList[i]->_avgCongestion)){
@@ -150,9 +129,51 @@ void RouteMgr::netbasedPlace(){
             }
         }
     }
+    //cout << "Center is moved from (" << moveNet->_centerRow << "," << moveNet->_centerCol << ") to (" << newCenterRow << "," << newCenterCol << ").\n";
 
     //Move the associated cells
+    int offsetRow = (int)(round(newCenterRow - moveNet->_centerRow));
+    int offsetCol = (int)(round(newCenterCol - moveNet->_centerCol));
+    unsigned newRow, newCol;
+    for(unsigned i=0;i<moveNet->_assoCellInst.size();++i){
+        if(moveNet->_assoCellInst[i] > 0){
+            if(_instList[i]->is_movable()){
+                change_notifier(_instList[i]);
+                if(_movedSet.insert(_instList[i]).second == true)
+                    ++_curMoveCnt;
+                if(_instList[i]->getPos().first + offsetRow > Ggrid::rEnd)
+                    newRow = Ggrid::rEnd;
+                else if(_instList[i]->getPos().first + offsetRow < Ggrid::rBeg)
+                    newRow = Ggrid::rBeg;
+                else
+                    newRow = _instList[i]->getPos().first + offsetRow;
+                
+                if(_instList[i]->getPos().second + offsetCol > Ggrid::cEnd)
+                    newCol = Ggrid::cEnd;
+                else if(_instList[i]->getPos().second + offsetCol < Ggrid::cBeg)
+                    newCol = Ggrid::cBeg;
+                else
+                    newCol = _instList[i]->getPos().second + offsetCol;
+                
+                _instList[i] -> move(Pos(newRow,newCol));
+                for(unsigned j=0;j<_instList[i]->assoNet.size();++j){
+                    _netList[_instList[i]->assoNet[j]-1]->_toRemoveDemand = true;
+                }
 
+                cout << "CellInst " << i+1 << " is moved to (" << _instList[i]->getPos().first << "," << _instList[i]->getPos().second << ").\n";
+            }
+        }
+    }
+    cout << "CurMoveCnt: " << _curMoveCnt << "\n";
+    for(unsigned i=0;i<_netList.size();++i){
+        if(_netList[i]->_toRemoveDemand == true){
+            remove2DDemand(_netList[i]);
+            _netList[i]->_toReroute = true;
+            //cout << "Net " << i+1 << " need to be rerouted.\n";
+            _netList[i]->_toRemoveDemand = false;
+        }
+    }
+    
 }
 
 void RouteMgr::forcedirectedPlace (){
@@ -162,7 +183,7 @@ void RouteMgr::forcedirectedPlace (){
     unsigned s=_instList.size()-1;
     for(unsigned i=0; i<_instList.size(); ++i){
         if(_instList[i]->is_movable() && (_instList[i]->_hasmovedbyfd == false)){
-            cout << "CellInst " << i+1 << " on (" << _instList[i]->getPos().first << "," << _instList[i]->getPos().second << ") has 2dcongestion " << setprecision(3) << _instList[i]->getGrid()->get2dCongestion() << "\n";
+            //cout << "CellInst " << i+1 << " on (" << _instList[i]->getPos().first << "," << _instList[i]->getPos().second << ") has 2dcongestion " << setprecision(3) << _instList[i]->getGrid()->get2dCongestion() << "\n";
             moveCell = _instList[i];
             s = i;
             break;
@@ -171,7 +192,7 @@ void RouteMgr::forcedirectedPlace (){
     
     for(unsigned i=s+1; i<_instList.size(); ++i){
         // cout << "Grid addr : " << _instList[i]->getGrid() << " Mgr Grid Addr : " << _gridList[_instList[i]->getPos().first-1][_instList[i]->getPos().second-1] << endl; 
-        cout << "CellInst " << i+1 << " on (" << _instList[i]->getPos().first << "," << _instList[i]->getPos().second << ") has 2dcongestion " << setprecision(3) << _instList[i]->getGrid()->get2dCongestion() << "\n";
+        // cout << "CellInst " << i+1 << " on (" << _instList[i]->getPos().first << "," << _instList[i]->getPos().second << ") has 2dcongestion " << setprecision(3) << _instList[i]->getGrid()->get2dCongestion() << "\n";
         if((_instList[i]->is_movable()) && (_instList[i]->getGrid()->get2dCongestion() < moveCell->getGrid()->get2dCongestion()) && (_instList[i]->_hasmovedbyfd == false))
             moveCell = _instList[i];
     }
@@ -226,9 +247,12 @@ unsigned RouteMgr::Share(Net* a, Net* b){
 }
 
 pair<double,double> RouteMgr::Move(Net* a, Net* b, double BestCH){
-    double offsetRow = (double)(b->_centerRow - a->_centerRow) * ((b->_avgCongestion - a->_avgCongestion)/(BestCH - a->_avgCongestion)) * ((double)Share(a,b)/a->_pinSet.size());
-    double offsetCol = (double)(b->_centerCol - a->_centerCol) * ((b->_avgCongestion - a->_avgCongestion)/(BestCH - a->_avgCongestion)) * ((double)Share(a,b)/a->_pinSet.size());
+    //cout << "associated net : " << b->_netId << " ";
+    //cout << b->_centerRow << " " << a->_centerRow << " " << b->_avgCongestion << " " << a->_avgCongestion << " " << BestCH << " " << a->_pinSet.size() << " " << Share(a,b) << " ";
+    double offsetRow = ((double)b->_centerRow - (double)a->_centerRow) * ((b->_avgCongestion - a->_avgCongestion)/(BestCH - a->_avgCongestion)) * ((double)Share(a,b)/(double)a->_pinSet.size());
+    double offsetCol = ((double)b->_centerCol - (double)a->_centerCol) * ((b->_avgCongestion - a->_avgCongestion)/(BestCH - a->_avgCongestion)) * ((double)Share(a,b)/(double)a->_pinSet.size());
     pair<double,double> offset(offsetRow,offsetCol);
+    //cout << "offsetrow = " << offsetRow << " offsetcol = " << offsetCol << "\n";
     return offset;
 }
 
