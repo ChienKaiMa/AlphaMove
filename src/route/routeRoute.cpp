@@ -29,7 +29,7 @@ bool netCompare(Net* n1, Net* n2) // greater than , decsending order
 /*   Public member functions about optimization   */
 /**************************************************/
 
-void
+bool
 RouteMgr::route()
 {
     cout << "Route..." << endl;
@@ -46,7 +46,7 @@ RouteMgr::route()
 
     route2D(targetNet);
     cout << endl;
-    layerassign(targetNet);
+    return layerassign(targetNet);
 }
 
 void RouteMgr::route2D(NetList& toRouteNet)
@@ -152,10 +152,10 @@ bool RouteMgr::route2Pin(Pos p1, Pos p2, Net* net, double demand, unsigned lay1,
                 dir = (node->x-next->x)==0 ;
             } 
             if( next==goal ){
-                Segment* news = new Segment(segStart.first, segStart.second, 0,
-                                            next->x       , next->y        , 0 );
+                Segment* news = new Segment(segStart.first, segStart.second, lay1,
+                                            next->x       , next->y        , lay2 );
                 cout << "New Segment!! : " << segStart.first << " " << segStart.second << " " << lay1 << " , "
-                                           << node->x        << " " << node->y         << " " << lay2 << endl; 
+                                           << next->x        << " " << next->y         << " " << lay2 << endl; 
                 net->addSeg(news);                           
             }
             (routeMgr->_gridList[next->x-1][next->y-1])->update2dDemand(demand);
