@@ -349,7 +349,7 @@ RouteMgr::add2DDemand(Net* net) //Initialize after each route
 void 
 RouteMgr::remove2DDemand(Net* net) //before each route
 {
-    unsigned availale_layer = _laySupply.size() - net->getMinLayCons();
+    unsigned availale_layer = _laySupply.size() - net->getMinLayCons() + 1;
     double constraint = (double) (_laySupply.size() / availale_layer);
 
     for(auto& s : net->_netSegs) {

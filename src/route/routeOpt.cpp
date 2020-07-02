@@ -30,107 +30,103 @@ extern RouteMgr* routeMgr;
 /**************************************************/
 /*   Public member functions about optimization   */
 /**************************************************/
-void
-RouteMgr::placeCong()
-{
-    cout << "Congestion-directed placement..." << endl;
-}
-
-void
-RouteMgr::placeForce()
-{
-    cout << "Force-directed placement..." << endl;
-}
-
 void RouteMgr::place()
 {
     cout << "Place..." << endl;
     if(_placeStrategy){ //Congestion-based
-        //Find the most congested net
-        Net* moveNet = _netList[0];
-        double moveNetCongestion = 0;
-        unsigned minRow = Ggrid::rEnd;
-        unsigned minCol = Ggrid::cEnd;
-        unsigned maxRow = 0;
-        unsigned maxCol = 0;
-        for(unsigned i=0;i<moveNet->_netSegs.size();++i){
-            if(moveNet->_netSegs[i]->startPos[0] < minRow)
-                minRow = moveNet->_netSegs[i]->startPos[0];
-            else if(moveNet->_netSegs[i]->startPos[0] > maxRow)
-                maxRow = moveNet->_netSegs[i]->startPos[0];
-            if(moveNet->_netSegs[i]->endPos[0] < minRow)
-                minRow = moveNet->_netSegs[i]->endPos[0];
-            else if(moveNet->_netSegs[i]->endPos[0] > maxRow)
-                maxRow = moveNet->_netSegs[i]->endPos[0];
-            
-            if(moveNet->_netSegs[i]->startPos[1] < minCol)
-                minCol = moveNet->_netSegs[i]->startPos[1];
-            else if(moveNet->_netSegs[i]->startPos[1] > maxCol)
-                maxCol = moveNet->_netSegs[i]->startPos[1];
-            if(moveNet->_netSegs[i]->endPos[1] < minCol)
-                minCol = moveNet->_netSegs[i]->endPos[1];
-            else if(moveNet->_netSegs[i]->endPos[1] > maxCol)
-                maxCol = moveNet->_netSegs[i]->endPos[1];
-        }
-        for(unsigned i=minRow;i<=maxRow;++i){
-            for(unsigned j=minCol;j<=minCol;++j){
-                moveNetCongestion += _gridList[i-1][j-1]->get2dCongestion();
-            }
-        }
-        moveNetCongestion = moveNetCongestion / ((double)((maxRow-minRow+1)*(maxCol-minCol+1)));
-
-        for(unsigned i=1;i<_netList.size();++i){
-            Net* net = _netList[i];
-            double netcongestion = 0;
-            if(!(net->_netSegs.empty())){
-                minRow = Ggrid::rEnd;
-                minCol = Ggrid::cEnd;
-                maxRow = 0;
-                maxCol = 0;
-                for(unsigned j=0;j<net->_netSegs.size();++j){
-                    if(net->_netSegs[j]->startPos[0] < minRow)
-                        minRow = net->_netSegs[j]->startPos[0];
-                    else if(net->_netSegs[j]->startPos[0] > maxRow)
-                        maxRow = net->_netSegs[j]->startPos[0];
-                    if(net->_netSegs[j]->endPos[0] < minRow)
-                        minRow = net->_netSegs[j]->endPos[0];
-                    else if(net->_netSegs[j]->endPos[0] > maxRow)
-                        maxRow = net->_netSegs[j]->endPos[0];
-
-                    if(net->_netSegs[j]->startPos[1] < minCol)
-                        minCol = net->_netSegs[j]->startPos[1];
-                    else if(net->_netSegs[j]->startPos[1] > maxCol)
-                        maxCol = net->_netSegs[j]->startPos[1];
-                    if(net->_netSegs[j]->endPos[1] < minCol)
-                        minCol = net->_netSegs[j]->endPos[1];
-                    else if(net->_netSegs[j]->endPos[1] > maxCol)
-                        maxCol = net->_netSegs[j]->endPos[1];
-                }
-                for(unsigned j=minRow;j<=maxRow;++j){
-                    for(unsigned k=minCol;k<=maxCol;++k){
-                        netcongestion += _gridList[j-1][k-1]->get2dCongestion();
-                    }
-                }
-                netcongestion = netcongestion / ((double)((maxRow-minRow+1)*(maxCol-minCol+1)));
-                if(netcongestion < moveNetCongestion){
-                    moveNetCongestion = netcongestion;
-                    moveNet = net;
-                }
-            }
-        }
-        //Store the net congestions
-        //Find NewCenter for the most congested net
-
-
-        //Move the associated cells
-
+        netbasedPlace();
     }
     else{ //force-directed
         forcedirectedPlace();
     }
 }
 
+void RouteMgr::netbasedPlace(){
+    cout << "Net-based placement...\n";
+
+    //Find the most congested net
+    Net* moveNet = _netList[0];
+    double moveNetCongestion = 0;
+    unsigned minRow = Ggrid::rEnd;
+    unsigned minCol = Ggrid::cEnd;
+    unsigned maxRow = 0;
+    unsigned maxCol = 0;
+    for(unsigned i=0;i<moveNet->_netSegs.size();++i){
+        if(moveNet->_netSegs[i]->startPos[0] < minRow)
+            minRow = moveNet->_netSegs[i]->startPos[0];
+        else if(moveNet->_netSegs[i]->startPos[0] > maxRow)
+            maxRow = moveNet->_netSegs[i]->startPos[0];
+        if(moveNet->_netSegs[i]->endPos[0] < minRow)
+            minRow = moveNet->_netSegs[i]->endPos[0];
+        else if(moveNet->_netSegs[i]->endPos[0] > maxRow)
+            maxRow = moveNet->_netSegs[i]->endPos[0];
+        
+        if(moveNet->_netSegs[i]->startPos[1] < minCol)
+            minCol = moveNet->_netSegs[i]->startPos[1];
+        else if(moveNet->_netSegs[i]->startPos[1] > maxCol)
+            maxCol = moveNet->_netSegs[i]->startPos[1];
+        if(moveNet->_netSegs[i]->endPos[1] < minCol)
+            minCol = moveNet->_netSegs[i]->endPos[1];
+        else if(moveNet->_netSegs[i]->endPos[1] > maxCol)
+            maxCol = moveNet->_netSegs[i]->endPos[1];
+    }
+    for(unsigned i=minRow;i<=maxRow;++i){
+        for(unsigned j=minCol;j<=minCol;++j){
+            moveNetCongestion += _gridList[i-1][j-1]->get2dCongestion();
+        }
+    }
+    moveNetCongestion = moveNetCongestion / ((double)((maxRow-minRow+1)*(maxCol-minCol+1)));
+
+    for(unsigned i=1;i<_netList.size();++i){
+        Net* net = _netList[i];
+        double netcongestion = 0;
+        if(!(net->_netSegs.empty())){
+            minRow = Ggrid::rEnd;
+            minCol = Ggrid::cEnd;
+            maxRow = 0;
+            maxCol = 0;
+            for(unsigned j=0;j<net->_netSegs.size();++j){
+                if(net->_netSegs[j]->startPos[0] < minRow)
+                    minRow = net->_netSegs[j]->startPos[0];
+                else if(net->_netSegs[j]->startPos[0] > maxRow)
+                    maxRow = net->_netSegs[j]->startPos[0];
+                if(net->_netSegs[j]->endPos[0] < minRow)
+                    minRow = net->_netSegs[j]->endPos[0];
+                else if(net->_netSegs[j]->endPos[0] > maxRow)
+                    maxRow = net->_netSegs[j]->endPos[0];
+
+                if(net->_netSegs[j]->startPos[1] < minCol)
+                    minCol = net->_netSegs[j]->startPos[1];
+                else if(net->_netSegs[j]->startPos[1] > maxCol)
+                    maxCol = net->_netSegs[j]->startPos[1];
+                if(net->_netSegs[j]->endPos[1] < minCol)
+                    minCol = net->_netSegs[j]->endPos[1];
+                else if(net->_netSegs[j]->endPos[1] > maxCol)
+                    maxCol = net->_netSegs[j]->endPos[1];
+            }
+            for(unsigned j=minRow;j<=maxRow;++j){
+                for(unsigned k=minCol;k<=maxCol;++k){
+                    netcongestion += _gridList[j-1][k-1]->get2dCongestion();
+                }
+            }
+            netcongestion = netcongestion / ((double)((maxRow-minRow+1)*(maxCol-minCol+1)));
+            if(netcongestion < moveNetCongestion){
+                moveNetCongestion = netcongestion;
+                moveNet = net;
+            }
+        }
+    }
+    //Store the net congestions
+    //Find NewCenter for the most congested net
+
+
+    //Move the associated cells
+
+}
+
 void RouteMgr::forcedirectedPlace (){
+    cout << "Force-directed placement...\n";
+
     CellInst* moveCell;
     unsigned s=_instList.size()-1;
     for(unsigned i=0; i<_instList.size(); ++i){
