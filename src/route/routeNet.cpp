@@ -147,6 +147,14 @@ Net::printAllSeg(ostream& outfile) const
     }
 }
 
+void
+Net::ripUp(){
+    for(auto seg: _netSegs){
+        delete seg;
+    }
+    _netSegs.clear();
+}
+
 
 
 

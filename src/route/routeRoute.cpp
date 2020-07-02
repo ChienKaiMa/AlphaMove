@@ -38,10 +38,14 @@ void RouteMgr::route()
     //      dynamically update the congestion 
     // 3.   if can't route, rip-up the pre-exist segments , enlarge the bound, and goto 2.
     // 4.   iteratively untill all net is routed in 2D Grid graph.      
+    cout << "Route..." << endl;
     NetList toRouteNet = NetList();
     for (auto m : _netList){
-        if (m->shouldReroute())
+        if (m->shouldReroute()){
             toRouteNet.push_back(m);
+            m->ripUp();
+            cout << m->_netSegs.size() << " " << m->_netSegs.capacity() << endl;
+        }
     }
     // sorted by #pins
     sort( toRouteNet.begin(), toRouteNet.end(), netCompare);
@@ -52,7 +56,7 @@ void RouteMgr::route()
         for(auto it=pinSet.begin(); it != --pinSet.end();){
             Pos pos1 = getPinPos(*it);
             Pos pos2 = getPinPos(*(++it));
-            if (!route2Pin(pos1, pos2)) {
+            if (!route2Pin(pos1, pos2, n)) {
                 cout << "route2Pin("
                 << pos1.first << " " << pos1.second << ", " 
                 << pos2.first << " " << pos2.second
@@ -67,13 +71,14 @@ void RouteMgr::route()
 }
 
 
-bool RouteMgr::route2Pin(Pos p1, Pos p2)
+bool RouteMgr::route2Pin(Pos p1, Pos p2, Net* net)
 {
     AStarSearch<MapSearchNode> searchSolver;
     MapSearchNode s = MapSearchNode(p1.first, p1.second); // start node
     MapSearchNode t = MapSearchNode(p2.first, p2.second); // terminal node
     searchSolver.SetStartAndGoalStates(s, t);
-
+    cout << "route2Pin from : " << p1.first << " " << p1.second << ", to :"
+                                << p2.first << " " << p2.second << "." << endl;
     unsigned searchState;
     unsigned searchSteps = 0;
     do{
@@ -107,16 +112,48 @@ bool RouteMgr::route2Pin(Pos p1, Pos p2)
     while(searchState == AStarSearch<MapSearchNode>::SEARCH_STATE_SEARCHING);
 
     if(searchState == AStarSearch<MapSearchNode>::SEARCH_STATE_SUCCEEDED){
-        cout << "Search found goal state\n";
-        MapSearchNode* node =  searchSolver.GetSolutionStart();
-        cout << "Displaying solution\n";
+        // cout << "Search found goal state\n";
+        MapSearchNode* goal = searchSolver.GetSolutionEnd();
+        MapSearchNode* node =  searchSolver.GetSolutionStart(); 
+        MapSearchNode* next = searchSolver.GetSolutionNext();
+        bool dir = 0;
+        if(next){
+            dir = (node->x - next->x)==0; // 1:col 0:row
+        }else{
+            Segment* news = new Segment(node->x, node->y, 0,
+                                        node->x, node->y, 0);
+            cout << "New Segment!! : " << node->x << " " << node->y << " ,"
+                                       << node->x        << " " << node->y << endl; 
+            net->addSeg(news);
+        }
+        Pos segStart = Pos(node->x, node->y);
+        // cout << "Displaying solution\n";
         int steps = 0;
-        while(node){
-            node->PrintNodeInfo();
-            node = searchSolver.GetSolutionNext();
+        while(next){
+            if( dir != ((node->x-next->x)==0)) { // changing direction
+                Segment* news = new Segment(segStart.first, segStart.second, 0,
+                                            node->x       , node->y        , 0);
+                cout << "New Segment!! : " << segStart.first << " " << segStart.second << " ,"
+                                           << node->x        << " " << node->y << endl; 
+                net->addSeg(news);
+                segStart.first = node->x;
+                segStart.second = node->y;
+                dir = (node->x-next->x)==0 ;
+            } 
+            if( next==goal ){
+                Segment* news = new Segment(segStart.first, segStart.second, 0,
+                                            next->x       , next->y        , 0 );
+                cout << "New Segment!! : " << segStart.first << " " << segStart.second << " ,"
+                                           << next->x        << " " << next->y << endl; 
+                net->addSeg(news);                           
+            }
+            // node->PrintNodeInfo();
+            // next->PrintNodeInfo();
+            node = next;
+            next = searchSolver.GetSolutionNext();
             steps++;
         }
-        cout << "Solution steps " << steps << endl;
+        // cout << "Solution steps " << steps << endl;
         searchSolver.FreeSolutionNodes();
     }
     else if(searchState == AStarSearch<MapSearchNode>::SEARCH_STATE_FAILED){
@@ -126,7 +163,7 @@ bool RouteMgr::route2Pin(Pos p1, Pos p2)
         cout << "Unexpected search states!!" << endl;
     }
 
-    cout << "SearchSteps : " << searchSteps << endl;
+    // cout << "SearchSteps : " << searchSteps << endl;
 
     searchSolver.EnsureMemoryFreed();
     return true;

@@ -14,7 +14,7 @@ class MapSearchNode
 {
 public:
 	int x;	 // the (x,y) positions of the node
-	int y;	
+	int y;	 // x->row, y->col
 	
 	MapSearchNode() { x = y = 0; }
 	MapSearchNode( int px, int py ) { x=px; y=py; }

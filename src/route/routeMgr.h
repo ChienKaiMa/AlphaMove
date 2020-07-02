@@ -102,7 +102,7 @@ private:
 
 
     //Routing Helper function
-    bool route2Pin(Pos p1, Pos p2);
+    bool route2Pin(Pos p1, Pos p2, Net* net);
     Pos getPinPos(const PinPair) const; // 2D
 };
 

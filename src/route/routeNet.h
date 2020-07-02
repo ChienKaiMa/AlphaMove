@@ -241,6 +241,7 @@ public:
     void printAllSeg() const;
     void printAllSeg(ostream&) const;
     bool operator > (const Net& net ) const { return this->_pinSet.size() > net._pinSet.size(); }
+    void ripUp();
 private:
     unsigned            _netId;
     unsigned            _minLayCons; // minimum layer Constraints
