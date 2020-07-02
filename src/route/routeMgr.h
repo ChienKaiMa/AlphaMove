@@ -79,7 +79,7 @@ public:
     void    koova_place();
     void    change_notifier(CellInst*);
     void    koova_route();
-    void    layerassign(NetList&);
+    bool    layerassign(NetList&);
     void    initSupply();
     void    add2DDemand(Net*);
     void    remove2DDemand(Net*);

@@ -281,29 +281,217 @@ pair<double,double> RouteMgr::Move(Net* a, Net* b, double BestCH){
     return offset;
 }
 
-void RouteMgr::layerassign(NetList& toLayNet)
+bool RouteMgr::layerassign(NetList& toLayNet)
 {
     cout << "LayerAssign..." << endl;
+    vector<Segment*> toDel;
     for (auto& net : toLayNet)
     {
-        cout << "MinLayerConstr " << net->_minLayCons << endl;
-        for (auto& seg : net->_netSegs)
-        {
-            cout << seg->checkDir() << endl;
-            if (seg->checkDir() == 'H') {
-
-            } else if (seg->checkDir() == 'V') {
-                if (net->_minLayCons) {
-
+        unsigned curLayer, targetLayer;
+        unsigned segCnt = net->_netSegs.size();
+        unsigned layCons = net->_minLayCons;
+        cout << "MinLayerConstr " << layCons << endl;
+        if (layCons) {
+            for (unsigned i=0; i<segCnt; ++i)
+            {
+                Segment*& seg = net->_netSegs[i];
+                cout << seg->checkDir() << endl;
+                Segment save;
+                if (!i) {
+                    curLayer = seg->startPos[2];
+                } else if (i == (segCnt-1)) {
+                    Segment save = Segment(*seg);
                 }
-            } else { // Dir = 'Z'
-                if (seg->startPos[2] == seg->endPos[2]) {
-                    // delete seg;
+
+                if (seg->checkDir() == 'H') {
+                    if (curLayer >= seg->startPos[2]) {
+                        targetLayer = seg->startPos[2] + (1 - seg->startPos[2]%2);
+                        if (layCons > targetLayer) {
+                            targetLayer = layCons + (1 - layCons%2);
+                        }
+                    } else {
+                        targetLayer = seg->startPos[2] - (1 - seg->startPos[2]%2);
+                        if (layCons > targetLayer) {
+                            targetLayer = layCons + (1 - layCons%2);
+                        }
+                    }
+                } else if (seg->checkDir() == 'V') {
+                    if (curLayer >= seg->startPos[2]) {
+                        targetLayer = seg->startPos[2] + (seg->startPos[2]%2);
+                        if (layCons > targetLayer) {
+                            targetLayer = layCons + (layCons%2);
+                        }
+                    } else {
+                        targetLayer = seg->startPos[2] - (seg->startPos[2]%2);
+                        if (layCons > targetLayer) {
+                            targetLayer = layCons + (layCons%2);
+                        }
+                    }
+                }    
+
+                if (seg->checkDir() == 'Z') {
+                    if (seg->startPos[2] == seg->endPos[2]) {
+                        if (seg->startPos[2] < layCons) {
+                            // Move to the minRoutingLayer
+                            seg->endPos[2] = layCons;
+                        } else {
+                            toDel.push_back(seg);
+                            auto it = net->_netSegs.begin()+i;
+                            net->_netSegs.erase(it);
+                        }
+                    } else if (!(seg->startPos[2] > layCons || seg->endPos[2] > layCons)) {
+                        // Add a Z-seg
+                        Segment* zSeg = new Segment(*seg);
+                        zSeg->endPos[0] = seg->startPos[0];
+                        zSeg->endPos[1] = seg->startPos[1];
+                        zSeg->endPos[2] = layCons;
+                        net->addSeg(zSeg);
+                        cout << "Add new Segment" << endl;
+                        zSeg->print();
+                    }
+                } else { // H or V
+                    if (curLayer != seg->startPos[2]) {
+                        // Add a Z-seg
+                        Segment* zSeg = new Segment(*seg);
+                        zSeg->endPos[0] = seg->startPos[0];
+                        zSeg->endPos[1] = seg->startPos[1];
+                        zSeg->endPos[2] = curLayer;
+                        net->addSeg(zSeg);
+                        cout << "Add new Segment" << endl;
+                        zSeg->print();
+                        cout << endl;
+                        // Finish layer assignment
+                        seg->startPos[2] = targetLayer;
+                        seg->endPos[2] = targetLayer;
+                        curLayer = targetLayer;
+                    } else if (curLayer != targetLayer) {
+                        // Add a Z-seg
+                        Segment* zSeg = new Segment(*seg);
+                        zSeg->endPos[0] = seg->startPos[0];
+                        zSeg->endPos[1] = seg->startPos[1];
+                        zSeg->endPos[2] = targetLayer;
+                        net->addSeg(zSeg);
+                        cout << "Add new Segment" << endl;
+                        zSeg->print();
+                        cout << endl;
+                        // Finish layer assignment
+                        seg->startPos[2] = targetLayer;
+                        seg->endPos[2] = targetLayer;
+                        curLayer = targetLayer;
+                    }
+                    
+                    if (i == segCnt-1) {
+                        cout << seg->endPos[2] << endl;
+                        if (curLayer != seg->endPos[2]) {
+                            // Add a Z-seg
+                            Segment* zSeg = new Segment(save);
+                            
+                            cout << curLayer << endl;
+                            cout << seg->endPos[2] << endl;
+
+                            zSeg->startPos[0] = seg->endPos[0];
+                            zSeg->startPos[1] = seg->endPos[1];
+                            zSeg->startPos[2] = curLayer;
+                            net->addSeg(zSeg);
+                            cout << "Add new Segment" << endl;
+                            zSeg->print();
+                        }
+                    }
                 }
             }
-            //net->addSeg();
+        } else {
+            cout << "segCnt = " << segCnt << endl;
+            for (unsigned i=0; i<segCnt; ++i)
+            {
+                Segment*& seg = net->_netSegs[i];
+                cout << seg->checkDir() << endl;
+                Segment save;
+
+                if (!i) {
+                    curLayer = seg->startPos[2];
+                } else if (i == (segCnt-1)) {
+                    Segment save = Segment(*seg);
+                }
+                if (seg->checkDir() == 'H') {
+                    if (curLayer >= seg->startPos[2]) {
+                        targetLayer = seg->startPos[2] + (1 - seg->startPos[2]%2);
+                    } else {
+                        targetLayer = seg->startPos[2] - (1 - seg->startPos[2]%2);
+                    }
+                } else if (seg->checkDir() == 'V') {
+                    if (curLayer >= seg->startPos[2]) {
+                        targetLayer = seg->startPos[2] + (seg->startPos[2]%2);
+                    } else {
+                        targetLayer = seg->startPos[2] - (seg->startPos[2]%2);
+                    }
+                }
+                
+                if (seg->checkDir() == 'Z') {
+                    if (seg->startPos[2] == seg->endPos[2]) {
+                        toDel.push_back(seg);
+                        auto it = net->_netSegs.begin()+i;
+                        net->_netSegs.erase(it);
+                    }
+                } else { // H or V
+                    if (curLayer != seg->startPos[2]) {
+                        // Add a Z-seg
+                        Segment* zSeg = new Segment(*seg);
+                        cout << "DEBUG" << seg->startPos[2] << endl;
+                        zSeg->endPos[0] = seg->startPos[0];
+                        zSeg->endPos[1] = seg->startPos[1];
+                        zSeg->endPos[2] = curLayer;
+                        net->addSeg(zSeg);
+                        cout << "Add new Segment" << endl;
+                        zSeg->print();
+                        cout << endl;
+                        // Finish layer assignment
+                        seg->startPos[2] = targetLayer;
+                        seg->endPos[2] = targetLayer;
+                        curLayer = targetLayer;
+                    } else if (curLayer != targetLayer) {
+                        // Add a Z-seg
+                        Segment* zSeg = new Segment(*seg);
+                        zSeg->endPos[0] = seg->startPos[0];
+                        zSeg->endPos[1] = seg->startPos[1];
+                        zSeg->endPos[2] = targetLayer;
+                        net->addSeg(zSeg);
+                        cout << "Add new Segment" << endl;
+                        zSeg->print();
+                        cout << endl;
+                        // Finish layer assignment
+                        seg->startPos[2] = targetLayer;
+                        seg->endPos[2] = targetLayer;
+                        curLayer = targetLayer;
+                    }
+
+                    if (i == segCnt-1) {
+                        cout << seg->endPos[2] << endl;
+                        if (curLayer != seg->endPos[2]) {
+                            // Add a Z-seg
+                            Segment* zSeg = new Segment(save);
+                            
+                            cout << curLayer << endl;
+                            cout << seg->endPos[2] << endl;
+
+                            zSeg->startPos[0] = seg->endPos[0];
+                            zSeg->startPos[1] = seg->endPos[1];
+                            zSeg->startPos[2] = curLayer;
+                            net->addSeg(zSeg);
+                            cout << "Add new Segment" << endl;
+                            zSeg->print();
+                        }
+                    }
+                }
+            }
         }
+        
     }
+    for (auto& seg : toDel) {
+        cout << "Deleting " << seg << endl;
+        delete seg;
+        cout << "Still have " << toDel.size() << " item(s) to delete." << endl;
+    }
+    return true;
 }
 
 void
