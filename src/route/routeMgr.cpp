@@ -51,7 +51,7 @@ RouteMgr::readCircuit(const string& fileName)
 
     // Start parsing
     ifs >> buffer; // MaxCellMove
-    ifs >> maxMoveCnt; 
+    ifs >> _maxMoveCnt; 
     ifs >> buffer; // GGridBoundaryIdx
     for(unsigned i=0; i<4; ++i)
         ifs >> bndCoord[i];
@@ -214,8 +214,8 @@ RouteMgr::readCircuit(const string& fileName)
 
     // Initial routing data
     ifs >> buffer; // NumRoutes
-    ifs >> initTotalWL; // routeSegmentCount
-    for(unsigned i=0; i<initTotalWL; ++i)
+    ifs >> _initTotalWL; // routeSegmentCount
+    for(unsigned i=0; i<_initTotalWL; ++i)
     {
         Segment* damn = new Segment();
         for(unsigned j=0; j<3; ++j)
@@ -252,7 +252,7 @@ RouteMgr::writeCircuit(ostream& outfile) const
         m->printPos(outfile);
     }
     // TODO: output routes
-    outfile << "NumRoutes " << initTotalWL << endl;
+    outfile << "NumRoutes " << _initTotalWL << endl;
     for (unsigned i=0; i<_netList.size(); ++i) {
         _netList[i]->printAllSeg(outfile);
     }
@@ -396,4 +396,14 @@ RouteMgr::remove2DDemand(Net* net) //before each route
 
     go through net, for every passing grid g, call g.updateDemand(-constraint)
     */
+}
+
+unsigned 
+RouteMgr::evaluateWireLen() const{
+    unsigned newWL = 0;
+    for (auto n : _netList){
+        for(auto seg: n->_netSegs){
+            newWL+=seg->getWL();
+        }
+    }
 }

@@ -10,6 +10,7 @@
 #include "routeMgr.h"
 #include "util.h"
 #include <algorithm>
+#include <csignal>
 #include "stlastar.h"
 #include "math.h"
 
@@ -23,6 +24,7 @@ using namespace std;
 /*******************************/
 extern RouteMgr* routeMgr;
 
+
 /**************************************/
 /*   Static variables and functions   */
 /**************************************/
@@ -30,6 +32,29 @@ extern RouteMgr* routeMgr;
 /**************************************************/
 /*   Public member functions about optimization   */
 /**************************************************/
+
+void RouteMgr::mainPnR()
+{
+    while(true){
+        this->place();
+        if( _curMoveCnt > _maxMoveCnt ){
+            cout << "Maximum cell-movements!!" << endl;
+            cout << "P&R terminates..." << endl;
+            return;
+        }
+        bool canRoute = this->route();
+        if(canRoute){
+            unsigned newWL = evaluateWireLen();// evaluate total wirelength
+            if( newWL<_curTotalWL){
+                // store current result
+            }
+        }
+        this->_placeStrategy = !canRoute;
+    }
+}
+
+
+
 void RouteMgr::place()
 {
     cout << "Place..." << endl;
@@ -281,7 +306,7 @@ RouteMgr::change_notifier(CellInst* su)
 void
 RouteMgr::koova_route()
 {
-    if (_curRouteSegs.empty()) { _curRouteSegs = initRouteSegs; }
+    if (_curRouteSegs.empty()) { _curRouteSegs = _initRouteSegs; }
     NetList toRouteNet = NetList();
     for (auto m : _netList)
     {

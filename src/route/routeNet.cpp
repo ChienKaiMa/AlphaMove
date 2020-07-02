@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <iomanip>
+#include <math.h>
 #include "routeNet.h"
 #include "routeMgr.h"
 
@@ -125,6 +126,11 @@ Segment::checkDir() const
     } else {
         return 'V';
     }
+}
+
+unsigned
+Segment::getWL() const {
+    return abs((int)startPos[0]-(int)endPos[0]) + abs((int)startPos[1]-(int)endPos[1]) + abs((int)startPos[2]-(int)endPos[2]);
 }
 
 /******************************/

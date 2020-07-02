@@ -13,6 +13,7 @@
 #include <string>
 #include <fstream>
 #include <iostream>
+#include <ctime>
 #include "routeNet.h"
 
 using namespace std;
@@ -24,7 +25,7 @@ class RouteMgr
 {
 friend CellInst;
 public:
-    RouteMgr() : _placeStrategy(0) {}
+    RouteMgr() : _placeStrategy(0) { _startTime = clock(); }
     ~RouteMgr() { // TODO: reset();
     } 
     bool    readCircuit(const string&);
@@ -58,18 +59,22 @@ public:
         return -_gridList[pos.first-1][pos.second-1]->get2dCongestion(); 
       }
     }
+
+    unsigned evaluateWireLen() const;
+
     
     /**********************************/
     /*        Placement&Routing       */
-    /**********************************/
+    /**********************************/      
     void     place();
     void     netbasedPlace();
     void     forcedirectedPlace ();
     unsigned Share(Net*,Net*);
     pair<double,double> Move(Net*,Net*,double);
+    void     mainPnR();
 
     void    route2D(NetList&);
-    void    route();
+    bool    route();
     void    koova_place();
     void    change_notifier(CellInst*);
     void    koova_route();
@@ -79,9 +84,9 @@ public:
     void    remove2DDemand(Net*);
 
 private:
-    unsigned          maxMoveCnt;
-    unsigned          initTotalWL; // wirelength
-    vector<Segment*>  initRouteSegs; // TODO: check redundancy
+    unsigned          _maxMoveCnt;
+    unsigned          _initTotalWL; // wirelength
+    vector<Segment*>  _initRouteSegs; // TODO: check redundancy
     MCList            _mcList; // id->MC*
     InstList          _instList; // 1D array
     GridList          _gridList; // 2D array
@@ -92,6 +97,7 @@ private:
     unordered_map<MCTri, unsigned, TriHash>   _adjHGridDemand;
     unordered_map<MCTri, int, TriHash>        _nonDefaultSupply; // supply offset row,col,lay
     bool              _placeStrategy; // 0 for force-directed, 1 for congestion-based move
+    clock_t           _startTime;
 
     // Results
     // TODO: maintain and prepare for output
@@ -107,5 +113,8 @@ private:
     Pos getPinPos(const PinPair) const; // 2D
     unsigned getPinLay(const PinPair) const;
 };
+
+
+
 
 #endif // ROUTE_MGR_H

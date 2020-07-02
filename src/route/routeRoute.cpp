@@ -29,7 +29,7 @@ bool netCompare(Net* n1, Net* n2) // greater than , decsending order
 /*   Public member functions about optimization   */
 /**************************************************/
 
-void
+bool
 RouteMgr::route()
 {
     cout << "Route..." << endl;

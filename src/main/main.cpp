@@ -10,8 +10,11 @@
 #include "cmdParser.h"
 #include "../route/routeMgr.h"
 #include <cassert>
+#include <csignal>
 
 using namespace std;
+
+#define TIME_LIMIT 3600
 
 //----------------------------------------------------------------------
 //    Global cmd Manager
@@ -20,6 +23,17 @@ CmdParser* cmdMgr = new CmdParser("route> ");
 
 extern bool initCommonCmd();
 extern bool initRouteCmd();
+
+ofstream outfile;
+RouteMgr *rMgr = new RouteMgr;
+
+
+static void signal_handler(int signum){
+   cout << "Time limit exeed!!" << endl;
+   cout << "Output file ...   " << endl;
+   routeMgr->writeCircuit(outfile);
+   exit(0);
+}
 
 static void
 usage()
@@ -52,19 +66,19 @@ main(int argc, char** argv)
       // TODO: generate output file
       string inputFile = argv[1];
       string outFileName = argv[2];
-      RouteMgr *rMgr = new RouteMgr;
       rMgr->readCircuit(inputFile);
       rMgr->printRouteSummary();
       //rMgr->place();
       //rMgr->route();
       rMgr->koova_place();
       rMgr->koova_route();
-      ofstream outfile;
       outfile.open(argv[2], ios::out);
       if (!outfile) {
          cerr << "Output file open fail!" << endl;
          return 1;
       }
+      alarm(TIME_LIMIT-100);
+      signal(SIGALRM, &signal_handler);
       rMgr->writeCircuit(outfile);
       myUsage.report(true, true);
       return 0;
