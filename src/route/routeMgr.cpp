@@ -231,6 +231,14 @@ RouteMgr::readCircuit(const string& fileName)
         add2DDemand(m);
     }
 
+    for(auto& m : _netList){
+        for(unsigned i=0;i<_instList.size();++i)
+            m->_assoCellInst.push_back(0);
+        m->initAssoCellInst();
+        //cout << "Net " << m->_netId << "\n";
+        //m->printAssoCellInst();
+    }
+
     return true;
 }
 

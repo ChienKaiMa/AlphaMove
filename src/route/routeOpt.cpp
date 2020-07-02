@@ -44,14 +44,13 @@ void RouteMgr::place()
 void RouteMgr::netbasedPlace(){
     cout << "Net-based placement...\n";
 
-    //Find the most congested net
-    Net* moveNet = _netList[0];
-    double moveNetCongestion = 0;
+    Net* moveNet;
+    double moveNetCongestion;
     unsigned minRow = Ggrid::rEnd;
     unsigned minCol = Ggrid::cEnd;
     unsigned maxRow = 0;
     unsigned maxCol = 0;
-    for(unsigned i=0;i<moveNet->_netSegs.size();++i){
+    /*for(unsigned i=0;i<moveNet->_netSegs.size();++i){
         if(moveNet->_netSegs[i]->startPos[0] < minRow)
             minRow = moveNet->_netSegs[i]->startPos[0];
         else if(moveNet->_netSegs[i]->startPos[0] > maxRow)
@@ -75,9 +74,10 @@ void RouteMgr::netbasedPlace(){
             moveNetCongestion += _gridList[i-1][j-1]->get2dCongestion();
         }
     }
-    moveNetCongestion = moveNetCongestion / ((double)((maxRow-minRow+1)*(maxCol-minCol+1)));
+    moveNetCongestion = moveNetCongestion / ((double)((maxRow-minRow+1)*(maxCol-minCol+1)));*/
 
-    for(unsigned i=1;i<_netList.size();++i){
+    //Store the net congestions and bouding boxes
+    for(unsigned i=0;i<_netList.size();++i){
         Net* net = _netList[i];
         double netcongestion = 0;
         if(!(net->_netSegs.empty())){
@@ -109,16 +109,47 @@ void RouteMgr::netbasedPlace(){
                     netcongestion += _gridList[j-1][k-1]->get2dCongestion();
                 }
             }
-            netcongestion = netcongestion / ((double)((maxRow-minRow+1)*(maxCol-minCol+1)));
-            if(netcongestion < moveNetCongestion){
-                moveNetCongestion = netcongestion;
-                moveNet = net;
+
+            net->_avgCongestion = netcongestion / ((double)((maxRow-minRow+1)*(maxCol-minCol+1)));
+            net->_centerRow     = (int)(round(((double)minRow + (double)maxRow)/2.0));
+            net->_centerCol     = (int)(round(((double)minCol + (double)maxCol)/2.0));
+        }
+        else{
+            net->_avgCongestion = 1;
+        }
+    }
+
+    //Find the most congested net
+    moveNet = _netList[0];
+    moveNetCongestion = _netList[0]->_avgCongestion;
+    for(unsigned i=1;i<_netList.size();++i){
+        if(_netList[i]->_avgCongestion < moveNetCongestion){
+            moveNet = _netList[i];
+            moveNetCongestion = _netList[i]->_avgCongestion;
+        }
+    }
+    
+    //Find NewCenter for the most congested net
+    double bestCH = -100;
+    double newCenterRow = moveNet->_centerRow;
+    double newCenterCol = moveNet->_centerCol;
+    for(unsigned i=0;i<_netList.size();++i){
+        if((_netList[i] != moveNet) && (!_netList[i]->_pinSet.empty())){
+            if(Share(moveNet,_netList[i]) > 0){
+                if(_netList[i]->_avgCongestion > bestCH){
+                    bestCH = _netList[i]->_avgCongestion;
+                }
             }
         }
     }
-    //Store the net congestions
-    //Find NewCenter for the most congested net
-
+    for(unsigned i=0;i<_netList.size();++i){
+        if((_netList[i] != moveNet) && (!_netList[i]->_pinSet.empty())){
+            if((Share(moveNet,_netList[i]) > 0) && (moveNet->_avgCongestion < _netList[i]->_avgCongestion)){
+                newCenterRow += Move(moveNet,_netList[i],bestCH).first;
+                newCenterCol += Move(moveNet,_netList[i],bestCH).second;
+            }
+        }
+    }
 
     //Move the associated cells
 
@@ -185,12 +216,20 @@ void RouteMgr::forcedirectedPlace (){
 }
 
 unsigned RouteMgr::Share(Net* a, Net* b){
-    return 0;
+    unsigned numShareCell = 0;
+    for(unsigned i=0;i<_instList.size();++i){
+        if(b->_assoCellInst[i] != 0){
+            numShareCell += a->_assoCellInst[i];
+        }
+    }
+    return numShareCell;
 }
 
-pair<unsigned,unsigned> Move(Net* a, Net* b){
-    pair<unsigned,unsigned> out(0,0);
-    return out;
+pair<double,double> RouteMgr::Move(Net* a, Net* b, double BestCH){
+    double offsetRow = (double)(b->_centerRow - a->_centerRow) * ((b->_avgCongestion - a->_avgCongestion)/(BestCH - a->_avgCongestion)) * ((double)Share(a,b)/a->_pinSet.size());
+    double offsetCol = (double)(b->_centerCol - a->_centerCol) * ((b->_avgCongestion - a->_avgCongestion)/(BestCH - a->_avgCongestion)) * ((double)Share(a,b)/a->_pinSet.size());
+    pair<double,double> offset(offsetRow,offsetCol);
+    return offset;
 }
 
 void RouteMgr::layerassign()
