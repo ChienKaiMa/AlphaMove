@@ -68,11 +68,12 @@ public:
     unsigned Share(Net*,Net*);
     pair<unsigned,unsigned> Move(Net*,Net*);
 
+    void    route2D(NetList&);
     void    route();
     void    koova_place();
     void    change_notifier(CellInst*);
     void    koova_route();
-    void    layerassign();
+    void    layerassign(NetList&);
     void    initSupply();
     void    add2DDemand(Net*);
     void    remove2DDemand(Net*);

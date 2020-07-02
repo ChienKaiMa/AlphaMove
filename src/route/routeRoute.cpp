@@ -29,8 +29,26 @@ bool netCompare(Net* n1, Net* n2) // greater than , decsending order
 /*   Public member functions about optimization   */
 /**************************************************/
 
+void
+RouteMgr::route()
+{
+    cout << "Route..." << endl;
+    NetList targetNet = NetList();
+    for (auto m : _netList){
+        if (m->shouldReroute()){
+            targetNet.push_back(m);
+            m->ripUp();
+            // cout << m->_netSegs.size() << " " << m->_netSegs.capacity() << endl;
+        }
+    }
+    // sorted by #pins
+    sort( targetNet.begin(), targetNet.end(), netCompare);
 
-void RouteMgr::route()
+    route2D(targetNet);
+    layerassign(targetNet);
+}
+
+void RouteMgr::route2D(NetList& toRouteNet)
 {
     // 1.   for each to-be routed net , sorted by #Pins
     //      route the largest Net first with Bounds(initially bounding box)
@@ -38,21 +56,11 @@ void RouteMgr::route()
     //      dynamically update the congestion 
     // 3.   if can't route, rip-up the pre-exist segments , enlarge the bound, and goto 2.
     // 4.   iteratively untill all net is routed in 2D Grid graph.      
-    cout << "Route..." << endl;
-    NetList toRouteNet = NetList();
-    for (auto m : _netList){
-        if (m->shouldReroute()){
-            toRouteNet.push_back(m);
-            m->ripUp();
-            // cout << m->_netSegs.size() << " " << m->_netSegs.capacity() << endl;
-        }
-    }
-    // sorted by #pins
-    sort( toRouteNet.begin(), toRouteNet.end(), netCompare);
-
+    cout << "2D-Routing..." << endl;
+    
     for (auto n : toRouteNet){
         auto pinSet = n->_pinSet;
-        cout << "Currently routing Net : " << n->_netId << endl;
+        cout << "Routing N" << n->_netId << endl;
         for(auto it=pinSet.begin(); it != --pinSet.end();){
             Pos pos1 = getPinPos(*it);
             Pos pos2 = getPinPos(*(++it));
@@ -65,10 +73,6 @@ void RouteMgr::route()
         }
         n->shouldReroute(false);
     }
-
-
-
-    // cout << "Route..." << "(Not function-ready!)" << endl;
 }
 
 

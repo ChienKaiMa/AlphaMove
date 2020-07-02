@@ -193,9 +193,14 @@ pair<unsigned,unsigned> Move(Net* a, Net* b){
     return out;
 }
 
-void RouteMgr::layerassign()
+void RouteMgr::layerassign(NetList& toLayNet)
 {
-    cout << "LayerAssign..." << "(Not function-ready!)" << endl;
+    cout << "LayerAssign..." << endl;
+    for (auto& net : toLayNet)
+    {
+        cout << "MinLayerConstr" << net->_minLayCons << endl;
+        
+    }
 }
 
 void
