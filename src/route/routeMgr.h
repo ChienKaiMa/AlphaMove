@@ -24,7 +24,7 @@ class RouteMgr
 {
 friend CellInst;
 public:
-    RouteMgr() {}
+    RouteMgr() : _placeStrategy(0) {}
     ~RouteMgr() { // TODO: reset();
     } 
     bool    readCircuit(const string&);
@@ -63,6 +63,7 @@ public:
     /*        Placement&Routing       */
     /**********************************/
     void     place();
+    void     forcedirectedPlace ();
     unsigned Share(Net*,Net*);
     pair<unsigned,unsigned> Move(Net*,Net*);
 
