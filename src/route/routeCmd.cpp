@@ -197,7 +197,7 @@ RouteWriteCmd::help() const
 }
 
 //----------------------------------------------------------------------
-//    OPTimize < -Place | -Route | -Layerassign >
+//    OPTimize < -Place | -Route >
 //----------------------------------------------------------------------
 CmdExecStatus
 RouteOptCmd::exec(const string& option)
@@ -219,9 +219,7 @@ RouteOptCmd::exec(const string& option)
    if (myStrNCmp("-Place", token, 2) == 0)	
       routeMgr->place();	
    else if (myStrNCmp("-Route", token, 2) == 0)	
-      routeMgr->route();	
-   else if (myStrNCmp("-Layerassign", token, 2) == 0)	
-      routeMgr->layerassign();	
+      routeMgr->route();
    else 	
       return CmdExec::errorOption(CMD_OPT_ILLEGAL, token);
 
@@ -235,7 +233,7 @@ RouteOptCmd::exec(const string& option)
 void
 RouteOptCmd::usage(ostream& os) const
 {
-   os << "Usage: OPTimize < -Place | -Route | -Layerassign >" << endl;
+   os << "Usage: OPTimize < -Place | -Route >" << endl;
 }
 
 void

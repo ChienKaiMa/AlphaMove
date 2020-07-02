@@ -45,6 +45,7 @@ RouteMgr::route()
     sort( targetNet.begin(), targetNet.end(), netCompare);
 
     route2D(targetNet);
+    cout << endl;
     layerassign(targetNet);
 }
 

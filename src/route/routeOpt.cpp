@@ -237,8 +237,23 @@ void RouteMgr::layerassign(NetList& toLayNet)
     cout << "LayerAssign..." << endl;
     for (auto& net : toLayNet)
     {
-        cout << "MinLayerConstr" << net->_minLayCons << endl;
-        
+        cout << "MinLayerConstr " << net->_minLayCons << endl;
+        for (auto& seg : net->_netSegs)
+        {
+            cout << seg->checkDir() << endl;
+            if (seg->checkDir() == 'H') {
+
+            } else if (seg->checkDir() == 'V') {
+                if (net->_minLayCons) {
+
+                }
+            } else { // Dir = 'Z'
+                if (seg->startPos[2] == seg->endPos[2]) {
+                    // delete seg;
+                }
+            }
+            //net->addSeg();
+        }
     }
 }
 

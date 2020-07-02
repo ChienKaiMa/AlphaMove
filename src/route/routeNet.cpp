@@ -107,6 +107,19 @@ Segment::print(ostream& outfile) const
     outfile << " " << endPos[0] << " " << endPos[1] << " " << endPos[2];
 }
 
+char
+Segment::checkDir() const
+{
+    if (startPos[0] == endPos[0]) {
+        if (startPos[1] == endPos[1]) {
+            return 'Z';
+        } else {
+            return 'H';
+        }
+    } else {
+        return 'V';
+    }
+}
 
 /******************************/
 /* class Net member functions */
