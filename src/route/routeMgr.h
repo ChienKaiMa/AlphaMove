@@ -66,7 +66,7 @@ public:
     void     netbasedPlace();
     void     forcedirectedPlace ();
     unsigned Share(Net*,Net*);
-    pair<unsigned,unsigned> Move(Net*,Net*);
+    pair<double,double> Move(Net*,Net*,double);
 
     void    route2D(NetList&);
     void    route();

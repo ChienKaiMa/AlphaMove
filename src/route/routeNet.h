@@ -232,16 +232,23 @@ public:
     ~Net();
     inline void addPin(PinPair pin){ _pinSet.insert(pin); }
     void addSeg(Segment* s) { _netSegs.push_back(s); }
+    void shouldReroute(bool q) { _toReroute = q; }
+    bool operator > (const Net& net ) const { return this->_pinSet.size() > net._pinSet.size(); }
+    void ripUp();
+    void initAssoCellInst();
+
+    //Accessing functions
     unsigned getMinLayCons() { return _minLayCons; }
     set<PinPair> getPinSet() { return _pinSet; }
-    void printPinSet() const;
-    void shouldReroute(bool q) { _toReroute = q; }
     bool shouldReroute() { return _toReroute; }
+
+    //Printing functions
+    void printPinSet() const;
     void printSummary() const;
     void printAllSeg() const;
     void printAllSeg(ostream&) const;
-    bool operator > (const Net& net ) const { return this->_pinSet.size() > net._pinSet.size(); }
-    void ripUp();
+    void printAssoCellInst() const;
+    
 private:
     unsigned            _netId;
     unsigned            _minLayCons; // minimum layer Constraints
@@ -249,6 +256,14 @@ private:
     vector<Segment*>    _netSegs; //TODO pointer?
     // unordered_map< unsigned, Pos > _pinPos; // a map from instance id->Pos(current placement);
     bool                _toReroute = false;
+
+    //bounding box
+    unsigned            _centerRow;
+    unsigned            _centerCol;
+    double              _avgCongestion;
+
+    //associated cell instances
+    vector<unsigned>    _assoCellInst; //Represents the pin numbers of the cell instances in the net
 };
 
 

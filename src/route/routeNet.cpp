@@ -155,6 +155,21 @@ Net::ripUp(){
     _netSegs.clear();
 }
 
+void 
+Net::initAssoCellInst(){
+    std::set<PinPair>::iterator ite = _pinSet.begin();
+    for(unsigned i=0;i<_pinSet.size();++i){
+        ++_assoCellInst[ite->first-1];
+        ++ite;
+    }
+}
+
+void
+Net::printAssoCellInst() const{
+    for(unsigned i=0;i<_assoCellInst.size();++i){
+        cout << "CellInst " << i+1 << " has " << _assoCellInst[i] << " associated pins.\n";
+    }
+}
 
 
 
