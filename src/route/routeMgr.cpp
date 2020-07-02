@@ -418,4 +418,5 @@ RouteMgr::evaluateWireLen() const{
             newWL+=seg->getWL();
         }
     }
+    return newWL;
 }

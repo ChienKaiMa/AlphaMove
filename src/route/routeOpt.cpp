@@ -45,8 +45,8 @@ void RouteMgr::mainPnR()
         bool canRoute = this->route();
         if(canRoute){
             unsigned newWL = evaluateWireLen();// evaluate total wirelength
-            if( newWL<_curTotalWL){
-                // store current result
+            if( newWL<_bestTotalWL){
+                _bestTotalWL = newWL;
             }
         }
         this->_placeStrategy = !canRoute;
