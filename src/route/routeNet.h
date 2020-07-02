@@ -215,6 +215,7 @@ public:
     void print() const;
     void print(ostream&) const;
     char checkDir() const;
+    unsigned getWL() const ;
     unsigned startPos[3];
     unsigned endPos[3];
 };
@@ -266,6 +267,7 @@ private:
 
     //associated cell instances
     vector<unsigned>    _assoCellInst; //Represents the pin numbers of the cell instances in the net
+    bool                _toRemoveDemand = false;
 };
 
 

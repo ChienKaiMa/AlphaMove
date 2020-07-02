@@ -13,6 +13,7 @@
 #define CONGEST_MIN -2147483647 // INT_MIN
 
 #include <vector>
+#include <tuple>
 
 using namespace std;
 
@@ -24,6 +25,7 @@ class Ggrid;
 class Net;
 class CellInst;
 class Layer;
+class Segment;
 typedef vector<CellInst*> InstList;
 typedef set<CellInst*> InstSet;
 typedef vector<MC*> MCList;
@@ -32,5 +34,7 @@ typedef vector<Net*> NetList;
 typedef pair<unsigned, unsigned> Pos;
 typedef pair<unsigned, unsigned> PinPair;
 typedef vector<Layer*> LayerList;
+typedef tuple<unsigned,unsigned,unsigned> OutputCell; //CellID, row, col
+typedef pair<Segment,unsigned> OutputSeg;
 
 #endif // ROUTE_DEF_H
