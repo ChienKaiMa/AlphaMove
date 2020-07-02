@@ -15,6 +15,7 @@
 #include <cstring>
 #include <math.h>
 #include "routeMgr.h"
+#include "routeNet.h"
 #include "../util/util.h"
 
 using namespace std;
@@ -180,6 +181,9 @@ RouteMgr::readCircuit(const string& fileName)
         // Ggrid* cool = new Ggrid(Pos(tmpCnt1, tmpCnt2));
         CellInst* love = new CellInst(i+1, _gridList[tmpCnt1-1][tmpCnt2-1], this->_mcList[mcNum-1], tempQ);
         _instList.push_back(love);
+
+        OutputCell cell(i+1, tmpCnt1, tmpCnt2);
+        _initCells.push_back(cell);
     }
     ifs >> buffer; // NumNets
     ifs >> tmpCnt; // netCount
@@ -214,8 +218,8 @@ RouteMgr::readCircuit(const string& fileName)
 
     // Initial routing data
     ifs >> buffer; // NumRoutes
-    ifs >> initTotalWL; // routeSegmentCount
-    for(unsigned i=0; i<initTotalWL; ++i)
+    ifs >> _initTotalSegNum; // routeSegmentCount
+    for(unsigned i=0; i<_initTotalSegNum; ++i)
     {
         Segment* damn = new Segment();
         for(unsigned j=0; j<3; ++j)
@@ -225,6 +229,10 @@ RouteMgr::readCircuit(const string& fileName)
         ifs >> buffer; // netName
         int netIdx = stoi(buffer.substr(1));
         _netList[netIdx-1]->addSeg(damn);
+
+        OutputSeg seg(*damn, (unsigned)netIdx);
+        _initRouteSegs.push_back(seg);
+        _bestRouteSegs.push_back(seg);
     }
     
     for(auto& m : _netList){
@@ -245,17 +253,21 @@ RouteMgr::readCircuit(const string& fileName)
 void
 RouteMgr::writeCircuit(ostream& outfile) const
 {
-    outfile << "NumMovedCellInst " << _curMoveCnt << endl;
-    for(auto m : _movedSet)
+    outfile << "NumMovedCellInst " << _bestMovedCells.size() << "\n";
+    for(auto m : _bestMovedCells)
     {
-        outfile << "CellInst C" << m->getId();
-        m->printPos(outfile);
+        outfile << "CellInst C" << get<0>(m) << " " << get<1>(m) << " " << get<2>(m) << "\n";
     }
     // TODO: output routes
-    outfile << "NumRoutes " << initTotalWL << endl;
-    for (unsigned i=0; i<_netList.size(); ++i) {
-        _netList[i]->printAllSeg(outfile);
+    outfile << "NumRoutes " << _bestRouteSegs.size() << "\n";
+    for (unsigned i=0; i<_bestRouteSegs.size()-1; ++i) {
+        outfile << _bestRouteSegs[i].first.startPos[0] << " " << _bestRouteSegs[i].first.startPos[1] << " " << _bestRouteSegs[i].first.startPos[2] << " "
+                << _bestRouteSegs[i].first.endPos[0]   << " " << _bestRouteSegs[i].first.endPos[1]   << " " << _bestRouteSegs[i].first.endPos[2]   << " N"
+                << _bestRouteSegs[i].second << "\n";
     }
+    outfile << _bestRouteSegs[_bestRouteSegs.size()-1].first.startPos[0] << " " << _bestRouteSegs[_bestRouteSegs.size()-1].first.startPos[1] << " " << _bestRouteSegs[_bestRouteSegs.size()-1].first.startPos[2] << " "
+            << _bestRouteSegs[_bestRouteSegs.size()-1].first.endPos[0]   << " " << _bestRouteSegs[_bestRouteSegs.size()-1].first.endPos[1]   << " " << _bestRouteSegs[_bestRouteSegs.size()-1].first.endPos[2]   << " N"
+            << _bestRouteSegs[_bestRouteSegs.size()-1].second;
 }
 
 void

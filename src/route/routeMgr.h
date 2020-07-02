@@ -13,6 +13,7 @@
 #include <string>
 #include <fstream>
 #include <iostream>
+#include <tuple>
 #include "routeNet.h"
 
 using namespace std;
@@ -79,9 +80,11 @@ public:
     void    remove2DDemand(Net*);
 
 private:
+    // Initial
     unsigned          maxMoveCnt;
-    unsigned          initTotalWL; // wirelength
-    vector<Segment*>  initRouteSegs; // TODO: check redundancy
+    unsigned          _initTotalSegNum; // segment num
+    vector<OutputSeg> _initRouteSegs; // TODO: check redundancy
+    vector<OutputCell>_initCells;
     MCList            _mcList; // id->MC*
     InstList          _instList; // 1D array
     GridList          _gridList; // 2D array
@@ -91,14 +94,17 @@ private:
     unordered_map<MCTri, unsigned, TriHash>   _sameGridDemand;
     unordered_map<MCTri, unsigned, TriHash>   _adjHGridDemand;
     unordered_map<MCTri, int, TriHash>        _nonDefaultSupply; // supply offset row,col,lay
+    
+    // Current
     bool              _placeStrategy; // 0 for force-directed, 1 for congestion-based move
-
-    // Results
-    // TODO: maintain and prepare for output
     unsigned          _curMoveCnt = 0;
     unsigned          _curTotalWL;
-    InstSet           _movedSet;
-    vector<Segment*>  _curRouteSegs; // TODO: check redundancy
+    InstSet           _curMovedSet;
+
+    // Results
+    vector<OutputCell>_bestMovedCells;
+    vector<OutputSeg> _bestRouteSegs; // TODO: check redundancy
+    unsigned          _bestTotalWL;
     ofstream*         _tempRoute;
 
 

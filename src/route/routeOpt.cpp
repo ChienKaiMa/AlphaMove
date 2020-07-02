@@ -139,7 +139,7 @@ void RouteMgr::netbasedPlace(){
         if(moveNet->_assoCellInst[i] > 0){
             if(_instList[i]->is_movable()){
                 change_notifier(_instList[i]);
-                if(_movedSet.insert(_instList[i]).second == true)
+                if(_curMovedSet.insert(_instList[i]).second == true)
                     ++_curMoveCnt;
                 if(_instList[i]->getPos().first + offsetRow > Ggrid::rEnd)
                     newRow = Ggrid::rEnd;
@@ -205,7 +205,7 @@ void RouteMgr::forcedirectedPlace (){
     int new_row;
     int new_col;
     change_notifier(moveCell);
-    if(_movedSet.insert(moveCell).second == true){
+    if(_curMovedSet.insert(moveCell).second == true){
         ++_curMoveCnt;
     }
     moveCell->_hasmovedbyfd = true;
@@ -285,12 +285,12 @@ void
 RouteMgr::koova_place()
 {
     // heuristicly move the first cell instance
-    unsigned fst = _instList[0]->getPos().first;
+    /*unsigned fst = _instList[0]->getPos().first;
     unsigned sec = _instList[0]->getPos().second;
     _instList[0]->move(Pos((Ggrid::cEnd + fst)/2, (Ggrid::rEnd + sec)/2));
-    _movedSet.insert(_instList[0]);
+    _curMovedSet.insert(_instList[0]);
     change_notifier(_instList[0]);
-    ++_curMoveCnt;
+    ++_curMoveCnt;*/
 }
 
 void
@@ -305,18 +305,18 @@ RouteMgr::change_notifier(CellInst* su)
 void
 RouteMgr::koova_route()
 {
-    if (_curRouteSegs.empty()) { _curRouteSegs = initRouteSegs; }
+    // if (_curRouteSegs.empty()) { _curRouteSegs = initRouteSegs; }
     NetList toRouteNet = NetList();
     for (auto m : _netList)
     {
         if (m->shouldReroute())
         {
             toRouteNet.push_back(m);
-            /*
+            
             m->getPinSet();
             // TODO: Reroute Net m
             m->shouldReroute(false);
-            */
+            
         }
     }
 }

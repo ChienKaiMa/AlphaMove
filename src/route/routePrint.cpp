@@ -29,7 +29,7 @@ RouteMgr::printRouteSummary() const
     cout << "Total MC" << setw(11) << _mcList.size() << endl;
     cout << "CellInst" << setw(11) << _instList.size() << endl;
     cout << "Net" << setw(16) << _netList.size() << endl;
-    cout << "OrigRoute" << setw(10) << initTotalWL << endl;
+    cout << "OrigRoute" << setw(10) << _initTotalSegNum << endl;
     // TODO: Support more information
     // cout << "CurrRoute" << setw(10) << numRoute << endl;
 }
