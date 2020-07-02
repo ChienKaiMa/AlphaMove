@@ -103,8 +103,9 @@ private:
 
 
     //Routing Helper function
-    bool route2Pin(Pos p1, Pos p2, Net* net);
+    bool route2Pin(Pos p1, Pos p2, Net* net, double demand, unsigned lay1, unsigned lay2);
     Pos getPinPos(const PinPair) const; // 2D
+    unsigned getPinLay(const PinPair) const;
 };
 
 #endif // ROUTE_MGR_H

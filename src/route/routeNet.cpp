@@ -90,6 +90,12 @@ CellInst::move(Pos newPos)
     _grid = routeMgr->_gridList[newPos.first-1][newPos.second-1];
 }
 
+unsigned
+CellInst::getPinLay(unsigned idx) const
+{
+    return _mc->_layerOfPin[idx-1];
+}
+
 /**********************************/
 /* class Segment member functions */
 /**********************************/

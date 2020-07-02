@@ -105,6 +105,7 @@ public:
     Pos getPos() const;
     Ggrid* getGrid() {return _grid;}
     unsigned getId() const { return _cellId; }
+    unsigned getPinLay(unsigned idx) const;
     bool is_movable() { return _movable; }
     vector<int> assoNet; // associated net index // Koova
     void printPos(ostream&) const;
