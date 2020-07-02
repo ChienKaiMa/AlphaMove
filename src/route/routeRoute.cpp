@@ -44,7 +44,7 @@ void RouteMgr::route()
         if (m->shouldReroute()){
             toRouteNet.push_back(m);
             m->ripUp();
-            cout << m->_netSegs.size() << " " << m->_netSegs.capacity() << endl;
+            // cout << m->_netSegs.size() << " " << m->_netSegs.capacity() << endl;
         }
     }
     // sorted by #pins
@@ -63,6 +63,7 @@ void RouteMgr::route()
                 << " ) failed!" << endl;
             }
         }
+        n->shouldReroute(false);
     }
 
 
@@ -77,7 +78,7 @@ bool RouteMgr::route2Pin(Pos p1, Pos p2, Net* net)
     MapSearchNode s = MapSearchNode(p1.first, p1.second); // start node
     MapSearchNode t = MapSearchNode(p2.first, p2.second); // terminal node
     searchSolver.SetStartAndGoalStates(s, t);
-    cout << "route2Pin from : " << p1.first << " " << p1.second << ", to :"
+    cout << "route2Pin from : " << p1.first << " " << p1.second << ", to "
                                 << p2.first << " " << p2.second << "." << endl;
     unsigned searchState;
     unsigned searchSteps = 0;
@@ -127,7 +128,8 @@ bool RouteMgr::route2Pin(Pos p1, Pos p2, Net* net)
             net->addSeg(news);
         }
         Pos segStart = Pos(node->x, node->y);
-        // cout << "Displaying solution\n";
+        (routeMgr->_gridList[node->x-1][node->y-1])->update2dDemand(1);
+
         int steps = 0;
         while(next){
             if( dir != ((node->x-next->x)==0)) { // changing direction
@@ -147,6 +149,7 @@ bool RouteMgr::route2Pin(Pos p1, Pos p2, Net* net)
                                            << next->x        << " " << next->y << endl; 
                 net->addSeg(news);                           
             }
+            (routeMgr->_gridList[next->x-1][next->y-1])->update2dDemand(1);
             // node->PrintNodeInfo();
             // next->PrintNodeInfo();
             node = next;
