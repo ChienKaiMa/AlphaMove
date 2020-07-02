@@ -47,6 +47,7 @@ void RouteMgr::mainPnR()
             unsigned newWL = evaluateWireLen();// evaluate total wirelength
             if( newWL<_curTotalWL){
                 // store current result
+                storeBestResult();
             }
         }
         this->_placeStrategy = !canRoute;
@@ -164,6 +165,7 @@ void RouteMgr::netbasedPlace(){
         if(moveNet->_assoCellInst[i] > 0){
             if(_instList[i]->is_movable()){
                 change_notifier(_instList[i]);
+                remove2DBlkDemand(_instList[i]);
                 if(_curMovedSet.insert(_instList[i]).second == true)
                     ++_curMoveCnt;
                 if(_instList[i]->getPos().first + offsetRow > Ggrid::rEnd)
@@ -181,6 +183,7 @@ void RouteMgr::netbasedPlace(){
                     newCol = _instList[i]->getPos().second + offsetCol;
                 
                 _instList[i] -> move(Pos(newRow,newCol));
+                add2DBlkDemand(_instList[i]);
                 for(unsigned j=0;j<_instList[i]->assoNet.size();++j){
                     _netList[_instList[i]->assoNet[j]-1]->_toRemoveDemand = true;
                 }
@@ -230,6 +233,7 @@ void RouteMgr::forcedirectedPlace (){
     int new_row;
     int new_col;
     change_notifier(moveCell);
+    remove2DBlkDemand(moveCell);
     if(_curMovedSet.insert(moveCell).second == true){
         ++_curMoveCnt;
     }
@@ -258,6 +262,7 @@ void RouteMgr::forcedirectedPlace (){
     new_row = (int)(round((double)(row_numerator) / (double)(row_denominator)));
     new_col = (int)(round((double)(col_numerator) / (double)(col_denominator)));
     moveCell->move(Pos(new_row,new_col));
+    add2DBlkDemand(moveCell);
     cout << "New position: " << moveCell->getPos().first << " " << moveCell->getPos().second << "\n";
 }
 

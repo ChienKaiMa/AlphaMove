@@ -83,6 +83,8 @@ public:
     void    initSupply();
     void    add2DDemand(Net*);
     void    remove2DDemand(Net*);
+    void    add2DBlkDemand(CellInst*);
+    void    remove2DBlkDemand(CellInst*);
 
     /**********************************/
     /*            Output              */

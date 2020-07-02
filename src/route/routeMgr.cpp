@@ -239,6 +239,10 @@ RouteMgr::readCircuit(const string& fileName)
         add2DDemand(m);
     }
 
+    for(auto& m : _instList){
+        add2DBlkDemand(m);
+    }
+
     for(auto& m : _netList){
         for(unsigned i=0;i<_instList.size();++i)
             m->_assoCellInst.push_back(0);
@@ -427,6 +431,20 @@ RouteMgr::remove2DDemand(Net* net) //before each route
 
     go through net, for every passing grid g, call g.updateDemand(-constraint)
     */
+}
+
+void
+RouteMgr::add2DBlkDemand(CellInst* cell){
+    for(unsigned i=0;i<cell->getMC()->_blkgList.size();++i){
+        cell->getGrid()->update2dDemand(cell->getMC()->_blkgList[i].second);
+    }
+}
+
+void
+RouteMgr::remove2DBlkDemand(CellInst* cell){
+    for(unsigned i=0;i<cell->getMC()->_blkgList.size();++i){
+        cell->getGrid()->update2dDemand(-(int)(cell->getMC()->_blkgList[i].second));
+    }
 }
 
 unsigned 
