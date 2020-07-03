@@ -480,7 +480,6 @@ bool RouteMgr::layerassign(NetList& toLayNet)
                 }
             }
         }
-        
     }
     for (auto& seg : toDel) {
         cout << "Deleting " << seg << endl;
