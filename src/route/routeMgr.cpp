@@ -435,15 +435,19 @@ RouteMgr::remove2DDemand(Net* net) //before each route
 
 void
 RouteMgr::add2DBlkDemand(CellInst* cell){
-    for(unsigned i=0;i<cell->getMC()->_blkgList.size();++i){
-        cell->getGrid()->update2dDemand(cell->getMC()->_blkgList[i].second);
+    MC* mc = cell->getMC();
+    Ggrid* grid = cell->getGrid();
+    for(unsigned i=0;i<mc->_blkgList.size();++i){
+        grid->update2dDemand(mc->_blkgList[i].second);
     }
 }
 
 void
 RouteMgr::remove2DBlkDemand(CellInst* cell){
-    for(unsigned i=0;i<cell->getMC()->_blkgList.size();++i){
-        cell->getGrid()->update2dDemand(-(int)(cell->getMC()->_blkgList[i].second));
+    MC* mc = cell->getMC();
+    Ggrid* grid = cell->getGrid();
+    for(unsigned i=0;i<mc->_blkgList.size();++i){
+        grid->update2dDemand(-(int)(mc->_blkgList[i].second));
     }
 }
 
