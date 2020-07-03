@@ -72,6 +72,7 @@ RouteMgr::readCircuit(const string& fileName)
         _laySupply.push_back(supply);
     }
     ifs >> buffer; // NumNonDefaultSupplyGGrid or NumMasterCell
+    cout << "Reading nondefaultSupply\n";
     if (buffer == "NumNonDefaultSupplyGGrid")
     {
         ifs >> tmpCnt; // nonDefaultSupplyGGridCount
@@ -105,6 +106,7 @@ RouteMgr::readCircuit(const string& fileName)
     genGridList();
     initSupply();
 
+    cout << "Reading masterCell and demand\n";
     // MasterCell and demand
     ifs >> tmpCnt; // masterCellCount
     for(unsigned i=1; i<tmpCnt+1; ++i)
@@ -165,6 +167,7 @@ RouteMgr::readCircuit(const string& fileName)
         }
         ifs >> buffer; // NumCellInst
     }
+    cout << "Reading CellInst...\n";
     // CellInst and initial placement
     ifs >> tmpCnt; // cellInstCount
     int mcNum;
@@ -185,6 +188,7 @@ RouteMgr::readCircuit(const string& fileName)
         OutputCell cell(i+1, tmpCnt1, tmpCnt2);
         _initCells.push_back(cell);
     }
+    cout << "Reading nets\n";
     ifs >> buffer; // NumNets
     ifs >> tmpCnt; // netCount
     for(unsigned i=0; i<tmpCnt; ++i)
@@ -215,7 +219,7 @@ RouteMgr::readCircuit(const string& fileName)
         }
         _netList.push_back(brook);
     }
-
+    cout << "Reading init route\n";
     // Initial routing data
     ifs >> buffer; // NumRoutes
     ifs >> _initTotalSegNum; // routeSegmentCount
@@ -235,10 +239,11 @@ RouteMgr::readCircuit(const string& fileName)
         _bestRouteSegs.push_back(seg);
     }
     
+    cout << "adding 2D demand\n";
     for(auto& m : _netList){
         add2DDemand(m);
     }
-
+    cout << "adding 2D Blkg demand\n";
     for(auto& m : _instList){
         add2DBlkDemand(m);
     }
