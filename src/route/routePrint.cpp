@@ -22,7 +22,7 @@ RouteMgr::printRouteSummary() const
 {
     cout << "MaxCellMove" << setw(8) << _maxMoveCnt << endl;
     // TODO
-    cout << "CurrentMove" << setw(8) << 0 << endl;
+    cout << "CurrentMove" << setw(8) << _curMoveCnt << endl;
     cout << "Boundary" << setw(5) << Ggrid::rBeg << " " << Ggrid::cBeg << " " << Ggrid::rEnd
     << " " << Ggrid::cEnd << endl;
     cout << "Total layer" << setw(8) << _laySupply.size() << endl;
