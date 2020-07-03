@@ -25,8 +25,7 @@ extern bool initCommonCmd();
 extern bool initRouteCmd();
 
 ofstream outfile;
-RouteMgr *rMgr = new RouteMgr;
-
+extern RouteMgr *routeMgr;
 
 static void signal_handler(int signum){
    cout << "Time limit exeed!!" << endl;
@@ -63,12 +62,14 @@ main(int argc, char** argv)
          myexit();
       }
       */
+      routeMgr = new RouteMgr();
       // TODO: generate output file
       string inputFile = argv[1];
       string outFileName = argv[2];
-      rMgr->readCircuit(inputFile);
-      rMgr->printRouteSummary();
-      rMgr->mainPnR();
+      routeMgr->readCircuit(inputFile);
+      routeMgr->printRouteSummary();
+      
+      routeMgr->mainPnR();
       //rMgr->place();
       //rMgr->route();
       //rMgr->koova_place();
@@ -78,6 +79,8 @@ main(int argc, char** argv)
          cerr << "Output file open fail!" << endl;
          return 1;
       }
+      routeMgr->writeCircuit(outfile);
+      
       alarm(TIME_LIMIT-100);
       signal(SIGALRM, &signal_handler);
       // rMgr->writeCircuit(outfile);

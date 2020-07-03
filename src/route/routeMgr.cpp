@@ -482,6 +482,6 @@ RouteMgr::replaceBest(){
     if(newWL < _bestTotalWL){
         storeBestResult();
         _bestTotalWL = newWL;
-        cout << "Better Solution!!" << _bestTotalWL << endl;
+        cout << _bestTotalWL << " is a Better Solution!!\n";
     }
 }
