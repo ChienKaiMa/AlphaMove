@@ -266,6 +266,15 @@ void RouteMgr::forcedirectedPlace (){
     }
     new_row = (int)(round((double)(row_numerator) / (double)(row_denominator)));
     new_col = (int)(round((double)(col_numerator) / (double)(col_denominator)));
+    if(new_row > Ggrid::rEnd)
+        new_row = Ggrid::rEnd;
+    else if(new_row < Ggrid::rBeg)
+        new_row = Ggrid::rBeg;
+    if(new_col > Ggrid::cEnd)
+        new_col = Ggrid::cEnd;
+    else if(new_col < Ggrid::cBeg)
+        new_col = Ggrid::cBeg;
+    
     moveCell->move(Pos(new_row,new_col));
     add2DBlkDemand(moveCell);
     cout << "New position: " << moveCell->getPos().first << " " << moveCell->getPos().second << "\n";
