@@ -35,18 +35,25 @@ extern RouteMgr* routeMgr;
 
 void RouteMgr::mainPnR()
 {
+    cout << this << endl;
+    _bestTotalWL = evaluateWireLen();
+    cout << "Initial WL : " << _bestTotalWL << endl;
     while(true){
+        cout << this << endl;
         this->place();
+        cout << "End of Placing..." << endl;
         if( _curMoveCnt > _maxMoveCnt ){
             cout << "Maximum cell-movements!!" << endl;
             cout << "P&R terminates..." << endl;
             return;
         }
         bool canRoute = this->route();
+        cout << "End of Routing..." << endl;
         if(canRoute){
             unsigned newWL = evaluateWireLen();// evaluate total wirelength
             if( newWL<_bestTotalWL){
                 _bestTotalWL = newWL;
+                storeBestResult();
             }
         }
         this->_placeStrategy = !canRoute;
@@ -57,7 +64,7 @@ void RouteMgr::mainPnR()
 
 void RouteMgr::place()
 {
-    cout << "Place..." << endl;
+    cout << "Place...\n";
     if(_placeStrategy){ //Congestion-based
         netbasedPlace();
     }
@@ -164,6 +171,7 @@ void RouteMgr::netbasedPlace(){
         if(moveNet->_assoCellInst[i] > 0){
             if(_instList[i]->is_movable()){
                 change_notifier(_instList[i]);
+                remove2DBlkDemand(_instList[i]);
                 if(_curMovedSet.insert(_instList[i]).second == true)
                     ++_curMoveCnt;
                 if(_instList[i]->getPos().first + offsetRow > Ggrid::rEnd)
@@ -181,6 +189,7 @@ void RouteMgr::netbasedPlace(){
                     newCol = _instList[i]->getPos().second + offsetCol;
                 
                 _instList[i] -> move(Pos(newRow,newCol));
+                add2DBlkDemand(_instList[i]);
                 for(unsigned j=0;j<_instList[i]->assoNet.size();++j){
                     _netList[_instList[i]->assoNet[j]-1]->_toRemoveDemand = true;
                 }
@@ -198,7 +207,6 @@ void RouteMgr::netbasedPlace(){
             _netList[i]->_toRemoveDemand = false;
         }
     }
-    
 }
 
 void RouteMgr::forcedirectedPlace (){
@@ -230,6 +238,7 @@ void RouteMgr::forcedirectedPlace (){
     int new_row;
     int new_col;
     change_notifier(moveCell);
+    remove2DBlkDemand(moveCell);
     if(_curMovedSet.insert(moveCell).second == true){
         ++_curMoveCnt;
     }
@@ -258,6 +267,7 @@ void RouteMgr::forcedirectedPlace (){
     new_row = (int)(round((double)(row_numerator) / (double)(row_denominator)));
     new_col = (int)(round((double)(col_numerator) / (double)(col_denominator)));
     moveCell->move(Pos(new_row,new_col));
+    add2DBlkDemand(moveCell);
     cout << "New position: " << moveCell->getPos().first << " " << moveCell->getPos().second << "\n";
 }
 
@@ -336,6 +346,8 @@ bool RouteMgr::layerassign(NetList& toLayNet)
                             seg->endPos[2] = layCons;
                         } else {
                             toDel.push_back(seg);
+                            auto it = net->_netSegs.begin()+i;
+                            net->_netSegs.erase(it);
                         }
                     } else if (!(seg->startPos[2] > layCons || seg->endPos[2] > layCons)) {
                         // Add a Z-seg
@@ -427,6 +439,8 @@ bool RouteMgr::layerassign(NetList& toLayNet)
                 if (seg->checkDir() == 'Z') {
                     if (seg->startPos[2] == seg->endPos[2]) {
                         toDel.push_back(seg);
+                        auto it = net->_netSegs.begin()+i;
+                        net->_netSegs.erase(it);
                     }
                 } else { // H or V
                     if (curLayer != seg->startPos[2]) {

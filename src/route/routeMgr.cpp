@@ -239,6 +239,10 @@ RouteMgr::readCircuit(const string& fileName)
         add2DDemand(m);
     }
 
+    for(auto& m : _instList){
+        add2DBlkDemand(m);
+    }
+
     for(auto& m : _netList){
         for(unsigned i=0;i<_instList.size();++i)
             m->_assoCellInst.push_back(0);
@@ -268,6 +272,25 @@ RouteMgr::writeCircuit(ostream& outfile) const
     outfile << _bestRouteSegs[_bestRouteSegs.size()-1].first.startPos[0] << " " << _bestRouteSegs[_bestRouteSegs.size()-1].first.startPos[1] << " " << _bestRouteSegs[_bestRouteSegs.size()-1].first.startPos[2] << " "
             << _bestRouteSegs[_bestRouteSegs.size()-1].first.endPos[0]   << " " << _bestRouteSegs[_bestRouteSegs.size()-1].first.endPos[1]   << " " << _bestRouteSegs[_bestRouteSegs.size()-1].first.endPos[2]   << " N"
             << _bestRouteSegs[_bestRouteSegs.size()-1].second;
+}
+
+void
+RouteMgr::storeBestResult(){
+    _bestMovedCells.resize(0);
+    std::set<CellInst*>::iterator ite = _curMovedSet.begin();
+    for(unsigned i=0;i<_curMovedSet.size();++i){
+        OutputCell cell((*ite)->getId(),(*ite)->getPos().first,(*ite)->getPos().second);
+        _bestMovedCells.push_back(cell);
+        ++ite;
+    }
+
+    _bestRouteSegs.resize(0);
+    for(unsigned i=0;i<_netList.size();++i){
+        for(unsigned j=0;j<_netList[i]->_netSegs.size();++j){
+            OutputSeg seg(*(_netList[i]->_netSegs[j]),i+1);
+            _bestRouteSegs.push_back(seg);
+        }
+    }
 }
 
 void
@@ -410,13 +433,33 @@ RouteMgr::remove2DDemand(Net* net) //before each route
     */
 }
 
+void
+RouteMgr::add2DBlkDemand(CellInst* cell){
+    for(unsigned i=0;i<cell->getMC()->_blkgList.size();++i){
+        cell->getGrid()->update2dDemand(cell->getMC()->_blkgList[i].second);
+    }
+}
+
+void
+RouteMgr::remove2DBlkDemand(CellInst* cell){
+    for(unsigned i=0;i<cell->getMC()->_blkgList.size();++i){
+        cell->getGrid()->update2dDemand(-(int)(cell->getMC()->_blkgList[i].second));
+    }
+}
+
 unsigned 
 RouteMgr::evaluateWireLen() const{
     unsigned newWL = 0;
+    unsigned cnt = 0;
+    cout << "evalueateWireLen" << endl;
     for (auto n : _netList){
         for(auto seg: n->_netSegs){
-            newWL+=seg->getWL();
+            seg->print();
+            cout << " , " << seg->getWL() << endl;
+            newWL += seg->getWL() ;
         }
     }
+    newWL+=_netList.size();
+    cout << newWL << endl;
     return newWL;
 }

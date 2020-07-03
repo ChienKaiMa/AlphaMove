@@ -68,10 +68,11 @@ main(int argc, char** argv)
       string outFileName = argv[2];
       rMgr->readCircuit(inputFile);
       rMgr->printRouteSummary();
+      //rMgr->mainPnR();
       //rMgr->place();
       //rMgr->route();
-      rMgr->koova_place();
-      rMgr->koova_route();
+      //rMgr->koova_place();
+      //rMgr->koova_route();
       outfile.open(argv[2], ios::out);
       if (!outfile) {
          cerr << "Output file open fail!" << endl;
@@ -79,7 +80,7 @@ main(int argc, char** argv)
       }
       alarm(TIME_LIMIT-100);
       signal(SIGALRM, &signal_handler);
-      rMgr->writeCircuit(outfile);
+      // rMgr->writeCircuit(outfile);
       myUsage.report(true, true);
       return 0;
    }

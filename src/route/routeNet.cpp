@@ -13,8 +13,6 @@
 
 using namespace std;
 
-
-
 unsigned Ggrid::rEnd = 0;
 unsigned Ggrid::cEnd = 0;
 unsigned Ggrid::rBeg = 0;
