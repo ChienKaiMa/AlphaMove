@@ -68,7 +68,7 @@ main(int argc, char** argv)
       string outFileName = argv[2];
       rMgr->readCircuit(inputFile);
       rMgr->printRouteSummary();
-      //rMgr->mainPnR();
+      rMgr->mainPnR();
       //rMgr->place();
       //rMgr->route();
       //rMgr->koova_place();

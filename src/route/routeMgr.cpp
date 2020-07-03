@@ -25,7 +25,7 @@ using namespace std;
 /*******************************/
 /*   Global variable and enum  */
 /*******************************/
-RouteMgr* routeMgr = 0;
+RouteMgr* routeMgr;
 
 /**************************************************************/
 /*   class RouteMgr member functions for circuit construction   */
@@ -256,6 +256,7 @@ RouteMgr::readCircuit(const string& fileName)
         //m->printAssoCellInst();
     }
 
+    _bestTotalWL = evaluateWireLen();
     return true;
 }
 
@@ -460,15 +461,27 @@ unsigned
 RouteMgr::evaluateWireLen() const{
     unsigned newWL = 0;
     unsigned cnt = 0;
-    cout << "evalueateWireLen" << endl;
+    // cout << "evalueateWireLen" << endl;
     for (auto n : _netList){
         for(auto seg: n->_netSegs){
-            seg->print();
-            cout << " , " << seg->getWL() << endl;
+            // seg->print();
+            // cout << " , " << seg->getWL() << endl;
             newWL += seg->getWL() ;
         }
     }
     newWL+=_netList.size();
-    cout << newWL << endl;
+    // cout << newWL << endl;
     return newWL;
+}
+
+void 
+RouteMgr::replaceBest(){
+    unsigned newWL = evaluateWireLen();
+    cout << "Evaluating WL ..." << endl;
+    cout << newWL << endl;
+    if(newWL < _bestTotalWL){
+        storeBestResult();
+        _bestTotalWL = newWL;
+        cout << "Better Solution!!" << _bestTotalWL << endl;
+    }
 }

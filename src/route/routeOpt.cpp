@@ -35,11 +35,9 @@ extern RouteMgr* routeMgr;
 
 void RouteMgr::mainPnR()
 {
-    cout << this << endl;
     _bestTotalWL = evaluateWireLen();
     cout << "Initial WL : " << _bestTotalWL << endl;
     while(true){
-        cout << this << endl;
         this->place();
         cout << "End of Placing..." << endl;
         if( _curMoveCnt > _maxMoveCnt ){

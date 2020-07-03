@@ -51,6 +51,7 @@ public:
     void    printCellInst() const;
     void    printAssoNet() const;
     void    printInitSegs() const;
+    void    replaceBest();
     double  getCongestion(Pos pos) const { 
       if( pos.first<Ggrid::rBeg  || pos.first>Ggrid::rEnd || 
           pos.second<Ggrid::cBeg || pos.second>Ggrid::cEnd ){ 
