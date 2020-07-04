@@ -460,17 +460,12 @@ RouteMgr::remove2DBlkDemand(CellInst* cell){
 unsigned 
 RouteMgr::evaluateWireLen() const{
     unsigned newWL = 0;
-    unsigned cnt = 0;
     // cout << "evalueateWireLen" << endl;
     for (auto n : _netList){
-        for(auto seg: n->_netSegs){
-            // seg->print();
-            // cout << " , " << seg->getWL() << endl;
-            newWL += seg->getWL() ;
-        }
+        newWL += n->passGrid();
     }
-    newWL+=_netList.size();
-    // cout << newWL << endl;
+    // newWL+=_netList.size();
+     cout << "Wire length : " << newWL << endl;
     return newWL;
 }
 
