@@ -275,7 +275,7 @@ void RouteMgr::forcedirectedPlace (){
         new_col = Ggrid::cEnd;
     else if(new_col < Ggrid::cBeg)
         new_col = Ggrid::cBeg;
-    
+    cout << "Old position: " << moveCell->getPos().first << " " << moveCell->getPos().second << "\n";
     moveCell->move(Pos(new_row,new_col));
     add2DBlkDemand(moveCell);
     cout << "New position: " << moveCell->getPos().first << " " << moveCell->getPos().second << "\n";
@@ -316,39 +316,27 @@ bool RouteMgr::layerassign(NetList& toLayNet)
             {
                 Segment*& seg = net->_netSegs[i];
                 cout << seg->checkDir() << endl;
-                Segment save;
                 if (!i) {
                     curLayer = seg->startPos[2];
-                } else if (i == (segCnt-1)) {
-                    Segment save = Segment(*seg);
                 }
 
                 if (seg->checkDir() == 'H') {
-                    if (curLayer >= seg->startPos[2]) {
-                        targetLayer = seg->startPos[2] + (1 - seg->startPos[2]%2);
-                        if (layCons > targetLayer) {
-                            targetLayer = layCons + (1 - layCons%2);
-                        }
-                    } else {
-                        targetLayer = seg->startPos[2] - (1 - seg->startPos[2]%2);
-                        if (layCons > targetLayer) {
-                            targetLayer = layCons + (1 - layCons%2);
-                        }
+                    targetLayer = curLayer + (1 - curLayer%2);
+                    if (targetLayer > _laySupply.size()) {
+                        targetLayer = curLayer - (1 - curLayer%2);
+                    }
+                    if (layCons > targetLayer) {
+                        targetLayer = layCons + (1 - layCons%2);
                     }
                 } else if (seg->checkDir() == 'V') {
-                    if (curLayer >= seg->startPos[2]) {
-                        targetLayer = seg->startPos[2] + (seg->startPos[2]%2);
-                        if (layCons > targetLayer) {
-                            targetLayer = layCons + (layCons%2);
-                        }
-                    } else {
-                        targetLayer = seg->startPos[2] - (seg->startPos[2]%2);
-                        if (layCons > targetLayer) {
-                            targetLayer = layCons + (layCons%2);
-                        }
+                    targetLayer = curLayer + (curLayer%2);
+                    if (targetLayer > _laySupply.size()) {
+                        targetLayer = curLayer - (curLayer%2);
                     }
-                }    
-
+                    if (layCons > targetLayer) {
+                        targetLayer = layCons + (layCons%2);
+                    }
+                }
                 if (seg->checkDir() == 'Z') {
                     if (seg->startPos[2] == seg->endPos[2]) {
                         if (seg->startPos[2] < layCons) {
@@ -361,7 +349,7 @@ bool RouteMgr::layerassign(NetList& toLayNet)
                         }
                     } else if (!(seg->startPos[2] > layCons || seg->endPos[2] > layCons)) {
                         // Add a Z-seg
-                        Segment* zSeg = new Segment(*seg);
+                        Segment* zSeg = new Segment(seg);
                         zSeg->endPos[0] = seg->startPos[0];
                         zSeg->endPos[1] = seg->startPos[1];
                         zSeg->endPos[2] = layCons;
@@ -370,23 +358,10 @@ bool RouteMgr::layerassign(NetList& toLayNet)
                         zSeg->print();
                     }
                 } else { // H or V
-                    if (curLayer != seg->startPos[2]) {
+                    if (curLayer != targetLayer) {
                         // Add a Z-seg
-                        Segment* zSeg = new Segment(*seg);
-                        zSeg->endPos[0] = seg->startPos[0];
-                        zSeg->endPos[1] = seg->startPos[1];
-                        zSeg->endPos[2] = curLayer;
-                        net->addSeg(zSeg);
-                        cout << "Add new Segment" << endl;
-                        zSeg->print();
-                        cout << endl;
-                        // Finish layer assignment
-                        seg->startPos[2] = targetLayer;
-                        seg->endPos[2] = targetLayer;
-                        curLayer = targetLayer;
-                    } else if (curLayer != targetLayer) {
-                        // Add a Z-seg
-                        Segment* zSeg = new Segment(*seg);
+                        Segment* zSeg = new Segment(seg);
+                        zSeg->startPos[2] = curLayer;
                         zSeg->endPos[0] = seg->startPos[0];
                         zSeg->endPos[1] = seg->startPos[1];
                         zSeg->endPos[2] = targetLayer;
@@ -394,18 +369,15 @@ bool RouteMgr::layerassign(NetList& toLayNet)
                         cout << "Add new Segment" << endl;
                         zSeg->print();
                         cout << endl;
-                        // Finish layer assignment
-                        seg->startPos[2] = targetLayer;
-                        seg->endPos[2] = targetLayer;
                         curLayer = targetLayer;
                     }
                     
-                    if (i == segCnt-1) {
+                    if (seg->endPos[2]) {
                         cout << seg->endPos[2] << endl;
                         if (curLayer != seg->endPos[2]) {
                             // Add a Z-seg
-                            Segment* zSeg = new Segment(save);
-                            
+                            Segment* zSeg = new Segment(seg);
+                            cout << endl;
                             cout << curLayer << endl;
                             cout << seg->endPos[2] << endl;
 
@@ -415,9 +387,15 @@ bool RouteMgr::layerassign(NetList& toLayNet)
                             net->addSeg(zSeg);
                             cout << "Add new Segment" << endl;
                             zSeg->print();
+                            cout << endl;
                         }
                     }
+                    // Finish layer assignment
+                    seg->startPos[2] = targetLayer;
+                    seg->endPos[2] = targetLayer;
                 }
+                seg->print();
+                cout << endl;
             }
         } else {
             cout << "segCnt = " << segCnt << endl;
@@ -425,27 +403,21 @@ bool RouteMgr::layerassign(NetList& toLayNet)
             {
                 Segment*& seg = net->_netSegs[i];
                 cout << seg->checkDir() << endl;
-                Segment save;
-
                 if (!i) {
                     curLayer = seg->startPos[2];
-                } else if (i == (segCnt-1)) {
-                    Segment save = Segment(*seg);
                 }
+
                 if (seg->checkDir() == 'H') {
-                    if (curLayer >= seg->startPos[2]) {
-                        targetLayer = seg->startPos[2] + (1 - seg->startPos[2]%2);
-                    } else {
-                        targetLayer = seg->startPos[2] - (1 - seg->startPos[2]%2);
+                    targetLayer = curLayer + (1 - curLayer%2);
+                    if (targetLayer > _laySupply.size()) {
+                        targetLayer = curLayer - (1 - curLayer%2);
                     }
                 } else if (seg->checkDir() == 'V') {
-                    if (curLayer >= seg->startPos[2]) {
-                        targetLayer = seg->startPos[2] + (seg->startPos[2]%2);
-                    } else {
-                        targetLayer = seg->startPos[2] - (seg->startPos[2]%2);
+                    targetLayer = curLayer + (curLayer%2);
+                    if (targetLayer > _laySupply.size()) {
+                        targetLayer = curLayer - (curLayer%2);
                     }
                 }
-                
                 if (seg->checkDir() == 'Z') {
                     if (seg->startPos[2] == seg->endPos[2]) {
                         toDel.push_back(seg);
@@ -453,24 +425,10 @@ bool RouteMgr::layerassign(NetList& toLayNet)
                         net->_netSegs.erase(it);
                     }
                 } else { // H or V
-                    if (curLayer != seg->startPos[2]) {
+                    if (curLayer != targetLayer) {
                         // Add a Z-seg
-                        Segment* zSeg = new Segment(*seg);
-                        cout << "DEBUG" << seg->startPos[2] << endl;
-                        zSeg->endPos[0] = seg->startPos[0];
-                        zSeg->endPos[1] = seg->startPos[1];
-                        zSeg->endPos[2] = curLayer;
-                        net->addSeg(zSeg);
-                        cout << "Add new Segment" << endl;
-                        zSeg->print();
-                        cout << endl;
-                        // Finish layer assignment
-                        seg->startPos[2] = targetLayer;
-                        seg->endPos[2] = targetLayer;
-                        curLayer = targetLayer;
-                    } else if (curLayer != targetLayer) {
-                        // Add a Z-seg
-                        Segment* zSeg = new Segment(*seg);
+                        Segment* zSeg = new Segment(seg);
+                        zSeg->startPos[2] = curLayer;
                         zSeg->endPos[0] = seg->startPos[0];
                         zSeg->endPos[1] = seg->startPos[1];
                         zSeg->endPos[2] = targetLayer;
@@ -478,17 +436,14 @@ bool RouteMgr::layerassign(NetList& toLayNet)
                         cout << "Add new Segment" << endl;
                         zSeg->print();
                         cout << endl;
-                        // Finish layer assignment
-                        seg->startPos[2] = targetLayer;
-                        seg->endPos[2] = targetLayer;
                         curLayer = targetLayer;
                     }
 
-                    if (i == segCnt-1) {
+                    if (seg->endPos[2]) {
                         cout << seg->endPos[2] << endl;
                         if (curLayer != seg->endPos[2]) {
                             // Add a Z-seg
-                            Segment* zSeg = new Segment(save);
+                            Segment* zSeg = new Segment(seg);
                             
                             cout << curLayer << endl;
                             cout << seg->endPos[2] << endl;
@@ -499,9 +454,15 @@ bool RouteMgr::layerassign(NetList& toLayNet)
                             net->addSeg(zSeg);
                             cout << "Add new Segment" << endl;
                             zSeg->print();
+                            cout << endl;
                         }
                     }
+                    // Finish layer assignment
+                    seg->startPos[2] = targetLayer;
+                    seg->endPos[2] = targetLayer;
                 }
+                seg->print();
+                cout << endl;
             }
         }
     }

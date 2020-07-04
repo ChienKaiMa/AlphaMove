@@ -204,6 +204,14 @@ class Segment
 {
 public:
     Segment() {}
+    Segment(Segment*& seg) {
+        startPos[0] = seg->startPos[0];
+        startPos[1] = seg->startPos[1];
+        startPos[2] = seg->startPos[2];
+        endPos[0] = seg->endPos[0];
+        endPos[1] = seg->endPos[1];
+        endPos[2] = seg->endPos[2];
+    }
     ~Segment() {}
     Segment(unsigned srow, unsigned scol, unsigned slay, unsigned erow, unsigned ecol, unsigned elay)
     {
