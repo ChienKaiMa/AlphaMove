@@ -33,6 +33,9 @@ extern RouteMgr* routeMgr;
 /*   Public member functions about optimization   */
 /**************************************************/
 
+
+// TODO DEBUG!!!!!
+// routeMgr becomes 0 when calling cellInst->move() in Forcedirected 
 void RouteMgr::mainPnR()
 {
     _bestTotalWL = evaluateWireLen();

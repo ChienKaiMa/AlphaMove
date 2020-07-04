@@ -140,21 +140,23 @@ bool RouteMgr::route2Pin(Pos p1, Pos p2, Net* net, double demand, unsigned lay1,
         (routeMgr->_gridList[node->x-1][node->y-1])->update2dDemand(1);
 
         int steps = 0;
+        int dirCnt = 0;
         while(next){
-            if( dir != ((node->x-next->x)==0)) { // changing direction
-                Segment* news = new Segment(segStart.first, segStart.second, lay1,
-                                            node->x       , node->y        , lay2);
-                cout << "New Segment!! : " << segStart.first << " " << segStart.second << " " << lay1 << " , "
-                                           << node->x        << " " << node->y         << " " << lay2 << endl; 
+            if( dir != ((node->x-next->x)==0) ) { // changing direction
+                Segment* news = new Segment(segStart.first, segStart.second, dirCnt==0 ? lay1 : 0,
+                                            node->x       , node->y        , 0);
+                cout << "New Segment!! : " << segStart.first << " " << segStart.second << " " << ( dirCnt==0 ? lay1 : 0 ) << " , "
+                                           << node->x        << " " << node->y         << " " << 0 << endl; 
                 net->addSeg(news);
                 segStart.first = node->x;
                 segStart.second = node->y;
                 dir = (node->x-next->x)==0 ;
+                dirCnt++;
             } 
             if( next==goal ){
-                Segment* news = new Segment(segStart.first, segStart.second, lay1,
+                Segment* news = new Segment(segStart.first, segStart.second, dirCnt==0 ? lay1 : 0,
                                             next->x       , next->y        , lay2 );
-                cout << "New Segment!! : " << segStart.first << " " << segStart.second << " " << lay1 << " , "
+                cout << "New Segment!! : " << segStart.first << " " << segStart.second << " " << (dirCnt==0 ? lay1 : 0) << " , "
                                            << next->x        << " " << next->y         << " " << lay2 << endl; 
                 net->addSeg(news);                           
             }
