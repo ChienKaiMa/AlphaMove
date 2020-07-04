@@ -25,6 +25,7 @@ extern RouteMgr *routeMgr;
 class RouteMgr
 {
 friend CellInst;
+friend Net;
 public:
     RouteMgr() : _placeStrategy(0) { _startTime = clock(); }
     ~RouteMgr() { // TODO: reset();

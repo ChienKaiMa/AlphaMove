@@ -194,6 +194,64 @@ Net::printAssoCellInst() const{
     }
 }
 
+unsigned
+Net::passGrid() const{
+    cout << "In Net" << _netId << "..." << endl;
+    unsigned layNum = routeMgr->_laySupply.size();
+    bool gridGraph[Ggrid::rEnd][Ggrid::cEnd][layNum] ;
+    for (unsigned i=0; i<Ggrid::rEnd; ++i){
+        for(unsigned j=0; j<Ggrid::cEnd;++j){
+            for(unsigned k=0; k<layNum; ++k){
+                gridGraph[i][j][k] = 0;
+            }
+        }
+    }
+    unsigned gridNum = 0;
+    for(const auto& seg: _netSegs){
+        cout << "Seg : " << seg << endl;
+        unsigned rStart = seg->startPos[0];
+        unsigned cStart = seg->startPos[1];
+        unsigned lStart = seg->startPos[2];
+        unsigned rEnd   = seg->endPos[0];
+        unsigned cEnd   = seg->endPos[1];
+        unsigned lEnd   = seg->endPos[2];
+        cout << rStart << " " << cStart << " " << lStart << endl;
+        cout << rEnd << " " << cEnd << " " << lEnd << endl;
+        if(rStart!=rEnd){
+            for(unsigned i = rStart; i<=rEnd; i++){
+                cout << "GridGraph " << gridGraph[i-1][cEnd-1][lEnd-1] << endl;
+                if(!gridGraph[i-1][cEnd-1][lEnd-1]){
+                    ++gridNum;
+                    gridGraph[i-1][cEnd-1][lEnd-1] = 1;
+                }
+            }
+        }
+        else if(cStart!=cEnd){
+            for(unsigned i = cStart; i<=cEnd; i++){
+                cout << "GridGraph " << gridGraph[i-1][cEnd-1][lEnd-1] << endl;
+                if(!gridGraph[rEnd-1][i-1][lEnd-1]){
+                    ++gridNum;
+                    gridGraph[rEnd-1][i-1][lEnd-1] = 1;
+                }
+            }
+        }
+        else if(lStart!=lEnd){
+            for(unsigned i = lStart; i<=lEnd; i++){
+                cout << "GridGraph " << gridGraph[i-1][cEnd-1][lEnd-1] << endl;
+                if(!gridGraph[rEnd-1][cEnd-1][i-1]){
+                    ++gridNum;
+                    gridGraph[rEnd-1][cEnd-1][i-1] = 1;
+                }
+            }
+        }
+        else{
+            cerr << "Invalid Segment!!";
+        }
+    }
+    cout << "Net n" << this->_netId << " passed " << gridNum << "grids" << endl;
+    return gridNum;
+}
+
 
 
 

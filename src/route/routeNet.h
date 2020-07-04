@@ -202,6 +202,7 @@ private:
 // TODO
 class Segment
 {
+    friend Net;
 public:
     Segment() {}
     ~Segment() {}
@@ -217,7 +218,7 @@ public:
     void print() const;
     void print(ostream&) const;
     char checkDir() const;
-    unsigned getWL() const ;
+    unsigned getWL() const ; // Manhattan Distance
     unsigned startPos[3];
     unsigned endPos[3];
 };
@@ -253,6 +254,7 @@ public:
     void printAllSeg() const;
     void printAllSeg(ostream&) const;
     void printAssoCellInst() const;
+    unsigned passGrid() const;
     
 private:
     unsigned            _netId;
