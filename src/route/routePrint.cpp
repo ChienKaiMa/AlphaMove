@@ -98,7 +98,6 @@ RouteMgr::printExtraDemand() const
 void
 RouteMgr::printGridDemand() const
 {
-    cout << "TODO" << endl;
     for (auto const rows : _gridList)
     {
         for (auto const g : rows)

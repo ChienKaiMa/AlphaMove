@@ -8,7 +8,7 @@ Lay M4 4 V 16
 Lay M5 5 H 16
 Lay M6 6 V 16
 Lay M7 7 H 6
-NumNonDefaultSupplyGGrid 137
+NumNonDefaultSupplyGGrid 133
 1 12 1 -14
 1 18 1 -13
 1 25 1 -5
@@ -34,12 +34,10 @@ NumNonDefaultSupplyGGrid 137
 9 27 1 +2
 10 19 1 +2
 10 22 1 +5
-10 22 1 +5
 10 23 1 -1
 11 20 1 -8
 11 23 1 +5
 12 3 1 +2
-13 5 1 +1
 13 5 1 +1
 13 13 1 +2
 13 31 1 -9
@@ -88,7 +86,6 @@ NumNonDefaultSupplyGGrid 137
 7 7 2 +2
 7 9 2 +1
 7 14 2 +2
-7 14 2 +2
 7 15 2 +1
 7 23 2 +2
 8 1 2 -12
@@ -97,7 +94,6 @@ NumNonDefaultSupplyGGrid 137
 9 12 2 -5
 9 17 2 +2
 9 19 2 +1
-9 27 2 +1
 9 27 2 +1
 10 2 2 -12
 10 14 2 +1

@@ -188,6 +188,21 @@ Net::initAssoCellInst(){
 }
 
 void
+Net::avgPinLayer() {
+    double totalPinLayer = 0;
+    double pinCnt = 0;
+    for (auto& p : _pinSet) {
+        totalPinLayer += double(p.second);
+        ++pinCnt;
+    }
+    _avgPinLayer = totalPinLayer / pinCnt;
+    #ifdef DEBUG
+    cout << "AvgPinLayer of N" << _netId << " is "
+    << _avgPinLayer << "\n";
+    #endif
+}
+
+void
 Net::printAssoCellInst() const{
     for(unsigned i=0;i<_assoCellInst.size();++i){
         cout << "CellInst " << i+1 << " has " << _assoCellInst[i] << " associated pins.\n";
@@ -196,8 +211,9 @@ Net::printAssoCellInst() const{
 
 unsigned
 Net::passGrid() const{
-
+    #ifdef DEBUG
     cout << "In Net" << _netId << "..." << endl;
+    #endif
     unsigned layNum = routeMgr->_laySupply.size();
     bool gridGraph[Ggrid::rEnd][Ggrid::cEnd][layNum] ;
     for (unsigned i=0; i<Ggrid::rEnd; ++i){
@@ -217,6 +233,12 @@ Net::passGrid() const{
         unsigned lEnd   = seg->endPos[2];
         // cout << rStart << " " << cStart << " " << lStart << endl;
         // cout << rEnd << " " << cEnd << " " << lEnd << endl;
+        assert(rEnd);
+        assert(cEnd);
+        assert(lEnd);
+        assert(rStart);
+        assert(cStart);
+        assert(lStart);
         if(rStart!=rEnd){
             for(unsigned i = (rStart<rEnd ? rStart : rEnd); i<= (rStart<rEnd ? rEnd : rStart) ; i++){
                 // cout << "GridGraph " << gridGraph[i-1][cEnd-1][lEnd-1] << endl;
@@ -252,7 +274,9 @@ Net::passGrid() const{
     if(_netSegs.empty()){
         gridNum = 1;
     }
+    #ifdef DEBUG
     cout << "Net n" << this->_netId << " passed " << gridNum << "grids" << endl;
+    #endif
     return gridNum;
 }
 

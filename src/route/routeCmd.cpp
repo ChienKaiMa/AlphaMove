@@ -197,7 +197,7 @@ RouteWriteCmd::help() const
 }
 
 //----------------------------------------------------------------------
-//    OPTimize < -Place | -Route >
+//    OPTimize < -Place | -Route | -Overflow | -Evaluate >
 //----------------------------------------------------------------------
 CmdExecStatus
 RouteOptCmd::exec(const string& option)
@@ -220,7 +220,15 @@ RouteOptCmd::exec(const string& option)
       routeMgr->place();	
    else if (myStrNCmp("-Route", token, 2) == 0)	
       routeMgr->route();
-   else if (myStrNCmp("-EValuate", token, 2) == 0)	
+   else if (myStrNCmp("-Overflow", token, 2) == 0)	
+      for (unsigned i=1; i<=Ggrid::rEnd; ++i) {
+         for (unsigned j=1; j<=Ggrid::cEnd; ++j) {
+            for (unsigned k=1; k<=routeMgr->getLayerCnt(); ++k) {
+               routeMgr->check3dOverflow(i, j, k);
+            }
+         }
+      }
+   else if (myStrNCmp("-Evaluate", token, 2) == 0)	
       routeMgr->replaceBest();
    else 	
       return CmdExec::errorOption(CMD_OPT_ILLEGAL, token);
@@ -235,7 +243,7 @@ RouteOptCmd::exec(const string& option)
 void
 RouteOptCmd::usage(ostream& os) const
 {
-   os << "Usage: OPTimize < -Place | -Route | -EValuate >" << endl;
+   os << "Usage: OPTimize < -Place | -Route | -Overflow | -EValuate >" << endl;
 }
 
 void

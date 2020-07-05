@@ -133,21 +133,48 @@ class Layer
 {
     friend Ggrid;
 public:
-    Layer(){ _demand = 0;}
+    Layer() : _demand(0), _watching(false), _overflow(false) {}
     ~Layer(){}
     inline void addDemand(int offset){ _demand+=offset; }
+    inline void removeDemand(int offset){ _demand-=offset; }
+    bool checkOverflow(unsigned supply) {
+        cerr << "Demand: " << _demand << ", Supply: " << supply << endl;
+        if (_demand > supply) {
+            // TODO: Add this grid to watchlist
+            _watching = true;
+            _overflow = true;
+        } else if (_demand + 1 == supply) {
+            _watching = true;
+        }
+        return _demand > supply;
+    }
+    inline bool isOverflow() { return _overflow; }
+    inline bool isWatching() { return _watching; }
 private:
     unsigned _demand;
+    bool _watching;
+    bool _overflow;
 };
 
 class Ggrid
 {
     friend CellInst;
 public:
-    Ggrid(Pos coord): _pos(coord), _2dSupply(0), _2dDemand(0), _2dCongestion(1) {}
+    Ggrid(Pos coord, unsigned layNum): _pos(coord), _2dSupply(0), _2dDemand(0), _2dCongestion(1) {
+        
+        initLayer(layNum);
+    }
     ~Ggrid(){}
-    const Layer& operator [] (unsigned layId) { return *_layerList[layId]; }
-    inline void initLayer( unsigned layNum ){ _layerList.resize(layNum); }
+    Layer*& operator [] (unsigned layId) {
+        assert(!_layerList.empty());
+         return _layerList[layId-1]; }
+    inline void initLayer( unsigned layNum ){ 
+        _layerList.resize(layNum); 
+        for (unsigned i=0; i<layNum; ++i) {
+            Layer* newL = new Layer();
+            _layerList[i] = newL;
+        }
+    }
     static void setBoundary(unsigned rrBeg, unsigned ccBeg, unsigned rrEnd, unsigned ccEnd){ // [row][col]
         rBeg = rrBeg;
         cBeg = ccBeg;
@@ -250,6 +277,7 @@ public:
     bool operator > (const Net& net ) const { return this->_pinSet.size() > net._pinSet.size(); }
     void ripUp();
     void initAssoCellInst();
+    void avgPinLayer();
 
     //Accessing functions
     unsigned getMinLayCons() { return _minLayCons; }
@@ -276,6 +304,7 @@ private:
     unsigned            _centerRow;
     unsigned            _centerCol;
     double              _avgCongestion;
+    double              _avgPinLayer;
 
     //associated cell instances
     vector<unsigned>    _assoCellInst; //Represents the pin numbers of the cell instances in the net

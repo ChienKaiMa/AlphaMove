@@ -173,6 +173,7 @@ void RouteMgr::netbasedPlace(){
             if(_instList[i]->is_movable()){
                 change_notifier(_instList[i]);
                 remove2DBlkDemand(_instList[i]);
+                remove3DBlkDemand(_instList[i]);
                 if(_curMovedSet.insert(_instList[i]).second == true)
                     ++_curMoveCnt;
                 if(_instList[i]->getPos().first + offsetRow > Ggrid::rEnd)
@@ -191,6 +192,7 @@ void RouteMgr::netbasedPlace(){
                 
                 _instList[i] -> move(Pos(newRow,newCol));
                 add2DBlkDemand(_instList[i]);
+                add3DBlkDemand(_instList[i]);
                 for(unsigned j=0;j<_instList[i]->assoNet.size();++j){
                     _netList[_instList[i]->assoNet[j]-1]->_toRemoveDemand = true;
                 }
@@ -240,6 +242,7 @@ void RouteMgr::forcedirectedPlace (){
     int new_col;
     change_notifier(moveCell);
     remove2DBlkDemand(moveCell);
+    remove3DBlkDemand(moveCell);
     if(_curMovedSet.insert(moveCell).second == true){
         ++_curMoveCnt;
     }
@@ -278,6 +281,7 @@ void RouteMgr::forcedirectedPlace (){
     cout << "Old position: " << moveCell->getPos().first << " " << moveCell->getPos().second << "\n";
     moveCell->move(Pos(new_row,new_col));
     add2DBlkDemand(moveCell);
+    add3DBlkDemand(moveCell);
     cout << "New position: " << moveCell->getPos().first << " " << moveCell->getPos().second << "\n";
 }
 
@@ -305,171 +309,204 @@ bool RouteMgr::layerassign(NetList& toLayNet)
 {
     cout << "LayerAssign..." << endl;
     vector<Segment*> toDel;
+    unsigned maxLayer = _laySupply.size();
+
     for (auto& net : toLayNet)
     {
-        unsigned curLayer, targetLayer;
         unsigned segCnt = net->_netSegs.size();
         unsigned layCons = net->_minLayCons;
         cout << "MinLayerConstr " << layCons << endl;
-        if (layCons) {
-            for (unsigned i=0; i<segCnt; ++i)
-            {
-                Segment*& seg = net->_netSegs[i];
-                cout << seg->checkDir() << endl;
-                if (!i) {
-                    curLayer = seg->startPos[2];
-                }
 
-                if (seg->checkDir() == 'H') {
-                    targetLayer = curLayer + (1 - curLayer%2);
-                    if (targetLayer > _laySupply.size()) {
-                        targetLayer = curLayer - (1 - curLayer%2);
-                    }
-                    if (layCons > targetLayer) {
-                        targetLayer = layCons + (1 - layCons%2);
-                    }
-                } else if (seg->checkDir() == 'V') {
-                    targetLayer = curLayer + (curLayer%2);
-                    if (targetLayer > _laySupply.size()) {
-                        targetLayer = curLayer - (curLayer%2);
-                    }
-                    if (layCons > targetLayer) {
-                        targetLayer = layCons + (layCons%2);
-                    }
+        assert(net->_netSegs.size());
+        if (net->_netSegs[0]->checkDir() == 'Z') {
+            Segment*& seg = net->_netSegs[0];
+            cout << "Assigning ";
+            seg->print();
+            cout << "\n";
+            if (seg->startPos[2] == seg->endPos[2]) {
+                if (seg->startPos[2] < layCons) {
+                    // Move to the minRoutingLayer
+                    seg->endPos[2] = layCons;
+                    #ifndef DEBUG
+                    cout << "Successfully assigned...";
+                    seg->print();
+                    cout << "\n";
+                    cout << "\n";
+                    #endif
+                } else {
+                    toDel.push_back(seg);
+                    auto it = net->_netSegs.begin();
+                    net->_netSegs.erase(it);
                 }
-                if (seg->checkDir() == 'Z') {
-                    if (seg->startPos[2] == seg->endPos[2]) {
-                        if (seg->startPos[2] < layCons) {
-                            // Move to the minRoutingLayer
-                            seg->endPos[2] = layCons;
-                        } else {
-                            toDel.push_back(seg);
-                            auto it = net->_netSegs.begin()+i;
-                            net->_netSegs.erase(it);
-                        }
-                    } else if (!(seg->startPos[2] > layCons || seg->endPos[2] > layCons)) {
-                        // Add a Z-seg
-                        Segment* zSeg = new Segment(seg);
-                        zSeg->endPos[0] = seg->startPos[0];
-                        zSeg->endPos[1] = seg->startPos[1];
-                        zSeg->endPos[2] = layCons;
-                        net->addSeg(zSeg);
-                        cout << "Add new Segment" << endl;
-                        zSeg->print();
-                    }
-                } else { // H or V
-                    if (curLayer != targetLayer) {
-                        // Add a Z-seg
-                        Segment* zSeg = new Segment(seg);
-                        zSeg->startPos[2] = curLayer;
-                        zSeg->endPos[0] = seg->startPos[0];
-                        zSeg->endPos[1] = seg->startPos[1];
-                        zSeg->endPos[2] = targetLayer;
-                        net->addSeg(zSeg);
-                        cout << "Add new Segment" << endl;
-                        zSeg->print();
-                        cout << endl;
-                        curLayer = targetLayer;
-                    }
-                    
-                    if (seg->endPos[2]) {
-                        cout << seg->endPos[2] << endl;
-                        if (curLayer != seg->endPos[2]) {
-                            // Add a Z-seg
-                            Segment* zSeg = new Segment(seg);
-                            cout << endl;
-                            cout << curLayer << endl;
-                            cout << seg->endPos[2] << endl;
-
-                            zSeg->startPos[0] = seg->endPos[0];
-                            zSeg->startPos[1] = seg->endPos[1];
-                            zSeg->startPos[2] = curLayer;
-                            net->addSeg(zSeg);
-                            cout << "Add new Segment" << endl;
-                            zSeg->print();
-                            cout << endl;
-                        }
-                    }
-                    // Finish layer assignment
-                    seg->startPos[2] = targetLayer;
-                    seg->endPos[2] = targetLayer;
-                }
-                seg->print();
-                cout << endl;
+            } else if (!(seg->startPos[2] > layCons || seg->endPos[2] > layCons)) {
+                // Add a Z-seg
+                Segment* zSeg = new Segment(seg);
+                zSeg->endPos[0] = seg->startPos[0];
+                zSeg->endPos[1] = seg->startPos[1];
+                zSeg->endPos[2] = layCons;
+                net->addSeg(zSeg);
+                cout << "Add new Segment" << endl;
+                zSeg->print();
             }
         } else {
-            cout << "segCnt = " << segCnt << endl;
+            // H or V direction
+            unsigned minLayer = layCons ? layCons : 1;
+            unsigned minH = minLayer + (1 - minLayer%2);
+            unsigned minV = minLayer + (minLayer%2);
+            unsigned curLayer = minLayer;
+            unsigned targetLayer = minLayer;
             for (unsigned i=0; i<segCnt; ++i)
             {
                 Segment*& seg = net->_netSegs[i];
-                cout << seg->checkDir() << endl;
-                if (!i) {
-                    curLayer = seg->startPos[2];
-                }
-
+                cout << "Assigning ";
+                seg->print();
+                cout << " on " << seg->checkDir() << "\n";
+                cout << "curLayer " << curLayer << " minLayer " << minLayer
+                << " avgPinLayer " << net->_avgPinLayer << "\n";
+                // Determine target layer
+                // - Satisfy minLayCons
+                // - Use less layers as possible
+                // 1. Find candidates
+                // ?? < minLayer < ?? < maxLayer
+                // ?? can be curLayer or avgPinLayer or PinLayer
+                // 2. Check grid capacity
+                // 3. Choose the layer with shortest via
+                // 4. Connect the wires
+                // TODO: Add via to minLayer
+                vector<unsigned> candidates = vector<unsigned>();
+                Layer candidate = Layer();
                 if (seg->checkDir() == 'H') {
-                    targetLayer = curLayer + (1 - curLayer%2);
-                    if (targetLayer > _laySupply.size()) {
-                        targetLayer = curLayer - (1 - curLayer%2);
+                    if (seg->startPos[2]) {
+                        // Take it into consideration
+                    } //else {
+                        // Assign any H layer
+                        for (unsigned i=minH; i<=maxLayer; i += 2) {
+                            // TODO
+                            if (!check3dOverflow(seg->startPos[0], seg->startPos[1], i)) {
+                                candidates.push_back(i);
+                                cout << "Candidate: L" << i << "\n";
+                            } else {
+                                return false;
+                            }
+                            // curLayer, targetLayer, avgPin;
+                        }
+                        // TODO
+                        // Handle no candidate
+                        if (candidates.empty()) {
+                            cout << "No candidate was found!\n";
+                            cout << "Do placement again!\n";
+                            return false;
+                        } else if (candidates.size() == 1) {
+                            targetLayer = candidates[0];
+                        }
+                        // Heuristic
+                        if (curLayer < net->_avgPinLayer) {
+                            // Go up
+                            targetLayer = curLayer + (1-curLayer%2);
+                        } else {
+                            // Go down
+                            targetLayer = curLayer - (1-curLayer%2);
+                            if (targetLayer < layCons) {
+                                targetLayer += 2;
+                            }
+                        //}
                     }
-                } else if (seg->checkDir() == 'V') {
-                    targetLayer = curLayer + (curLayer%2);
-                    if (targetLayer > _laySupply.size()) {
-                        targetLayer = curLayer - (curLayer%2);
-                    }
+
+                } else {
+                    // V
+                    if (seg->startPos[2]) {
+                        // Take it into consideration
+                    } // else {
+                        // Assign any V layer
+                        for (unsigned i=minV; i<=maxLayer; i += 2) {
+                            if (!check3dOverflow(seg->startPos[0], seg->startPos[1], i)) {
+                                candidates.push_back(i);
+                                cout << "Candidate: L" << i << "\n";
+                            } else {
+                                return false;
+                            }
+                        }
+                        // Handle no candidate
+                        if (candidates.empty()) {
+                            cout << "No candidate was found!\n";
+                            cout << "Do placement again!\n";
+                            return false;
+                        } else if (candidates.size() == 1) {
+                            targetLayer = candidates[0];
+                        }
+                        // Heuristic
+                        if (curLayer < net->_avgPinLayer) {
+                            // Go up
+                            targetLayer = curLayer + (curLayer%2);
+                        } else {
+                            // Go down
+                            targetLayer = curLayer - (curLayer%2);
+                            if (targetLayer < layCons) {
+                                targetLayer += 2;
+                            }
+                        }
+                    // }
                 }
-                if (seg->checkDir() == 'Z') {
-                    if (seg->startPos[2] == seg->endPos[2]) {
-                        toDel.push_back(seg);
-                        auto it = net->_netSegs.begin()+i;
-                        net->_netSegs.erase(it);
-                    }
-                } else { // H or V
-                    if (curLayer != targetLayer) {
+                if (seg->startPos[2] && curLayer != seg->startPos[2]) {
+                    // Add a Z-seg
+                    Segment* zSeg = new Segment(seg);
+                    zSeg->startPos[2] = curLayer;
+                    zSeg->endPos[0] = seg->startPos[0];
+                    zSeg->endPos[1] = seg->startPos[1];
+                    zSeg->endPos[2] = seg->startPos[2];
+                    net->addSeg(zSeg);
+                    cout << "Add new Segment" << endl;
+                    zSeg->print();
+                    cout << endl;
+                }
+                
+                if (curLayer != targetLayer) {
+                    // Add a Z-seg
+                    Segment* zSeg = new Segment(seg);
+                    zSeg->startPos[2] = curLayer;
+                    zSeg->endPos[0] = seg->startPos[0];
+                    zSeg->endPos[1] = seg->startPos[1];
+                    zSeg->endPos[2] = targetLayer;
+                    net->addSeg(zSeg);
+                    cout << "Add new Segment" << endl;
+                    zSeg->print();
+                    cout << endl;
+                    curLayer = targetLayer;
+                }
+                
+                if (seg->endPos[2]) { //i == segCnt-1
+                    cout << seg->endPos[2] << endl;
+                    if (curLayer != seg->endPos[2]) {
                         // Add a Z-seg
                         Segment* zSeg = new Segment(seg);
+                        cout << endl;
+                        cout << curLayer << endl;
+                        cout << seg->endPos[2] << endl;
+
+                        zSeg->startPos[0] = seg->endPos[0];
+                        zSeg->startPos[1] = seg->endPos[1];
                         zSeg->startPos[2] = curLayer;
-                        zSeg->endPos[0] = seg->startPos[0];
-                        zSeg->endPos[1] = seg->startPos[1];
-                        zSeg->endPos[2] = targetLayer;
                         net->addSeg(zSeg);
                         cout << "Add new Segment" << endl;
                         zSeg->print();
                         cout << endl;
-                        curLayer = targetLayer;
                     }
-
-                    if (seg->endPos[2]) {
-                        cout << seg->endPos[2] << endl;
-                        if (curLayer != seg->endPos[2]) {
-                            // Add a Z-seg
-                            Segment* zSeg = new Segment(seg);
-                            
-                            cout << curLayer << endl;
-                            cout << seg->endPos[2] << endl;
-
-                            zSeg->startPos[0] = seg->endPos[0];
-                            zSeg->startPos[1] = seg->endPos[1];
-                            zSeg->startPos[2] = curLayer;
-                            net->addSeg(zSeg);
-                            cout << "Add new Segment" << endl;
-                            zSeg->print();
-                            cout << endl;
-                        }
-                    }
-                    // Finish layer assignment
-                    seg->startPos[2] = targetLayer;
-                    seg->endPos[2] = targetLayer;
                 }
+                // Finish layer assignment
+                seg->startPos[2] = targetLayer;
+                seg->endPos[2] = targetLayer;
+                cout << "Successfully assigned...";
                 seg->print();
-                cout << endl;
+                cout << "\n";
+                cout << "\n";
             }
+            
         }
+        add3DDemand(net);
     }
     for (auto& seg : toDel) {
-        cout << "Deleting " << seg << endl;
+        cout << "Deleting " << seg << "\n";
         delete seg;
-        cout << "Still have " << toDel.size() << " item(s) to delete." << endl;
     }
     return true;
 }

@@ -62,6 +62,9 @@ public:
         return -_gridList[pos.first-1][pos.second-1]->get2dCongestion(); 
       }
     }
+    unsigned getLayerCnt() const {
+      return _laySupply.size();
+    }
 
     unsigned evaluateWireLen() const;
 
@@ -81,8 +84,15 @@ public:
     void    koova_place();
     void    change_notifier(CellInst*);
     void    koova_route();
+    
+    bool    check3dOverflow(unsigned, unsigned, unsigned);
     bool    layerassign(NetList&);
-    void    initSupply();
+
+    void    init2DSupply();
+    void    add3DDemand(Net*);
+    void    remove3DDemand(Net*);
+    void    add3DBlkDemand(CellInst*);
+    void    remove3DBlkDemand(CellInst*);
     void    add2DDemand(Net*);
     void    remove2DDemand(Net*);
     void    add2DBlkDemand(CellInst*);

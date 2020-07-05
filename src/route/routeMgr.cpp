@@ -104,7 +104,7 @@ RouteMgr::readCircuit(const string& fileName)
     }
 
     genGridList();
-    initSupply();
+    init2DSupply();
 
     cout << "Reading masterCell and demand\n";
     // MasterCell and demand
@@ -218,6 +218,7 @@ RouteMgr::readCircuit(const string& fileName)
             _instList[inst-1]->assoNet.push_back(i+1);
         }
         _netList.push_back(brook);
+        brook->avgPinLayer();
     }
     cout << "Reading init route\n";
     // Initial routing data
@@ -243,9 +244,17 @@ RouteMgr::readCircuit(const string& fileName)
     for(auto& m : _netList){
         add2DDemand(m);
     }
+    cout << "adding 3D demand\n";
+    for(auto& m : _netList){
+        add3DDemand(m);
+    }
     cout << "adding 2D Blkg demand\n";
     for(auto& m : _instList){
         add2DBlkDemand(m);
+    }
+    cout << "adding 3D Blkg demand\n";
+    for(auto& m : _instList){
+        add3DBlkDemand(m);
     }
 
     for(auto& m : _netList){
@@ -305,7 +314,7 @@ RouteMgr::genGridList()
     for (unsigned i=1; i<=Ggrid::rEnd; ++i) {
         vector<Ggrid*> bar;
         for (unsigned j=1; j<=Ggrid::cEnd; ++j) {
-            Ggrid* g = new Ggrid(Pos(i, j));
+            Ggrid* g = new Ggrid(Pos(i, j), _laySupply.size());
             bar.push_back(g);
         }
         _gridList.push_back(bar);
@@ -313,7 +322,7 @@ RouteMgr::genGridList()
 }
 
 void
-RouteMgr::initSupply()
+RouteMgr::init2DSupply()
 {
     int total_default_supply = 0;
     for (auto const m : _laySupply) {
@@ -343,6 +352,92 @@ RouteMgr::initSupply()
         for i=1 to _layerSupply.length
             use unorder_map to add/sub nondefault supply
     */
+}
+
+void
+RouteMgr::add3DDemand(Net* net)
+{
+    set<Layer*> alpha;
+    for(auto& seg : net->_netSegs) {
+        unsigned i0 = seg->startPos[0];
+        unsigned j0 = seg->startPos[1];
+        unsigned k0 = seg->startPos[2];
+        unsigned i1 = seg->endPos[0];
+        unsigned j1 = seg->endPos[1];
+        unsigned k1 = seg->endPos[2];
+
+        if (seg->checkDir() == 'H') {
+            if (j0 > j1) {
+                unsigned tmp = j0;
+                j0 = j1;
+                j1 = tmp;
+            }
+            for (unsigned x=j0; x<=j1; ++x)
+                alpha.insert((*_gridList[i0-1][x-1])[k0]);
+        } else if (seg->checkDir() == 'V') {
+            if (i0 > i1) {
+                unsigned tmp = i0;
+                i0 = i1;
+                i1 = tmp;
+            }
+            for (unsigned x=i0; x<=i1; ++x)
+                alpha.insert((*_gridList[x-1][j0-1])[k0]);
+        } else {
+            if (k0 > k1) {
+                unsigned tmp = k0;
+                k0 = k1;
+                k1 = tmp;
+            }
+            for (unsigned x=k0; x<=k1; ++x)
+                alpha.insert((*_gridList[i0-1][j0-1])[x]);
+        }
+    }
+    for (auto& m : alpha) {
+        m->addDemand(1);
+    }
+}
+
+void
+RouteMgr::remove3DDemand(Net* net)
+{
+    set<Layer*> alpha;
+    for(auto& seg : net->_netSegs) {
+        unsigned i0 = seg->startPos[0];
+        unsigned j0 = seg->startPos[1];
+        unsigned k0 = seg->startPos[2];
+        unsigned i1 = seg->endPos[0];
+        unsigned j1 = seg->endPos[1];
+        unsigned k1 = seg->endPos[2];
+
+        if (seg->checkDir() == 'H') {
+            if (j0 > j1) {
+                unsigned tmp = j0;
+                j0 = j1;
+                j1 = tmp;
+            }
+            for (unsigned x=j0; x<=1; ++x)
+                alpha.insert((*_gridList[i0-1][x-1])[k0]);
+        } else if (seg->checkDir() == 'V') {
+            if (i0 > i1) {
+                unsigned tmp = i0;
+                i0 = i1;
+                i1 = tmp;
+            }
+            for (unsigned x=i0; x<=i1; ++x)
+                alpha.insert((*_gridList[x-1][j0-1])[k0]);
+        } else {
+            if (k0 > k1) {
+                unsigned tmp = k0;
+                k0 = k1;
+                k1 = tmp;
+            }
+            for (unsigned x=k0; x<=k1; ++x)
+                alpha.insert((*_gridList[i0-1][j0-1])[x]);
+        }
+    }
+    for (auto& m : alpha) {
+        m->removeDemand(1);
+    }
 }
 
 void
@@ -454,6 +549,50 @@ RouteMgr::remove2DBlkDemand(CellInst* cell){
     Ggrid* grid = cell->getGrid();
     for(unsigned i=0;i<mc->_blkgList.size();++i){
         grid->update2dDemand(-(int)(mc->_blkgList[i].second));
+    }
+}
+
+void
+RouteMgr::add3DBlkDemand(CellInst* cell){
+    MC* mc = cell->getMC();
+    Ggrid* grid = cell->getGrid();
+    for(unsigned i=0;i<mc->_blkgList.size();++i){
+        (*grid)[mc->_blkgList[i].first]->addDemand(mc->_blkgList[i].second);
+    }
+}
+
+void
+RouteMgr::remove3DBlkDemand(CellInst* cell){
+    MC* mc = cell->getMC();
+    Ggrid* grid = cell->getGrid();
+    for(unsigned i=0;i<mc->_blkgList.size();++i){
+        (*grid)[mc->_blkgList[i].first]->removeDemand(mc->_blkgList[i].second);
+    }
+}
+
+bool
+RouteMgr::check3dOverflow(unsigned i, unsigned j, unsigned k) {
+    cout << "Checking grid (" << i << ", " << j << ", " << k << ")\n";
+    assert(i <= Ggrid::rEnd);
+    assert(j <= Ggrid::cEnd);
+    assert(k <= _laySupply.size());
+    Layer* grid = _gridList[i-1][j-1]->operator[](k);
+    // Find grid supply
+    int total_supply = _laySupply[k-1];
+    MCTri good = MCTri(i, j, k);
+    auto yeah = _nonDefaultSupply.find(good);
+    if (yeah != _nonDefaultSupply.cend())
+    {
+        total_supply += yeah->second;
+    }
+    if (grid->checkOverflow(total_supply)) {
+        cerr << "(" << i << ", " << j << ", "
+         << k << ") is overflow!\n";
+        return true;
+    } else {
+        cerr << "(" << i << ", " << j << ", "
+         << k << ") is not overflow!\n";
+        return false;
     }
 }
 

@@ -37,6 +37,7 @@ RouteMgr::route()
     for (auto m : _netList){
         if (m->shouldReroute()){
             targetNet.push_back(m);
+            remove3DDemand(m);
             m->ripUp();
             // cout << m->_netSegs.size() << " " << m->_netSegs.capacity() << endl;
         }
