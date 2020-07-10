@@ -66,7 +66,7 @@ void RouteMgr::mainPnR()
 void RouteMgr::place()
 {
     cout << "Place...\n";
-    if(/*_placeStrategy*/true){ //Congestion-based
+    if(_placeStrategy){ //Congestion-based
         netbasedPlace();
     }
     else{ //force-directed
