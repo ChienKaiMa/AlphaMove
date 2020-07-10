@@ -66,7 +66,7 @@ void RouteMgr::mainPnR()
 void RouteMgr::place()
 {
     cout << "Place...\n";
-    if(_placeStrategy){ //Congestion-based
+    if(/*_placeStrategy*/true){ //Congestion-based
         netbasedPlace();
     }
     else{ //force-directed
@@ -150,6 +150,7 @@ void RouteMgr::netbasedPlace(){
                 if(_netList[i]->_avgCongestion > bestCH){
                     bestCH = _netList[i]->_avgCongestion;
                 }
+                cout << "Net " << moveNet->_netId << " and " << i+1 << " have share value " << Share(moveNet,_netList[i]) << "\n";
             }
         }
     }
@@ -168,38 +169,38 @@ void RouteMgr::netbasedPlace(){
     int offsetRow = (int)(round(newCenterRow - moveNet->_centerRow));
     int offsetCol = (int)(round(newCenterCol - moveNet->_centerCol));
     unsigned newRow, newCol;
-    for(unsigned i=0;i<moveNet->_assoCellInst.size();++i){
-        if(moveNet->_assoCellInst[i] > 0){
-            if(_instList[i]->is_movable()){
-                change_notifier(_instList[i]);
-                remove2DBlkDemand(_instList[i]);
-                remove3DBlkDemand(_instList[i]);
-                if(_curMovedSet.insert(_instList[i]).second == true)
-                    ++_curMoveCnt;
-                if(_instList[i]->getPos().first + offsetRow > Ggrid::rEnd)
-                    newRow = Ggrid::rEnd;
-                else if(_instList[i]->getPos().first + offsetRow < Ggrid::rBeg)
-                    newRow = Ggrid::rBeg;
-                else
-                    newRow = _instList[i]->getPos().first + offsetRow;
-                
-                if(_instList[i]->getPos().second + offsetCol > Ggrid::cEnd)
-                    newCol = Ggrid::cEnd;
-                else if(_instList[i]->getPos().second + offsetCol < Ggrid::cBeg)
-                    newCol = Ggrid::cBeg;
-                else
-                    newCol = _instList[i]->getPos().second + offsetCol;
-                
-                _instList[i] -> move(Pos(newRow,newCol));
-                add2DBlkDemand(_instList[i]);
-                add3DBlkDemand(_instList[i]);
-                for(unsigned j=0;j<_instList[i]->assoNet.size();++j){
-                    _netList[_instList[i]->assoNet[j]-1]->_toRemoveDemand = true;
-                }
-
-                cout << "CellInst " << i+1 << " is moved to (" << _instList[i]->getPos().first << "," << _instList[i]->getPos().second << ").\n";
+    std::map<unsigned,unsigned>::iterator ite = moveNet->_assoCellInstMap.begin();
+    for(unsigned i=0;i<moveNet->_assoCellInstMap.size();++i){
+        if(_instList[ite->first-1]->is_movable()){
+            change_notifier(_instList[ite->first-1]);
+            remove2DBlkDemand(_instList[ite->first-1]);
+            remove3DBlkDemand(_instList[ite->first-1]);
+            if(_curMovedSet.insert(_instList[ite->first-1]).second == true)
+                ++_curMoveCnt;
+            if(_instList[ite->first-1]->getPos().first + offsetRow > Ggrid::rEnd)
+                newRow = Ggrid::rEnd;
+            else if(_instList[ite->first-1]->getPos().first + offsetRow < Ggrid::rBeg)
+                newRow = Ggrid::rBeg;
+            else
+                newRow = _instList[ite->first-1]->getPos().first + offsetRow;
+            
+            if(_instList[ite->first-1]->getPos().second + offsetCol > Ggrid::cEnd)
+                newCol = Ggrid::cEnd;
+            else if(_instList[ite->first-1]->getPos().second + offsetCol < Ggrid::cBeg)
+                newCol = Ggrid::cBeg;
+            else
+                newCol = _instList[ite->first-1]->getPos().second + offsetCol;
+            
+            _instList[ite->first-1] -> move(Pos(newRow,newCol));
+            add2DBlkDemand(_instList[ite->first-1]);
+            add3DBlkDemand(_instList[ite->first-1]);
+            for(unsigned j=0;j<_instList[ite->first-1]->assoNet.size();++j){
+                _netList[_instList[ite->first-1]->assoNet[j]-1]->_toRemoveDemand = true;
             }
+
+            cout << "CellInst " << ite->first << " is moved to (" << _instList[ite->first-1]->getPos().first << "," << _instList[ite->first-1]->getPos().second << ").\n";
         }
+        ++ite;
     }
     cout << "CurMoveCnt: " << _curMoveCnt << "\n";
     for(unsigned i=0;i<_netList.size();++i){
@@ -270,13 +271,13 @@ void RouteMgr::forcedirectedPlace (){
     }
     new_row = (int)(round((double)(row_numerator) / (double)(row_denominator)));
     new_col = (int)(round((double)(col_numerator) / (double)(col_denominator)));
-    if(new_row > Ggrid::rEnd)
+    if(new_row > (int)Ggrid::rEnd)
         new_row = Ggrid::rEnd;
-    else if(new_row < Ggrid::rBeg)
+    else if(new_row < (int)Ggrid::rBeg)
         new_row = Ggrid::rBeg;
-    if(new_col > Ggrid::cEnd)
+    if(new_col > (int)Ggrid::cEnd)
         new_col = Ggrid::cEnd;
-    else if(new_col < Ggrid::cBeg)
+    else if(new_col < (int)Ggrid::cBeg)
         new_col = Ggrid::cBeg;
     cout << "Old position: " << moveCell->getPos().first << " " << moveCell->getPos().second << "\n";
     moveCell->move(Pos(new_row,new_col));
@@ -287,11 +288,26 @@ void RouteMgr::forcedirectedPlace (){
 
 unsigned RouteMgr::Share(Net* a, Net* b){
     unsigned numShareCell = 0;
-    for(unsigned i=0;i<_instList.size();++i){
+    std::map<unsigned,unsigned>::iterator ite_a = a->_assoCellInstMap.begin();
+    std::map<unsigned,unsigned>::iterator ite_b = b->_assoCellInstMap.begin();
+    while(true){
+        if(ite_a == a->_assoCellInstMap.end() || ite_b == b->_assoCellInstMap.end())
+            break;
+        
+        if(ite_a->first > ite_b->first)
+            ++ite_b;
+        else if(ite_a->first < ite_b->first)
+            ++ite_a;
+        else{
+            numShareCell += ite_a->second;
+            ++ite_a;
+        }
+    }
+    /*for(unsigned i=0;i<_instList.size();++i){
         if(b->_assoCellInst[i] != 0){
             numShareCell += a->_assoCellInst[i];
         }
-    }
+    }*/
     return numShareCell;
 }
 

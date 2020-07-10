@@ -16,6 +16,7 @@
 #include <utility>
 #include <unordered_map>
 #include <set>
+#include <map>
 #include <cassert>
 #include "routeDef.h"
 
@@ -289,7 +290,7 @@ public:
     void printSummary() const;
     void printAllSeg() const;
     void printAllSeg(ostream&) const;
-    void printAssoCellInst() const;
+    void printAssoCellInst();
     unsigned passGrid() const;
     
 private:
@@ -307,7 +308,8 @@ private:
     double              _avgPinLayer;
 
     //associated cell instances
-    vector<unsigned>    _assoCellInst; //Represents the pin numbers of the cell instances in the net
+    //vector<unsigned>    _assoCellInst; //Represents the pin numbers of the cell instances in the net
+    map<unsigned, unsigned> _assoCellInstMap;
     bool                _toRemoveDemand = false;
 };
 
