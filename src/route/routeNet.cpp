@@ -183,7 +183,12 @@ void
 Net::initAssoCellInst(){
     std::set<PinPair>::iterator ite = _pinSet.begin();
     for(unsigned i=0;i<_pinSet.size();++i){
-        ++_assoCellInst[ite->first-1];
+        //++_assoCellInst[ite->first-1];
+        std::pair<std::map<unsigned,unsigned>::iterator, bool> ret;
+        ret = _assoCellInstMap.insert(pair<unsigned,unsigned>(ite->first, 1));
+        if(ret.second == false){
+            ++ret.first->second;
+        }
         ++ite;
     }
 }
@@ -204,9 +209,11 @@ Net::avgPinLayer() {
 }
 
 void
-Net::printAssoCellInst() const{
-    for(unsigned i=0;i<_assoCellInst.size();++i){
-        cout << "CellInst " << i+1 << " has " << _assoCellInst[i] << " associated pins.\n";
+Net::printAssoCellInst(){
+    std::map<unsigned,unsigned>::iterator ite = _assoCellInstMap.begin();
+    for(unsigned i=0;i<_assoCellInstMap.size();++i){
+        cout << "CellInst " << ite->first << " has " << ite->second << " associated pins.\n";
+        ++ite;
     }
 }
 
