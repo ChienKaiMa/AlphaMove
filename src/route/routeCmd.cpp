@@ -197,7 +197,7 @@ RouteWriteCmd::help() const
 }
 
 //----------------------------------------------------------------------
-//    OPTimize < -Place | -Route | -Overflow | -Evaluate >
+//    OPTimize < -Place | -Route | -2droute | -Overflow | -Evaluate >
 //----------------------------------------------------------------------
 CmdExecStatus
 RouteOptCmd::exec(const string& option)
@@ -217,7 +217,9 @@ RouteOptCmd::exec(const string& option)
    /*if (!options.empty())	
       return CmdExec::errorOption(CMD_OPT_EXTRA, options[0]);*/	
    if (myStrNCmp("-Place", token, 2) == 0)	
-      routeMgr->place();	
+      routeMgr->place();
+   else if (myStrNCmp("-2droute", token, 2) == 0)	
+      routeMgr->route2DAll();
    else if (myStrNCmp("-Route", token, 2) == 0)	
       routeMgr->route();
    else if (myStrNCmp("-Overflow", token, 2) == 0)	
@@ -243,7 +245,7 @@ RouteOptCmd::exec(const string& option)
 void
 RouteOptCmd::usage(ostream& os) const
 {
-   os << "Usage: OPTimize < -Place | -Route | -Overflow | -EValuate >" << endl;
+   os << "Usage: OPTimize < -Place | -Route | -2droute | -Overflow | -EValuate >" << endl;
 }
 
 void
@@ -299,35 +301,62 @@ MgrPrintCmd::help() const
 }
 
 //----------------------------------------------------------------------
-//    CELLPrint [-Summary | -ALl | -AssoNet]
+//    CELLPrint [-Summary | -ALl | -Mc (int idx) | -AssoNet (int idx)]
 //----------------------------------------------------------------------
 CmdExecStatus
 CellPrintCmd::exec(const string& option)
 {
    // check option
-   string token;
+   vector<string> tokens;
+   /*
    if (!CmdExec::lexSingleOption(option, token))
+      return CMD_EXEC_ERROR;
+   */
+   
+   if (!CmdExec::lexOptions(option, tokens))
       return CMD_EXEC_ERROR;
 
    if (!routeMgr) {
       cerr << "Error: circuit is not yet constructed!!" << endl;
       return CMD_EXEC_ERROR;
    }
-   if (token.empty() || myStrNCmp("-Summary", token, 2) == 0)
+
+   if (tokens.empty())
       cout << "routeMgr->printSummary()" << endl;
-   else if (myStrNCmp("-ALl", token, 3) == 0)
-      routeMgr->printCellInst();
-   else if (myStrNCmp("-MC", token, 3) == 0)
-      // TODO: 3-token queries for MC
-      routeMgr->printMCList();
-   else if (myStrNCmp("-ASsonet", token, 3) == 0)
-      routeMgr->printAssoNet();
-   else if (myStrNCmp("-FLoating", token, 3) == 0)
-      cout << "routeMgr->printFloatGates()" << endl;
-   else if (myStrNCmp("-FECpairs", token, 4) == 0)
-      cout << "routeMgr->printFECPairs()" << endl;
-   else
-      return CmdExec::errorOption(CMD_OPT_ILLEGAL, token);
+   else if (tokens.size() == 1) {
+      if (myStrNCmp("-Summary", tokens[0], 2) == 0) {
+         cout << "routeMgr->printSummary()" << endl;
+      } else if (myStrNCmp("-ALl", tokens[0], 3) == 0)
+         routeMgr->printCellInst();
+      else if (myStrNCmp("-MC", tokens[0], 3) == 0)
+         // TODO: 3-token queries for MC
+         routeMgr->printMCList();
+      else if (myStrNCmp("-ASsonet", tokens[0], 3) == 0)
+         routeMgr->printAssoNet();
+      else
+         return CmdExec::errorOption(CMD_OPT_ILLEGAL, tokens[0]);
+   } else if (tokens.size() == 2) {
+      int idx;
+      if (myStrNCmp("-MC", tokens[0], 3) == 0) {
+         // TODO: 3-token queries for MC
+         if (!myStr2Int(tokens[1], idx)) {
+            return CmdExec::errorOption(CMD_OPT_ILLEGAL, tokens[1]);
+         }
+         if (!(routeMgr->printMCList(idx))) {
+            return CmdExec::errorOption(CMD_OPT_ILLEGAL, tokens[1]);
+         }
+      } else if (myStrNCmp("-ASsonet", tokens[0], 3) == 0) {
+         if (!myStr2Int(tokens[1], idx)) {
+            return CmdExec::errorOption(CMD_OPT_ILLEGAL, tokens[1]);
+         }
+         if (!(routeMgr->printAssoNet(idx))) {
+            return CmdExec::errorOption(CMD_OPT_ILLEGAL, tokens[1]);
+         }
+      }
+   } else {
+      return CmdExec::errorOption(CMD_OPT_EXTRA, tokens[2]);
+   }
+   
 
    return CMD_EXEC_DONE;
 }
@@ -335,7 +364,7 @@ CellPrintCmd::exec(const string& option)
 void
 CellPrintCmd::usage(ostream& os) const
 {  
-   os << "Usage: CELLPrint [-Summary | -ALl | -ASsonet]" << endl;
+   os << "Usage: CELLPrint [-Summary | -ALl | -Mc (int idx) | -AssoNet (int idx)]" << endl;
 }
 
 void
@@ -391,7 +420,7 @@ LayPrintCmd::help() const
 }
 
 //----------------------------------------------------------------------
-//    NETPrint [-SUmmary | -SEgment]
+//    NETPrint [-SUmmary | -SEgment | int idx]
 //----------------------------------------------------------------------
 CmdExecStatus
 NetPrintCmd::exec(const string& option)
@@ -400,7 +429,7 @@ NetPrintCmd::exec(const string& option)
    string token;
    if (!CmdExec::lexSingleOption(option, token))
       return CMD_EXEC_ERROR;
-
+   int idx;
    if (!routeMgr) {
       cerr << "Error: circuit is not yet constructed!!" << endl;
       return CMD_EXEC_ERROR;
@@ -409,14 +438,8 @@ NetPrintCmd::exec(const string& option)
       cout << "routeMgr->printSummary()" << endl;
    else if (myStrNCmp("-SEgment", token, 3) == 0)
       routeMgr->printInitSegs();
-   else if (myStrNCmp("-PI", token, 3) == 0)
-      cout << "routeMgr->printPIs()" << endl;
-   else if (myStrNCmp("-PO", token, 3) == 0)
-      cout << "routeMgr->printPOs()" << endl;
-   else if (myStrNCmp("-FLoating", token, 3) == 0)
-      cout << "routeMgr->printFloatGates()" << endl;
-   else if (myStrNCmp("-FECpairs", token, 4) == 0)
-      cout << "routeMgr->printFECPairs()" << endl;
+   else if (myStr2Int(token, idx))
+      routeMgr->printNet(idx);
    else
       return CmdExec::errorOption(CMD_OPT_ILLEGAL, token);
 
@@ -426,7 +449,7 @@ NetPrintCmd::exec(const string& option)
 void
 NetPrintCmd::usage(ostream& os) const
 {  
-   os << "Usage: NETPrint [-Summary | -SEgment]" << endl;
+   os << "Usage: NETPrint [-Summary | -SEgment | int idx]" << endl;
 }
 
 void

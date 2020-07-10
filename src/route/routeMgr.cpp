@@ -359,12 +359,20 @@ RouteMgr::add3DDemand(Net* net)
 {
     set<Layer*> alpha;
     for(auto& seg : net->_netSegs) {
+        seg->print();
+        cout << "\n";
         unsigned i0 = seg->startPos[0];
         unsigned j0 = seg->startPos[1];
         unsigned k0 = seg->startPos[2];
         unsigned i1 = seg->endPos[0];
         unsigned j1 = seg->endPos[1];
         unsigned k1 = seg->endPos[2];
+        assert(i0);
+        assert(j0);
+        assert(k0);
+        assert(i1);
+        assert(j1);
+        assert(k1);
 
         if (seg->checkDir() == 'H') {
             if (j0 > j1) {
@@ -613,9 +621,9 @@ RouteMgr::replaceBest(){
     unsigned newWL = evaluateWireLen();
     cout << "Evaluating WL ..." << endl;
     cout << newWL << endl;
-    //if(newWL < _bestTotalWL){
-    if (true) {
-        cout << "CHeating myself...\n";
+    if(newWL < _bestTotalWL){
+    //if (true) {
+        //cout << "CHeating myself...\n";
         storeBestResult();
         _bestTotalWL = newWL;
         cout << _bestTotalWL << " is a Better Solution!!\n";

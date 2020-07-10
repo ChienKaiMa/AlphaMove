@@ -44,6 +44,18 @@ RouteMgr::printNetlist() const
     }
 }
 
+bool
+RouteMgr::printNet(int idx) const
+{
+    if (idx > _netList.size() || idx <= 0) {
+        return false;
+    } else {
+        cout << endl;
+        _netList[idx-1]->printSummary();
+        return true;
+    }
+}
+
 void
 RouteMgr::printMCList() const
 {
@@ -51,6 +63,18 @@ RouteMgr::printMCList() const
     {
         cout << endl;
         _mcList[i]->printMC();
+    }
+}
+
+bool
+RouteMgr::printMCList(unsigned idx) const
+{
+    if (idx > _mcList.size() || idx <= 0) {
+        return false;
+    } else {
+        cout << endl;
+        _mcList[idx-1]->printMC();
+        return true;
     }
 }
 
@@ -162,6 +186,18 @@ RouteMgr::printAssoNet() const
     for (auto& m : _instList)
     {
         m->printAssoNet();
+    }
+}
+
+bool
+RouteMgr::printAssoNet(unsigned idx) const
+{
+    if (idx > _instList.size() || idx <= 0) {
+        return false;
+    } else {
+        cout << endl;
+        _instList[idx-1]->printAssoNet();
+        return true;
     }
 }
 

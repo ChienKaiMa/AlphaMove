@@ -28,6 +28,24 @@ bool netCompare(Net* n1, Net* n2) // greater than , decsending order
 /**************************************************/
 /*   Public member functions about optimization   */
 /**************************************************/
+bool
+RouteMgr::route2DAll()
+{
+    NetList targetNet = NetList();
+    for (auto m : _netList){
+        if (m->shouldReroute()){
+            targetNet.push_back(m);
+            remove3DDemand(m);
+            m->ripUp();
+            // cout << m->_netSegs.size() << " " << m->_netSegs.capacity() << endl;
+        }
+    }
+    // sorted by #pins
+    sort( targetNet.begin(), targetNet.end(), netCompare);
+
+    route2D(targetNet);
+    cout << endl;
+}
 
 bool
 RouteMgr::route()

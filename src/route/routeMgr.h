@@ -37,7 +37,9 @@ public:
 
     void    printRouteSummary() const;
     void    printNetlist() const;
+    bool    printNet(int idx) const;
     void    printMCList() const;
+    bool    printMCList(unsigned idx) const;
 
     void    printLaySupply() const;
     void    printNonDefaultSupply() const;
@@ -51,6 +53,7 @@ public:
 
     void    printCellInst() const;
     void    printAssoNet() const;
+    bool    printAssoNet(unsigned idx) const;
     void    printInitSegs() const;
     void    replaceBest();
     double  getCongestion(Pos pos) const { 
@@ -80,12 +83,14 @@ public:
     void     mainPnR();
 
     void    route2D(NetList&);
+    bool    route2DAll();
     bool    route();
     void    koova_place();
     void    change_notifier(CellInst*);
     void    koova_route();
     
     bool    check3dOverflow(unsigned, unsigned, unsigned);
+    bool    findCand(unsigned min, unsigned max, vector<int>&);
     bool    layerassign(NetList&);
 
     void    init2DSupply();

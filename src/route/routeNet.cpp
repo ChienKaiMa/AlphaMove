@@ -140,6 +140,7 @@ Net::printSummary() const
     cout << "N" << _netId << endl;
     cout << "MinLayerConstr " << _minLayCons << endl;
     printPinSet();
+    printAllSeg();
 }
 
 void

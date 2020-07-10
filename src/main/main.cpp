@@ -28,7 +28,7 @@ ofstream outfile;
 extern RouteMgr *routeMgr;
 
 static void signal_handler(int signum){
-   cout << "Time limit exeed!!" << endl;
+   cout << "Time limit exceeded!!" << endl;
    cout << "Output file ...   " << endl;
    routeMgr->writeCircuit(outfile);
    exit(0);
