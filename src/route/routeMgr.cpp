@@ -374,9 +374,8 @@ RouteMgr::initCellInstList(){
 }
 
 void
-RouteMgr::add3DDemand(Net* net)
+RouteMgr::passGrid(Net* net, set<Layer*>& alpha) const
 {
-    set<Layer*> alpha;
     for(auto& seg : net->_netSegs) {
         //seg->print();
         //cout << "\n";
@@ -419,6 +418,14 @@ RouteMgr::add3DDemand(Net* net)
                 alpha.insert((*_gridList[i0-1][j0-1])[x]);
         }
     }
+}
+
+
+void
+RouteMgr::add3DDemand(Net* net)
+{
+    set<Layer*> alpha;
+    passGrid(net, alpha);
     for (auto& m : alpha) {
         m->addDemand(1);
     }
@@ -428,40 +435,7 @@ void
 RouteMgr::remove3DDemand(Net* net)
 {
     set<Layer*> alpha;
-    for(auto& seg : net->_netSegs) {
-        unsigned i0 = seg->startPos[0];
-        unsigned j0 = seg->startPos[1];
-        unsigned k0 = seg->startPos[2];
-        unsigned i1 = seg->endPos[0];
-        unsigned j1 = seg->endPos[1];
-        unsigned k1 = seg->endPos[2];
-
-        if (seg->checkDir() == 'H') {
-            if (j0 > j1) {
-                unsigned tmp = j0;
-                j0 = j1;
-                j1 = tmp;
-            }
-            for (unsigned x=j0; x<=1; ++x)
-                alpha.insert((*_gridList[i0-1][x-1])[k0]);
-        } else if (seg->checkDir() == 'V') {
-            if (i0 > i1) {
-                unsigned tmp = i0;
-                i0 = i1;
-                i1 = tmp;
-            }
-            for (unsigned x=i0; x<=i1; ++x)
-                alpha.insert((*_gridList[x-1][j0-1])[k0]);
-        } else {
-            if (k0 > k1) {
-                unsigned tmp = k0;
-                k0 = k1;
-                k1 = tmp;
-            }
-            for (unsigned x=k0; x<=k1; ++x)
-                alpha.insert((*_gridList[i0-1][j0-1])[x]);
-        }
-    }
+    passGrid(net, alpha);
     for (auto& m : alpha) {
         m->removeDemand(1);
     }
@@ -720,7 +694,13 @@ RouteMgr::evaluateWireLen() const{
     unsigned newWL = 0;
     // cout << "evalueateWireLen" << endl;
     for (auto n : _netList){
-        newWL += n->passGrid();
+        set<Layer*> alpha;
+        passGrid(n, alpha);
+        newWL += alpha.size();
+        if (n->_netSegs.size() == 0) {
+            ++newWL;
+        }
+        //newWL += n->passGrid();
     }
     // newWL+=_netList.size();
      cout << "Wire length : " << newWL << endl;

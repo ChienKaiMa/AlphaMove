@@ -95,6 +95,7 @@ public:
 
     //Demand & Supply
     void    init2DSupply();
+    void    passGrid(Net*, set<Layer*>&) const;
     void    add3DDemand(Net*);
     void    remove3DDemand(Net*);
     void    add3DBlkDemand(CellInst*);
