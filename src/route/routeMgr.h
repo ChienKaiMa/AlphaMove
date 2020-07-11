@@ -93,16 +93,22 @@ public:
     bool    findCand(unsigned min, unsigned max, vector<int>&);
     bool    layerassign(NetList&);
 
+    //Demand & Supply
     void    init2DSupply();
     void    add3DDemand(Net*);
     void    remove3DDemand(Net*);
     void    add3DBlkDemand(CellInst*);
     void    remove3DBlkDemand(CellInst*);
+    void    add3DNeighborDemand(CellInst*, CellInst*, bool type);
+    void    remove3DNeighborDemand(CellInst*, CellInst*, bool type);
     void    add2DDemand(Net*);
     void    remove2DDemand(Net*);
     void    add2DBlkDemand(CellInst*);
     void    remove2DBlkDemand(CellInst*);
+    void    add2DNeighborDemand(CellInst*, CellInst*, bool type); //type=0: same gGrid, type=1: adj gGrid
+    void    remove2DNeighborDemand(CellInst*, CellInst*, bool type);
 
+    void    initCellInstList();
     /**********************************/
     /*            Output              */
     /**********************************/ 

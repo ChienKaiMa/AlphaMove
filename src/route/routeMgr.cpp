@@ -240,6 +240,18 @@ RouteMgr::readCircuit(const string& fileName)
         _bestRouteSegs.push_back(seg);
     }
     
+    cout << "initialize cell instance list of gGrids\n";
+    initCellInstList();
+    /*for(unsigned i=Ggrid::rBeg-1;i<Ggrid::rEnd;++i){
+        for(unsigned j=Ggrid::cBeg-1;j<Ggrid::cEnd;++j){
+            cout << "gGid(" << i+1 << "," << j+1 << ") has cellInst";
+            for(unsigned k=0;k<_gridList[i][j]->cellInstList.size();++k){
+                cout << _gridList[i][j]->cellInstList[k]->getId() << " ";
+            }
+            cout << "\n";
+        }
+    }*/
+
     cout << "adding 2D demand\n";
     for(auto& m : _netList){
         add2DDemand(m);
@@ -257,6 +269,7 @@ RouteMgr::readCircuit(const string& fileName)
         add3DBlkDemand(m);
     }
 
+    cout << "initialize associated cell instances of nets\n";
     for(auto& m : _netList){
         m->initAssoCellInst();
         //cout << "Net " << m->_netId << "\n";
@@ -353,12 +366,20 @@ RouteMgr::init2DSupply()
 }
 
 void
+RouteMgr::initCellInstList(){
+    for(unsigned i=0;i<_instList.size();++i){
+        Ggrid* g = _instList[i]->getGrid();
+        g->cellInstList.push_back(_instList[i]);
+    }
+}
+
+void
 RouteMgr::add3DDemand(Net* net)
 {
     set<Layer*> alpha;
     for(auto& seg : net->_netSegs) {
-        seg->print();
-        cout << "\n";
+        //seg->print();
+        //cout << "\n";
         unsigned i0 = seg->startPos[0];
         unsigned j0 = seg->startPos[1];
         unsigned k0 = seg->startPos[2];
@@ -573,6 +594,98 @@ RouteMgr::remove3DBlkDemand(CellInst* cell){
     Ggrid* grid = cell->getGrid();
     for(unsigned i=0;i<mc->_blkgList.size();++i){
         (*grid)[mc->_blkgList[i].first]->removeDemand(mc->_blkgList[i].second);
+    }
+}
+
+//not verified
+void
+RouteMgr::add2DNeighborDemand(CellInst* cell_a, CellInst* cell_b, bool type){
+    if(type == false){ //Same gGrid
+        for(unsigned i=0;i<_laySupply.size();++i){
+            MCTri t(cell_a->getId(), cell_b->getId(), i+1);
+            std::unordered_map<MCTri, unsigned, TriHash>::iterator it = _sameGridDemand.find(t);
+            if(it!=_sameGridDemand.end()){
+                cell_a->getGrid()->update2dDemand(it->second);
+            }
+        }
+    }
+    else{ //Adj. gGrid
+        for(unsigned i=0;i<_laySupply.size();++i){
+            MCTri t(cell_a->getId(), cell_b->getId(), i+1);
+            std::unordered_map<MCTri, unsigned, TriHash>::iterator it = _adjHGridDemand.find(t);
+            if(it!=_adjHGridDemand.end()){
+                cell_a->getGrid()->update2dDemand(it->second);
+            }
+        }
+    }
+}
+
+//not verified
+void
+RouteMgr::remove2DNeighborDemand(CellInst* cell_a, CellInst* cell_b, bool type){
+    if(type == false){ //Same gGrid
+        for(unsigned i=0;i<_laySupply.size();++i){
+            MCTri t(cell_a->getId(), cell_b->getId(), i+1);
+            std::unordered_map<MCTri, unsigned, TriHash>::iterator it = _sameGridDemand.find(t);
+            if(it!=_sameGridDemand.end()){
+                cell_a->getGrid()->update2dDemand(-(int)(it->second));
+            }
+        }
+    }
+    else{ //Adj. gGrid
+        for(unsigned i=0;i<_laySupply.size();++i){
+            MCTri t(cell_a->getId(), cell_b->getId(), i+1);
+            std::unordered_map<MCTri, unsigned, TriHash>::iterator it = _adjHGridDemand.find(t);
+            if(it!=_adjHGridDemand.end()){
+                cell_a->getGrid()->update2dDemand(-(int)(it->second));
+            }
+        }
+    }
+}
+
+//not verified
+void
+RouteMgr::add3DNeighborDemand(CellInst* cell_a, CellInst* cell_b, bool type){
+    if(type == false){ //Same gGrid
+        for(unsigned i=0;i<_laySupply.size();++i){
+            MCTri t(cell_a->getId(), cell_b->getId(), i+1);
+            std::unordered_map<MCTri, unsigned, TriHash>::iterator it = _sameGridDemand.find(t);
+            if(it!=_sameGridDemand.end()){
+                (*(cell_a->getGrid()))[it->first.layNum]->addDemand(it->second);
+            }
+        }
+    }
+    else{ //Adj. gGrid
+        for(unsigned i=0;i<_laySupply.size();++i){
+            MCTri t(cell_a->getId(), cell_b->getId(), i+1);
+            std::unordered_map<MCTri, unsigned, TriHash>::iterator it = _adjHGridDemand.find(t);
+            if(it!=_adjHGridDemand.end()){
+                (*(cell_a->getGrid()))[it->first.layNum]->addDemand(it->second);
+            }
+        }
+    }
+}
+
+//not verified
+void
+RouteMgr::remove3DNeighborDemand(CellInst* cell_a, CellInst* cell_b, bool type){
+    if(type == false){ //Same gGrid
+        for(unsigned i=0;i<_laySupply.size();++i){
+            MCTri t(cell_a->getId(), cell_b->getId(), i+1);
+            std::unordered_map<MCTri, unsigned, TriHash>::iterator it = _sameGridDemand.find(t);
+            if(it!=_sameGridDemand.end()){
+                (*(cell_a->getGrid()))[it->first.layNum]->removeDemand(it->second);
+            }
+        }
+    }
+    else{ //Adj. gGrid
+        for(unsigned i=0;i<_laySupply.size();++i){
+            MCTri t(cell_a->getId(), cell_b->getId(), i+1);
+            std::unordered_map<MCTri, unsigned, TriHash>::iterator it = _adjHGridDemand.find(t);
+            if(it!=_adjHGridDemand.end()){
+                (*(cell_a->getGrid()))[it->first.layNum]->removeDemand(it->second);
+            }
+        }
     }
 }
 

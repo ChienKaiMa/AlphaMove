@@ -214,6 +214,7 @@ public:
     static unsigned cBeg;
     static unsigned cEnd;
 
+    vector<CellInst*> cellInstList;
 private:
     Pos        _pos;
     LayerList  _layerList;
