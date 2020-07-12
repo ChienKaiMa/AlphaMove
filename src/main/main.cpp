@@ -62,6 +62,9 @@ main(int argc, char** argv)
          myexit();
       }
       */
+      alarm(TIME_LIMIT-100);
+      signal(SIGALRM, &signal_handler);
+
       routeMgr = new RouteMgr();
       // TODO: generate output file
       string inputFile = argv[1];
@@ -81,8 +84,6 @@ main(int argc, char** argv)
       }
       routeMgr->writeCircuit(outfile);
       
-      alarm(TIME_LIMIT-100);
-      signal(SIGALRM, &signal_handler);
       // rMgr->writeCircuit(outfile);
       myUsage.report(true, true);
       return 0;
