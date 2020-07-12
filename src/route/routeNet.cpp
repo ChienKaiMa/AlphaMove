@@ -140,6 +140,7 @@ Net::printSummary() const
     cout << "N" << _netId << endl;
     cout << "MinLayerConstr " << _minLayCons << endl;
     printPinSet();
+    printAssoCellInst();
     printAllSeg();
 }
 
@@ -209,8 +210,9 @@ Net::avgPinLayer() {
 }
 
 void
-Net::printAssoCellInst(){
-    std::map<unsigned,unsigned>::iterator ite = _assoCellInstMap.begin();
+Net::printAssoCellInst() const
+{
+    auto ite = _assoCellInstMap.begin();
     for(unsigned i=0;i<_assoCellInstMap.size();++i){
         cout << "CellInst " << ite->first << " has " << ite->second << " associated pins.\n";
         ++ite;

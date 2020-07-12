@@ -21,9 +21,11 @@ extern int effLimit;
 bool
 initRouteCmd()
 {
-   if (!(cmdMgr->regCmd("Read", 1, new RouteReadCmd) &&
+   if (!(cmdMgr->regCmd("REad", 2, new RouteReadCmd) &&
          cmdMgr->regCmd("Write", 1, new RouteWriteCmd) &&
-         cmdMgr->regCmd("Optimize", 1, new RouteOptCmd) &&
+         cmdMgr->regCmd("Place", 1, new PlaceCmd) &&
+         cmdMgr->regCmd("ROute", 2, new RouteCmd) &&
+         cmdMgr->regCmd("Optimize", 1, new OptimizeCmd) &&
          cmdMgr->regCmd("Mgrprint", 1, new MgrPrintCmd) &&
          cmdMgr->regCmd("Layprint", 1, new LayPrintCmd) &&
          cmdMgr->regCmd("Netprint", 1, new NetPrintCmd) &&
@@ -40,10 +42,9 @@ enum RouteCmdState
    // Order matters! Do not change the order!!
    ROUTEINIT,
    CIRREAD,
+   PLACE,
+   ROUTE,
    ROUTEOPT,
-   CIRSTRASH,
-   CIRSIMULATE,
-   CIRFRAIG,
    // dummy end
    CIRCMDTOT
 };
@@ -135,10 +136,6 @@ RouteWriteCmd::exec(const string& option)
       return CMD_EXEC_DONE;
    }
    bool hasFile = false;
-   /*
-   int gateId;
-   CirGate *thisGate = NULL;
-   */
 
    ofstream outfile;
    for (size_t i = 0, n = options.size(); i < n; ++i) {
@@ -152,33 +149,10 @@ RouteWriteCmd::exec(const string& option)
             return CmdExec::errorOption(CMD_OPT_FOPEN_FAIL, options[1]);
          hasFile = true;
       }
-      /*
-      else if (myStr2Int(options[i], gateId) && gateId >= 0) {
-         if (thisGate != NULL)
-            return CmdExec::errorOption(CMD_OPT_EXTRA, options[i]);
-         thisGate = routeMgr->getGate(gateId);
-         if (!thisGate) {
-            cerr << "Error: Gate(" << gateId << ") not found!!" << endl;
-            return CmdExec::errorOption(CMD_OPT_ILLEGAL, options[i]);
-         }
-         if (!thisGate->isAig()) {
-             cerr << "Error: Gate(" << gateId << ") is NOT an AIG!!" << endl;
-            return CmdExec::errorOption(CMD_OPT_ILLEGAL, options[i]);
-         }
-      }
-      */
       else return CmdExec::errorOption(CMD_OPT_ILLEGAL, options[i]);
    }
    assert (hasFile);
    routeMgr->writeCircuit(outfile);
-   /*
-   if (!thisGate) {
-      assert (hasFile);
-      routeMgr->writeAag(outfile);
-   }
-   else if (hasFile) routeMgr->writeGate(outfile, thisGate);
-   else routeMgr->writeGate(cout, thisGate);
-   */
 
    return CMD_EXEC_DONE;
 }
@@ -197,10 +171,109 @@ RouteWriteCmd::help() const
 }
 
 //----------------------------------------------------------------------
-//    OPTimize < -Place | -Route | -2droute | -Overflow | -Evaluate >
+//    Place [ -Default | -Net | -Force | -Check | -Summary ]
 //----------------------------------------------------------------------
 CmdExecStatus
-RouteOptCmd::exec(const string& option)
+PlaceCmd::exec(const string& option)
+{
+   if (!routeMgr) {
+      cerr << "Error: circuit is not yet constructed!!" << endl;
+      return CMD_EXEC_ERROR;
+   }
+
+   string token;
+   if (!CmdExec::lexSingleOption(option, token))	
+      return CMD_EXEC_ERROR;
+
+   if (token.empty() || myStrNCmp("-Default", token, 2) == 0)	
+      routeMgr->place();
+   else if (myStrNCmp("-Net", token, 2) == 0)	
+      routeMgr->netbasedPlace();
+   else if (myStrNCmp("-Force", token, 2) == 0)	
+      routeMgr->forcedirectedPlace();
+   else if (myStrNCmp("-Check", token, 2) == 0)
+      // TODO
+      cout << "TODO\n";
+   else if (myStrNCmp("-Summary", token, 2) == 0) {
+      // TODO
+      cout << "TODO\n";
+      return CMD_EXEC_DONE;
+   } else 	
+      return CmdExec::errorOption(CMD_OPT_ILLEGAL, token);
+
+   assert(curCmd != ROUTEINIT);
+   curCmd = PLACE;
+
+   return CMD_EXEC_DONE;
+}
+
+void
+PlaceCmd::usage(ostream& os) const
+{
+   os << "Usage: Place [ -Default | -Net |"
+      << " -Force | -Check | -Summary ]" << endl;
+}
+
+void
+PlaceCmd::help() const
+{
+   cout << setw(15) << left << "Place: "
+        << "perform placements\n";
+}
+
+//----------------------------------------------------------------------
+//    Route [ -3D | -2D | -Check | -Summary ]
+//----------------------------------------------------------------------
+CmdExecStatus
+RouteCmd::exec(const string& option)
+{
+   if (!routeMgr) {
+      cerr << "Error: circuit is not yet constructed!!" << endl;
+      return CMD_EXEC_ERROR;
+   }
+
+   string token;
+   if (!CmdExec::lexSingleOption(option, token))	
+      return CMD_EXEC_ERROR;
+
+   if (token.empty() || myStrNCmp("-3D", token, 2) == 0)	
+      routeMgr->route();
+   else if (myStrNCmp("-2D", token, 2) == 0)	
+      routeMgr->route2DAll();
+   else if (myStrNCmp("-Check", token, 2) == 0) {
+      // TODO
+      cout << "TODO\n";
+   } else if (myStrNCmp("-Summary", token, 2) == 0) {
+      // TODO
+      cout << "TODO\n";
+      return CMD_EXEC_DONE;
+   } else 	
+      return CmdExec::errorOption(CMD_OPT_ILLEGAL, token);
+
+   assert(curCmd != ROUTEINIT);
+   curCmd = ROUTE;
+
+   return CMD_EXEC_DONE;
+}
+
+void
+RouteCmd::usage(ostream& os) const
+{
+   os << "Usage: Route [ -3D | -2D | -Check | -Summary ]" << endl;
+}
+
+void
+RouteCmd::help() const
+{
+   cout << setw(15) << left << "Route: "
+        << "perform routing\n";
+}
+
+//----------------------------------------------------------------------
+//    Optimize < -All | -Overflow | -Evaluate >
+//----------------------------------------------------------------------
+CmdExecStatus
+OptimizeCmd::exec(const string& option)
 {
    if (!routeMgr) {
       cerr << "Error: circuit is not yet constructed!!" << endl;
@@ -214,15 +287,11 @@ RouteOptCmd::exec(const string& option)
 
    //CmdExec::lexOptions(option, token);
 
-   /*if (!options.empty())	
-      return CmdExec::errorOption(CMD_OPT_EXTRA, options[0]);*/	
-   if (myStrNCmp("-Place", token, 2) == 0)	
+   if (myStrNCmp("-All", token, 2) == 0) {
       routeMgr->place();
-   else if (myStrNCmp("-2droute", token, 2) == 0)	
-      routeMgr->route2DAll();
-   else if (myStrNCmp("-Route", token, 2) == 0)	
       routeMgr->route();
-   else if (myStrNCmp("-Overflow", token, 2) == 0)	
+      routeMgr->replaceBest();
+   } else if (myStrNCmp("-Overflow", token, 2) == 0)	
       for (unsigned i=1; i<=Ggrid::rEnd; ++i) {
          for (unsigned j=1; j<=Ggrid::cEnd; ++j) {
             for (unsigned k=1; k<=routeMgr->getLayerCnt(); ++k) {
@@ -236,22 +305,21 @@ RouteOptCmd::exec(const string& option)
       return CmdExec::errorOption(CMD_OPT_ILLEGAL, token);
 
    assert(curCmd != ROUTEINIT);
-   // routeMgr->optimize();
    curCmd = ROUTEOPT;
 
    return CMD_EXEC_DONE;
 }
 
 void
-RouteOptCmd::usage(ostream& os) const
+OptimizeCmd::usage(ostream& os) const
 {
-   os << "Usage: OPTimize < -Place | -Route | -2droute | -Overflow | -EValuate >" << endl;
+   os << "Usage: Optimize < -All | -Overflow | -Evaluate >" << endl;
 }
 
 void
-RouteOptCmd::help() const
+OptimizeCmd::help() const
 {
-   cout << setw(15) << left << "OPTimize: "
+   cout << setw(15) << left << "Optimize: "
         << "perform optimizations\n";
 }
 
@@ -272,6 +340,8 @@ MgrPrintCmd::exec(const string& option)
    }
    if (token.empty() || myStrNCmp("-Summary", token, 2) == 0)
       routeMgr->printRouteSummary();
+   else if (myStrNCmp("-Input", token, 2) == 0)
+      routeMgr->printInputSummary();
    else if (myStrNCmp("-NEtlist", token, 3) == 0)
       routeMgr->printNetlist();
    else if (myStrNCmp("-MC", token, 3) == 0)
@@ -291,7 +361,8 @@ MgrPrintCmd::exec(const string& option)
 void
 MgrPrintCmd::usage(ostream& os) const
 {  
-   os << "Usage: MgrPrint [-Summary | -Netlist | -MC | -Extra | -NOndefaultsupply]" << endl;
+   os << "Usage: MgrPrint [ -Summary | -Input |"
+      << " -Netlist | -MC | -Extra | -NOndefaultsupply ]\n";
 }
 
 void
@@ -308,11 +379,6 @@ CellPrintCmd::exec(const string& option)
 {
    // check option
    vector<string> tokens;
-   /*
-   if (!CmdExec::lexSingleOption(option, token))
-      return CMD_EXEC_ERROR;
-   */
-   
    if (!CmdExec::lexOptions(option, tokens))
       return CMD_EXEC_ERROR;
 
@@ -322,14 +388,15 @@ CellPrintCmd::exec(const string& option)
    }
 
    if (tokens.empty())
+      // TODO
       cout << "routeMgr->printSummary()" << endl;
    else if (tokens.size() == 1) {
       if (myStrNCmp("-Summary", tokens[0], 2) == 0) {
+         // TODO
          cout << "routeMgr->printSummary()" << endl;
       } else if (myStrNCmp("-ALl", tokens[0], 3) == 0)
          routeMgr->printCellInst();
       else if (myStrNCmp("-MC", tokens[0], 3) == 0)
-         // TODO: 3-token queries for MC
          routeMgr->printMCList();
       else if (myStrNCmp("-ASsonet", tokens[0], 3) == 0)
          routeMgr->printAssoNet();
@@ -338,7 +405,6 @@ CellPrintCmd::exec(const string& option)
    } else if (tokens.size() == 2) {
       int idx;
       if (myStrNCmp("-MC", tokens[0], 3) == 0) {
-         // TODO: 3-token queries for MC
          if (!myStr2Int(tokens[1], idx)) {
             return CmdExec::errorOption(CMD_OPT_ILLEGAL, tokens[1]);
          }
@@ -420,36 +486,56 @@ LayPrintCmd::help() const
 }
 
 //----------------------------------------------------------------------
-//    NETPrint [-SUmmary | -SEgment | int idx]
+//    NETPrint [-SUmmary | -SEgment | -Assoinst (int idx) | int idx]
 //----------------------------------------------------------------------
 CmdExecStatus
 NetPrintCmd::exec(const string& option)
 {
    // check option
-   string token;
-   if (!CmdExec::lexSingleOption(option, token))
+   vector<string> tokens;
+   if (!CmdExec::lexOptions(option, tokens))
       return CMD_EXEC_ERROR;
-   int idx;
+
    if (!routeMgr) {
       cerr << "Error: circuit is not yet constructed!!" << endl;
       return CMD_EXEC_ERROR;
    }
-   if (token.empty() || myStrNCmp("-SUmmary", token, 3) == 0)
-      cout << "routeMgr->printSummary()" << endl;
-   else if (myStrNCmp("-SEgment", token, 3) == 0)
-      routeMgr->printInitSegs();
-   else if (myStr2Int(token, idx))
-      routeMgr->printNet(idx);
-   else
-      return CmdExec::errorOption(CMD_OPT_ILLEGAL, token);
 
+   if (tokens.empty())
+      // TODO
+      cout << "routeMgr->printSummary()" << endl;
+   else if (tokens.size() == 1) {
+      int idx;
+      if (myStrNCmp("-SUmmary", tokens[0], 3) == 0) {
+         // TODO
+         cout << "routeMgr->printSummary()" << endl;
+      } else if (myStrNCmp("-SEgment", tokens[0], 3) == 0)
+         routeMgr->printInitSegs();
+      else if (myStr2Int(tokens[0], idx))
+         routeMgr->printNet(idx);
+      else
+         return CmdExec::errorOption(CMD_OPT_ILLEGAL, tokens[0]);
+   } else if (tokens.size() == 2) {
+      int idx;
+      if (myStrNCmp("-Assoinst", tokens[0], 2) == 0) {
+         if (!myStr2Int(tokens[1], idx)) {
+            return CmdExec::errorOption(CMD_OPT_ILLEGAL, tokens[1]);
+         }
+         if (!(routeMgr->printAssoInst(idx))) {
+            return CmdExec::errorOption(CMD_OPT_ILLEGAL, tokens[1]);
+         }
+      }
+   } else {
+      return CmdExec::errorOption(CMD_OPT_EXTRA, tokens[2]);
+   }
    return CMD_EXEC_DONE;
 }
 
 void
 NetPrintCmd::usage(ostream& os) const
 {  
-   os << "Usage: NETPrint [-Summary | -SEgment | int idx]" << endl;
+   os << "Usage: NETPrint [-Summary | -SEgment |"
+      << " -Assoinst (int idx) | int idx]" << endl;
 }
 
 void

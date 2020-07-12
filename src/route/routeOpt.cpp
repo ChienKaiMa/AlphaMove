@@ -38,7 +38,6 @@ extern RouteMgr* routeMgr;
 // routeMgr becomes 0 when calling cellInst->move() in Forcedirected 
 void RouteMgr::mainPnR()
 {
-    _bestTotalWL = evaluateWireLen();
     cout << "Initial WL : " << _bestTotalWL << endl;
     while(true){
         this->place();
@@ -58,6 +57,7 @@ void RouteMgr::mainPnR()
             }
         }
         this->_placeStrategy = !canRoute;
+        printRouteSummary();
     }
 }
 
@@ -84,7 +84,7 @@ void RouteMgr::netbasedPlace(){
     unsigned maxRow = Ggrid::rBeg;
     unsigned maxCol = Ggrid::cBeg;
 
-    //Store the net congestions and bouding boxes
+    //Store the net congestions and bounding boxes
     for(unsigned i=0;i<_netList.size();++i){
         Net* net = _netList[i];
         double netcongestion = 0;
@@ -428,7 +428,7 @@ bool RouteMgr::layerassign(NetList& toLayNet)
                     return false;
                 }
                 for (auto& j : candidatesH) {
-                    diff = (abs(diff) < abs(j-curLayer)) ? diff : j-curLayer;
+                    diff = ((diff) < (j-curLayer)) ? diff : j-curLayer;
                 }
             } else {
                 if (candidatesV.size() == 0) {
@@ -437,7 +437,7 @@ bool RouteMgr::layerassign(NetList& toLayNet)
                     return false;
                 }
                 for (auto& j : candidatesV) {
-                    diff = (abs(diff) < abs(j-curLayer)) ? diff : j-curLayer;
+                    diff = ((diff) < (j-curLayer)) ? diff : j-curLayer;
                 }
             }
             targetLayer = curLayer + diff;

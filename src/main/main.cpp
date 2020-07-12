@@ -70,13 +70,9 @@ main(int argc, char** argv)
       string inputFile = argv[1];
       string outFileName = argv[2];
       routeMgr->readCircuit(inputFile);
-      routeMgr->printRouteSummary();
+      routeMgr->printInputSummary();
       
       routeMgr->mainPnR();
-      //rMgr->place();
-      //rMgr->route();
-      //rMgr->koova_place();
-      //rMgr->koova_route();
       outfile.open(argv[2], ios::out);
       if (!outfile) {
          cerr << "Output file open fail!" << endl;

@@ -35,9 +35,11 @@ public:
     void    setRouteLog(ofstream *logFile) { _tempRoute = logFile; }
     void    genGridList();
 
+    void    printInputSummary() const;
     void    printRouteSummary() const;
     void    printNetlist() const;
     bool    printNet(int idx) const;
+    bool    printAssoInst(int idx) const;
     void    printMCList() const;
     bool    printMCList(unsigned idx) const;
 
@@ -136,7 +138,7 @@ private:
     bool              _placeStrategy; // 0 for force-directed, 1 for congestion-based move
     clock_t           _startTime;
     unsigned          _curMoveCnt = 0;
-    unsigned          _curTotalWL;
+    unsigned          _initTotalWL;
     InstSet           _curMovedSet;
 
     // Results

@@ -18,11 +18,9 @@
 using namespace std;
 
 void
-RouteMgr::printRouteSummary() const
+RouteMgr::printInputSummary() const
 {
     cout << "MaxCellMove" << setw(8) << _maxMoveCnt << endl;
-    // TODO
-    cout << "CurrentMove" << setw(8) << _curMoveCnt << endl;
     cout << "Boundary" << setw(5) << Ggrid::rBeg << " " << Ggrid::cBeg << " " << Ggrid::rEnd
     << " " << Ggrid::cEnd << endl;
     cout << "Total layer" << setw(8) << _laySupply.size() << endl;
@@ -30,9 +28,19 @@ RouteMgr::printRouteSummary() const
     cout << "CellInst" << setw(11) << _instList.size() << endl;
     cout << "Net" << setw(16) << _netList.size() << endl;
     cout << "OrigRoute" << setw(10) << _initTotalSegNum << endl;
+    cout << "InitWL" << setw(13) << _initTotalWL << "\n";
     // TODO: Support more information
-    // cout << "CurrRoute" << setw(10) << numRoute << endl;
 }
+
+void
+RouteMgr::printRouteSummary() const
+{
+    cout << "MaxCellMove" << setw(8) << _maxMoveCnt << endl;
+    cout << "CurrentMove" << setw(8) << _curMoveCnt << endl;
+    cout << "InitWL" << setw(13) << _initTotalWL << "\n";
+    cout << "bestWL" << setw(13) << _bestTotalWL << "\n";
+}
+
 
 void
 RouteMgr::printNetlist() const
@@ -52,6 +60,19 @@ RouteMgr::printNet(int idx) const
     } else {
         cout << endl;
         _netList[idx-1]->printSummary();
+        return true;
+    }
+}
+
+
+bool
+RouteMgr::printAssoInst(int idx) const
+{
+    if (idx > _netList.size() || idx <= 0) {
+        return false;
+    } else {
+        cout << endl;
+        _netList[idx-1]->printAssoCellInst();
         return true;
     }
 }

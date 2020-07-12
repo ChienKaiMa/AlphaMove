@@ -291,7 +291,7 @@ public:
     void printSummary() const;
     void printAllSeg() const;
     void printAllSeg(ostream&) const;
-    void printAssoCellInst();
+    void printAssoCellInst() const;
     unsigned passGrid() const;
     
 private:

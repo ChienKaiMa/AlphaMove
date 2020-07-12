@@ -278,7 +278,8 @@ RouteMgr::readCircuit(const string& fileName)
         //m->printAssoCellInst();
     }
 
-    _bestTotalWL = evaluateWireLen();
+    _initTotalWL = evaluateWireLen();
+    _bestTotalWL = _initTotalWL;
     return true;
 }
 
@@ -737,15 +738,14 @@ RouteMgr::evaluateWireLen() const{
         //newWL += n->passGrid();
     }
     // newWL+=_netList.size();
-     cout << "Wire length : " << newWL << endl;
+    cout << "Wire length : " << newWL << endl;
     return newWL;
 }
 
 void 
 RouteMgr::replaceBest(){
-    unsigned newWL = evaluateWireLen();
     cout << "Evaluating WL ..." << endl;
-    cout << newWL << endl;
+    unsigned newWL = evaluateWireLen();
     if(newWL < _bestTotalWL){
     //if (true) {
         //cout << "CHeating myself...\n";

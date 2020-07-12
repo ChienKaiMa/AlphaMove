@@ -13,7 +13,9 @@
 
 CmdClass(RouteReadCmd);
 CmdClass(RouteWriteCmd);
-CmdClass(RouteOptCmd);
+CmdClass(PlaceCmd);
+CmdClass(RouteCmd);
+CmdClass(OptimizeCmd);
 CmdClass(MgrPrintCmd);
 CmdClass(CellPrintCmd);
 CmdClass(LayPrintCmd);
