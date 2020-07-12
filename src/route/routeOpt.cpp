@@ -66,7 +66,7 @@ void RouteMgr::mainPnR()
 void RouteMgr::place()
 {
     cout << "Place...\n";
-    if(_placeStrategy){ //Congestion-based
+    if(true/*_placeStrategy*/){ //Congestion-based
         netbasedPlace();
     }
     else{ //force-directed
@@ -175,6 +175,56 @@ void RouteMgr::netbasedPlace(){
             change_notifier(_instList[ite->first-1]);
             remove2DBlkDemand(_instList[ite->first-1]);
             remove3DBlkDemand(_instList[ite->first-1]);
+            //remove from original cellInstList
+            for(unsigned j=0;j<_instList[ite->first-1]->getGrid()->cellInstList.size();++j){
+                if(_instList[ite->first-1]->getGrid()->cellInstList[j] == _instList[ite->first-1]){
+                    _instList[ite->first-1]->getGrid()->cellInstList.erase(_instList[ite->first-1]->getGrid()->cellInstList.begin() + j);
+                    break;
+                }
+            }
+            //remove same gGrid demand
+            for(unsigned j=0;j<_instList[ite->first-1]->getGrid()->cellInstList.size();++j){
+                if(_instList[ite->first-1]->getGrid()->cellInstList[j] != _instList[ite->first-1]){
+                    remove2DNeighborDemand(_instList[ite->first-1],_instList[ite->first-1]->getGrid()->cellInstList[j],0);
+                    remove3DNeighborDemand(_instList[ite->first-1],_instList[ite->first-1]->getGrid()->cellInstList[j],0);
+                }
+            }
+            //remove adjHGrid demand
+            if(_instList[ite->first-1]->getPos().second == Ggrid::cBeg){
+                unsigned next_col = _instList[ite->first-1]->getPos().second + 1;
+                for(unsigned j=0;j<_gridList[_instList[ite->first-1]->getPos().first-1][next_col-1]->cellInstList.size();++j){
+                    remove2DNeighborDemand(_instList[ite->first-1], _gridList[_instList[ite->first-1]->getPos().first-1][next_col-1]->cellInstList[j], 1);
+                    remove2DNeighborDemand(_gridList[_instList[ite->first-1]->getPos().first-1][next_col-1]->cellInstList[j], _instList[ite->first-1], 1);
+                    remove3DNeighborDemand(_instList[ite->first-1], _gridList[_instList[ite->first-1]->getPos().first-1][next_col-1]->cellInstList[j], 1);
+                    remove3DNeighborDemand(_gridList[_instList[ite->first-1]->getPos().first-1][next_col-1]->cellInstList[j], _instList[ite->first-1], 1);
+                }
+            }
+            else if(_instList[ite->first-1]->getPos().second == Ggrid::cEnd){
+                unsigned prev_col = _instList[ite->first-1]->getPos().second - 1;
+                for(unsigned j=0;j<_gridList[_instList[ite->first-1]->getPos().first-1][prev_col-1]->cellInstList.size();++j){
+                    remove2DNeighborDemand(_instList[ite->first-1], _gridList[_instList[ite->first-1]->getPos().first-1][prev_col-1]->cellInstList[j], 1);
+                    remove2DNeighborDemand(_gridList[_instList[ite->first-1]->getPos().first-1][prev_col-1]->cellInstList[j], _instList[ite->first-1], 1);
+                    remove3DNeighborDemand(_instList[ite->first-1], _gridList[_instList[ite->first-1]->getPos().first-1][prev_col-1]->cellInstList[j], 1);
+                    remove3DNeighborDemand(_gridList[_instList[ite->first-1]->getPos().first-1][prev_col-1]->cellInstList[j], _instList[ite->first-1], 1);
+                }
+            }
+            else{
+                unsigned next_col = _instList[ite->first-1]->getPos().second + 1;
+                unsigned prev_col = _instList[ite->first-1]->getPos().second - 1;
+                for(unsigned j=0;j<_gridList[_instList[ite->first-1]->getPos().first-1][next_col-1]->cellInstList.size();++j){
+                    remove2DNeighborDemand(_instList[ite->first-1], _gridList[_instList[ite->first-1]->getPos().first-1][next_col-1]->cellInstList[j], 1);
+                    remove2DNeighborDemand(_gridList[_instList[ite->first-1]->getPos().first-1][next_col-1]->cellInstList[j], _instList[ite->first-1], 1);
+                    remove3DNeighborDemand(_instList[ite->first-1], _gridList[_instList[ite->first-1]->getPos().first-1][next_col-1]->cellInstList[j], 1);
+                    remove3DNeighborDemand(_gridList[_instList[ite->first-1]->getPos().first-1][next_col-1]->cellInstList[j], _instList[ite->first-1], 1);
+                }
+                for(unsigned j=0;j<_gridList[_instList[ite->first-1]->getPos().first-1][prev_col-1]->cellInstList.size();++j){
+                    remove2DNeighborDemand(_instList[ite->first-1], _gridList[_instList[ite->first-1]->getPos().first-1][prev_col-1]->cellInstList[j], 1);
+                    remove2DNeighborDemand(_gridList[_instList[ite->first-1]->getPos().first-1][prev_col-1]->cellInstList[j], _instList[ite->first-1], 1);
+                    remove3DNeighborDemand(_instList[ite->first-1], _gridList[_instList[ite->first-1]->getPos().first-1][prev_col-1]->cellInstList[j], 1);
+                    remove3DNeighborDemand(_gridList[_instList[ite->first-1]->getPos().first-1][prev_col-1]->cellInstList[j], _instList[ite->first-1], 1);
+                }
+            }
+
             if(_curMovedSet.insert(_instList[ite->first-1]).second == true)
                 ++_curMoveCnt;
             if(_instList[ite->first-1]->getPos().first + offsetRow > Ggrid::rEnd)
@@ -194,6 +244,51 @@ void RouteMgr::netbasedPlace(){
             _instList[ite->first-1] -> move(Pos(newRow,newCol));
             add2DBlkDemand(_instList[ite->first-1]);
             add3DBlkDemand(_instList[ite->first-1]);
+            //add same gGrid demand
+            for(unsigned j=0;j<_instList[ite->first-1]->getGrid()->cellInstList.size();++j){
+                if(_instList[ite->first-1]->getGrid()->cellInstList[j] != _instList[ite->first-1]){
+                    add2DNeighborDemand(_instList[ite->first-1],_instList[ite->first-1]->getGrid()->cellInstList[j],0);
+                    add3DNeighborDemand(_instList[ite->first-1],_instList[ite->first-1]->getGrid()->cellInstList[j],0);
+                }
+            }
+            //add adjHGrid demand
+            if(_instList[ite->first-1]->getPos().second == Ggrid::cBeg){
+                unsigned next_col = _instList[ite->first-1]->getPos().second + 1;
+                for(unsigned j=0;j<_gridList[_instList[ite->first-1]->getPos().first-1][next_col-1]->cellInstList.size();++j){
+                    add2DNeighborDemand(_instList[ite->first-1], _gridList[_instList[ite->first-1]->getPos().first-1][next_col-1]->cellInstList[j], 1);
+                    add2DNeighborDemand(_gridList[_instList[ite->first-1]->getPos().first-1][next_col-1]->cellInstList[j], _instList[ite->first-1], 1);
+                    add3DNeighborDemand(_instList[ite->first-1], _gridList[_instList[ite->first-1]->getPos().first-1][next_col-1]->cellInstList[j], 1);
+                    add3DNeighborDemand(_gridList[_instList[ite->first-1]->getPos().first-1][next_col-1]->cellInstList[j], _instList[ite->first-1], 1);
+                }
+            }
+            else if(_instList[ite->first-1]->getPos().second == Ggrid::cEnd){
+                unsigned prev_col = _instList[ite->first-1]->getPos().second - 1;
+                for(unsigned j=0;j<_gridList[_instList[ite->first-1]->getPos().first-1][prev_col-1]->cellInstList.size();++j){
+                    add2DNeighborDemand(_instList[ite->first-1], _gridList[_instList[ite->first-1]->getPos().first-1][prev_col-1]->cellInstList[j], 1);
+                    add2DNeighborDemand(_gridList[_instList[ite->first-1]->getPos().first-1][prev_col-1]->cellInstList[j], _instList[ite->first-1], 1);
+                    add3DNeighborDemand(_instList[ite->first-1], _gridList[_instList[ite->first-1]->getPos().first-1][prev_col-1]->cellInstList[j], 1);
+                    add3DNeighborDemand(_gridList[_instList[ite->first-1]->getPos().first-1][prev_col-1]->cellInstList[j], _instList[ite->first-1], 1);
+                }
+            }
+            else{
+                unsigned next_col = _instList[ite->first-1]->getPos().second + 1;
+                unsigned prev_col = _instList[ite->first-1]->getPos().second - 1;
+                for(unsigned j=0;j<_gridList[_instList[ite->first-1]->getPos().first-1][next_col-1]->cellInstList.size();++j){
+                    add2DNeighborDemand(_instList[ite->first-1], _gridList[_instList[ite->first-1]->getPos().first-1][next_col-1]->cellInstList[j], 1);
+                    add2DNeighborDemand(_gridList[_instList[ite->first-1]->getPos().first-1][next_col-1]->cellInstList[j], _instList[ite->first-1], 1);
+                    add3DNeighborDemand(_instList[ite->first-1], _gridList[_instList[ite->first-1]->getPos().first-1][next_col-1]->cellInstList[j], 1);
+                    add3DNeighborDemand(_gridList[_instList[ite->first-1]->getPos().first-1][next_col-1]->cellInstList[j], _instList[ite->first-1], 1);
+                }
+                for(unsigned j=0;j<_gridList[_instList[ite->first-1]->getPos().first-1][prev_col-1]->cellInstList.size();++j){
+                    add2DNeighborDemand(_instList[ite->first-1], _gridList[_instList[ite->first-1]->getPos().first-1][prev_col-1]->cellInstList[j], 1);
+                    add2DNeighborDemand(_gridList[_instList[ite->first-1]->getPos().first-1][prev_col-1]->cellInstList[j], _instList[ite->first-1], 1);
+                    add3DNeighborDemand(_instList[ite->first-1], _gridList[_instList[ite->first-1]->getPos().first-1][prev_col-1]->cellInstList[j], 1);
+                    add3DNeighborDemand(_gridList[_instList[ite->first-1]->getPos().first-1][prev_col-1]->cellInstList[j], _instList[ite->first-1], 1);
+                }
+            }
+            //add to new cellInstList
+            _instList[ite->first-1]->getGrid()->cellInstList.push_back(_instList[ite->first-1]);
+
             for(unsigned j=0;j<_instList[ite->first-1]->assoNet.size();++j){
                 _netList[_instList[ite->first-1]->assoNet[j]-1]->_toRemoveDemand = true;
             }
@@ -244,6 +339,56 @@ void RouteMgr::forcedirectedPlace (){
     change_notifier(moveCell);
     remove2DBlkDemand(moveCell);
     remove3DBlkDemand(moveCell);
+    //remove from original cellInstList
+    for(unsigned j=0;j<moveCell->getGrid()->cellInstList.size();++j){
+        if(moveCell->getGrid()->cellInstList[j] == moveCell){
+            moveCell->getGrid()->cellInstList.erase(moveCell->getGrid()->cellInstList.begin() + j);
+            break;
+        }
+    }
+    //remove same gGrid demand
+    for(unsigned j=0;j<moveCell->getGrid()->cellInstList.size();++j){
+        if(moveCell->getGrid()->cellInstList[j] != moveCell){
+            remove2DNeighborDemand(moveCell,moveCell->getGrid()->cellInstList[j],0);
+            remove3DNeighborDemand(moveCell,moveCell->getGrid()->cellInstList[j],0);
+        }
+    }
+    //remove adjHGrid demand
+    if(moveCell->getPos().second == Ggrid::cBeg){
+        unsigned next_col = moveCell->getPos().second + 1;
+        for(unsigned j=0;j<_gridList[moveCell->getPos().first-1][next_col-1]->cellInstList.size();++j){
+            remove2DNeighborDemand(moveCell, _gridList[moveCell->getPos().first-1][next_col-1]->cellInstList[j], 1);
+            remove2DNeighborDemand(_gridList[moveCell->getPos().first-1][next_col-1]->cellInstList[j], moveCell, 1);
+            remove3DNeighborDemand(moveCell, _gridList[moveCell->getPos().first-1][next_col-1]->cellInstList[j], 1);
+            remove3DNeighborDemand(_gridList[moveCell->getPos().first-1][next_col-1]->cellInstList[j], moveCell, 1);
+        }
+    }
+    else if(moveCell->getPos().second == Ggrid::cEnd){
+        unsigned prev_col = moveCell->getPos().second - 1;
+        for(unsigned j=0;j<_gridList[moveCell->getPos().first-1][prev_col-1]->cellInstList.size();++j){
+            remove2DNeighborDemand(moveCell, _gridList[moveCell->getPos().first-1][prev_col-1]->cellInstList[j], 1);
+            remove2DNeighborDemand(_gridList[moveCell->getPos().first-1][prev_col-1]->cellInstList[j], moveCell, 1);
+            remove3DNeighborDemand(moveCell, _gridList[moveCell->getPos().first-1][prev_col-1]->cellInstList[j], 1);
+            remove3DNeighborDemand(_gridList[moveCell->getPos().first-1][prev_col-1]->cellInstList[j], moveCell, 1);
+        }
+    }
+    else{
+        unsigned next_col = moveCell->getPos().second + 1;
+        unsigned prev_col = moveCell->getPos().second - 1;
+        for(unsigned j=0;j<_gridList[moveCell->getPos().first-1][next_col-1]->cellInstList.size();++j){
+            remove2DNeighborDemand(moveCell, _gridList[moveCell->getPos().first-1][next_col-1]->cellInstList[j], 1);
+            remove2DNeighborDemand(_gridList[moveCell->getPos().first-1][next_col-1]->cellInstList[j], moveCell, 1);
+            remove3DNeighborDemand(moveCell, _gridList[moveCell->getPos().first-1][next_col-1]->cellInstList[j], 1);
+            remove3DNeighborDemand(_gridList[moveCell->getPos().first-1][next_col-1]->cellInstList[j], moveCell, 1);
+        }
+        for(unsigned j=0;j<_gridList[moveCell->getPos().first-1][prev_col-1]->cellInstList.size();++j){
+            remove2DNeighborDemand(moveCell, _gridList[moveCell->getPos().first-1][prev_col-1]->cellInstList[j], 1);
+            remove2DNeighborDemand(_gridList[moveCell->getPos().first-1][prev_col-1]->cellInstList[j], moveCell, 1);
+            remove3DNeighborDemand(moveCell, _gridList[moveCell->getPos().first-1][prev_col-1]->cellInstList[j], 1);
+            remove3DNeighborDemand(_gridList[moveCell->getPos().first-1][prev_col-1]->cellInstList[j], moveCell, 1);
+        }
+    }
+
     if(_curMovedSet.insert(moveCell).second == true){
         ++_curMoveCnt;
     }
@@ -283,6 +428,51 @@ void RouteMgr::forcedirectedPlace (){
     moveCell->move(Pos(new_row,new_col));
     add2DBlkDemand(moveCell);
     add3DBlkDemand(moveCell);
+    //remove same gGrid demand
+    for(unsigned j=0;j<moveCell->getGrid()->cellInstList.size();++j){
+        if(moveCell->getGrid()->cellInstList[j] != moveCell){
+            add2DNeighborDemand(moveCell,moveCell->getGrid()->cellInstList[j],0);
+            add3DNeighborDemand(moveCell,moveCell->getGrid()->cellInstList[j],0);
+        }
+    }
+    //remove adjHGrid demand
+    if(moveCell->getPos().second == Ggrid::cBeg){
+        unsigned next_col = moveCell->getPos().second + 1;
+        for(unsigned j=0;j<_gridList[moveCell->getPos().first-1][next_col-1]->cellInstList.size();++j){
+            add2DNeighborDemand(moveCell, _gridList[moveCell->getPos().first-1][next_col-1]->cellInstList[j], 1);
+            add2DNeighborDemand(_gridList[moveCell->getPos().first-1][next_col-1]->cellInstList[j], moveCell, 1);
+            add3DNeighborDemand(moveCell, _gridList[moveCell->getPos().first-1][next_col-1]->cellInstList[j], 1);
+            add3DNeighborDemand(_gridList[moveCell->getPos().first-1][next_col-1]->cellInstList[j], moveCell, 1);
+        }
+    }
+    else if(moveCell->getPos().second == Ggrid::cEnd){
+        unsigned prev_col = moveCell->getPos().second - 1;
+        for(unsigned j=0;j<_gridList[moveCell->getPos().first-1][prev_col-1]->cellInstList.size();++j){
+            add2DNeighborDemand(moveCell, _gridList[moveCell->getPos().first-1][prev_col-1]->cellInstList[j], 1);
+            add2DNeighborDemand(_gridList[moveCell->getPos().first-1][prev_col-1]->cellInstList[j], moveCell, 1);
+            add3DNeighborDemand(moveCell, _gridList[moveCell->getPos().first-1][prev_col-1]->cellInstList[j], 1);
+            add3DNeighborDemand(_gridList[moveCell->getPos().first-1][prev_col-1]->cellInstList[j], moveCell, 1);
+        }
+    }
+    else{
+        unsigned next_col = moveCell->getPos().second + 1;
+        unsigned prev_col = moveCell->getPos().second - 1;
+        for(unsigned j=0;j<_gridList[moveCell->getPos().first-1][next_col-1]->cellInstList.size();++j){
+            add2DNeighborDemand(moveCell, _gridList[moveCell->getPos().first-1][next_col-1]->cellInstList[j], 1);
+            add2DNeighborDemand(_gridList[moveCell->getPos().first-1][next_col-1]->cellInstList[j], moveCell, 1);
+            add3DNeighborDemand(moveCell, _gridList[moveCell->getPos().first-1][next_col-1]->cellInstList[j], 1);
+            add3DNeighborDemand(_gridList[moveCell->getPos().first-1][next_col-1]->cellInstList[j], moveCell, 1);
+        }
+        for(unsigned j=0;j<_gridList[moveCell->getPos().first-1][prev_col-1]->cellInstList.size();++j){
+            add2DNeighborDemand(moveCell, _gridList[moveCell->getPos().first-1][prev_col-1]->cellInstList[j], 1);
+            add2DNeighborDemand(_gridList[moveCell->getPos().first-1][prev_col-1]->cellInstList[j], moveCell, 1);
+            add3DNeighborDemand(moveCell, _gridList[moveCell->getPos().first-1][prev_col-1]->cellInstList[j], 1);
+            add3DNeighborDemand(_gridList[moveCell->getPos().first-1][prev_col-1]->cellInstList[j], moveCell, 1);
+        }
+    }
+    //add to new cellInstList
+    moveCell->getGrid()->cellInstList.push_back(moveCell);
+
     cout << "New position: " << moveCell->getPos().first << " " << moveCell->getPos().second << "\n";
 }
 

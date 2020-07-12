@@ -385,9 +385,9 @@ RouteMgr::initNeighborDemand(){
             (*(_instList[it->first.idx1-1]->getGrid()))[it->first.layNum]->addDemand(it->second);
             cout << "Cell " << _instList[it->first.idx1-1]->getId() << " and cell " << _instList[it->first.idx2-1]->getId() << " generate sameGGrid demand " << it->second << " on layer " << it->first.layNum << "\n";
         }
-        /*else{
-            cout << "Cell " << _instList[it->first.idx1-1]->getId() << " and cell " << _instList[it->first.idx2-1]->getId() << " don't generate sameGGrid demand " << it->second << "\n";
-        }*/
+        else{
+            //cout << "Cell " << _instList[it->first.idx1-1]->getId() << " and cell " << _instList[it->first.idx2-1]->getId() << " don't generate sameGGrid demand " << it->second << "\n";
+        }
         ++it;
     }
 
@@ -402,9 +402,9 @@ RouteMgr::initNeighborDemand(){
             (*(_instList[it->first.idx2-1]->getGrid()))[it->first.layNum]->addDemand(it->second);
             cout << "Cell " << _instList[it->first.idx1-1]->getId() << " and cell " << _instList[it->first.idx2-1]->getId() << " generate adjHGrid demand " << it->second << " on layer " << it->first.layNum << "\n";
         }
-        /*else{
-            cout << "Cell " << _instList[it->first.idx1-1]->getId() << " and cell " << _instList[it->first.idx2-1]->getId() << " don't generate adjHGrid demand " << it->second << "\n";
-        }*/
+        else{
+            //cout << "Cell " << _instList[it->first.idx1-1]->getId() << " and cell " << _instList[it->first.idx2-1]->getId() << " don't generate adjHGrid demand " << it->second << "\n";
+        }
         ++it;
     }
 }
@@ -615,6 +615,7 @@ RouteMgr::add2DNeighborDemand(CellInst* cell_a, CellInst* cell_b, bool type){
             std::unordered_map<MCTri, unsigned, TriHash>::iterator it = _sameGridDemand.find(t);
             if(it!=_sameGridDemand.end()){
                 cell_a->getGrid()->update2dDemand(it->second);
+                cout << "Cell " << cell_a->getId() << " and cell " << cell_b->getId() << " generate sameGGrid demand " << it->second << "\n";
             }
         }
     }
@@ -624,6 +625,7 @@ RouteMgr::add2DNeighborDemand(CellInst* cell_a, CellInst* cell_b, bool type){
             std::unordered_map<MCTri, unsigned, TriHash>::iterator it = _adjHGridDemand.find(t);
             if(it!=_adjHGridDemand.end()){
                 cell_a->getGrid()->update2dDemand(it->second);
+                cout << "Cell " << cell_a->getId() << " and cell " << cell_b->getId() << " generate adjHGGrid demand " << it->second << "\n";
             }
         }
     }
@@ -638,6 +640,7 @@ RouteMgr::remove2DNeighborDemand(CellInst* cell_a, CellInst* cell_b, bool type){
             std::unordered_map<MCTri, unsigned, TriHash>::iterator it = _sameGridDemand.find(t);
             if(it!=_sameGridDemand.end()){
                 cell_a->getGrid()->update2dDemand(-(int)(it->second));
+                cout << "Cell " << cell_a->getId() << " and cell " << cell_b->getId() << " remove sameGGrid demand " << it->second << "\n";
             }
         }
     }
@@ -647,6 +650,7 @@ RouteMgr::remove2DNeighborDemand(CellInst* cell_a, CellInst* cell_b, bool type){
             std::unordered_map<MCTri, unsigned, TriHash>::iterator it = _adjHGridDemand.find(t);
             if(it!=_adjHGridDemand.end()){
                 cell_a->getGrid()->update2dDemand(-(int)(it->second));
+                cout << "Cell " << cell_a->getId() << " and cell " << cell_b->getId() << " remove adjHGGrid demand " << it->second << "\n";
             }
         }
     }
@@ -661,6 +665,7 @@ RouteMgr::add3DNeighborDemand(CellInst* cell_a, CellInst* cell_b, bool type){
             std::unordered_map<MCTri, unsigned, TriHash>::iterator it = _sameGridDemand.find(t);
             if(it!=_sameGridDemand.end()){
                 (*(cell_a->getGrid()))[it->first.layNum]->addDemand(it->second);
+                cout << "Cell " << cell_a->getId() << " and cell " << cell_b->getId() << " generate sameGGrid demand " << it->second << " on layer " << it->first.layNum << "\n";
             }
         }
     }
@@ -670,6 +675,7 @@ RouteMgr::add3DNeighborDemand(CellInst* cell_a, CellInst* cell_b, bool type){
             std::unordered_map<MCTri, unsigned, TriHash>::iterator it = _adjHGridDemand.find(t);
             if(it!=_adjHGridDemand.end()){
                 (*(cell_a->getGrid()))[it->first.layNum]->addDemand(it->second);
+                cout << "Cell " << cell_a->getId() << " and cell " << cell_b->getId() << " generate adjHGGrid demand " << it->second << " on layer " << it->first.layNum << "\n";
             }
         }
     }
@@ -684,6 +690,7 @@ RouteMgr::remove3DNeighborDemand(CellInst* cell_a, CellInst* cell_b, bool type){
             std::unordered_map<MCTri, unsigned, TriHash>::iterator it = _sameGridDemand.find(t);
             if(it!=_sameGridDemand.end()){
                 (*(cell_a->getGrid()))[it->first.layNum]->removeDemand(it->second);
+                cout << "Cell " << cell_a->getId() << " and cell " << cell_b->getId() << " remove sameGGrid demand " << it->second << " on layer " << it->first.layNum << "\n";
             }
         }
     }
@@ -693,6 +700,7 @@ RouteMgr::remove3DNeighborDemand(CellInst* cell_a, CellInst* cell_b, bool type){
             std::unordered_map<MCTri, unsigned, TriHash>::iterator it = _adjHGridDemand.find(t);
             if(it!=_adjHGridDemand.end()){
                 (*(cell_a->getGrid()))[it->first.layNum]->removeDemand(it->second);
+                cout << "Cell " << cell_a->getId() << " and cell " << cell_b->getId() << " remove adjHGGrid demand " << it->second << " on layer " << it->first.layNum << "\n";
             }
         }
     }
