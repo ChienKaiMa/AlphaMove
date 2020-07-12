@@ -109,6 +109,7 @@ public:
     void    add2DNeighborDemand(CellInst*, CellInst*, bool type); //type=0: same gGrid, type=1: adj gGrid
     void    remove2DNeighborDemand(CellInst*, CellInst*, bool type);
 
+    void    initNeighborDemand();
     void    initCellInstList();
     /**********************************/
     /*            Output              */

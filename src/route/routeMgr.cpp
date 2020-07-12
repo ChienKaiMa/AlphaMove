@@ -268,6 +268,8 @@ RouteMgr::readCircuit(const string& fileName)
     for(auto& m : _instList){
         add3DBlkDemand(m);
     }
+    cout << "adding sameGGrid/adjHGrid demand\n";
+    initNeighborDemand();
 
     cout << "initialize associated cell instances of nets\n";
     for(auto& m : _netList){
@@ -374,6 +376,39 @@ RouteMgr::initCellInstList(){
 }
 
 void
+RouteMgr::initNeighborDemand(){
+    std::unordered_map<MCTri, unsigned, TriHash>::iterator it = _sameGridDemand.begin();
+    for(unsigned i=0;i<_sameGridDemand.size();++i){
+        if(_instList[it->first.idx1-1]->getGrid() == _instList[it->first.idx2-1]->getGrid()){
+            _instList[it->first.idx1-1]->getGrid()->update2dDemand(it->second);
+            (*(_instList[it->first.idx1-1]->getGrid()))[it->first.layNum]->addDemand(it->second);
+            cout << "Cell " << _instList[it->first.idx1-1]->getId() << " and cell " << _instList[it->first.idx2-1]->getId() << " generate sameGGrid demand " << it->second << " on layer " << it->first.layNum << "\n";
+        }
+        /*else{
+            cout << "Cell " << _instList[it->first.idx1-1]->getId() << " and cell " << _instList[it->first.idx2-1]->getId() << " don't generate sameGGrid demand " << it->second << "\n";
+        }*/
+        ++it;
+    }
+
+    it = _adjHGridDemand.begin();
+    for(unsigned i=0;i<_adjHGridDemand.size();++i){
+        if((_instList[it->first.idx1-1]->getGrid()->getPos().first == _instList[it->first.idx2-1]->getGrid()->getPos().first) &&
+           (((_instList[it->first.idx1-1]->getGrid()->getPos().second - _instList[it->first.idx2-1]->getGrid()->getPos().second) == 1) ||
+            ((_instList[it->first.idx2-1]->getGrid()->getPos().second - _instList[it->first.idx1-1]->getGrid()->getPos().second) == 1))){
+            _instList[it->first.idx1-1]->getGrid()->update2dDemand(it->second);
+            _instList[it->first.idx2-1]->getGrid()->update2dDemand(it->second);
+            (*(_instList[it->first.idx1-1]->getGrid()))[it->first.layNum]->addDemand(it->second);
+            (*(_instList[it->first.idx2-1]->getGrid()))[it->first.layNum]->addDemand(it->second);
+            cout << "Cell " << _instList[it->first.idx1-1]->getId() << " and cell " << _instList[it->first.idx2-1]->getId() << " generate adjHGrid demand " << it->second << " on layer " << it->first.layNum << "\n";
+        }
+        /*else{
+            cout << "Cell " << _instList[it->first.idx1-1]->getId() << " and cell " << _instList[it->first.idx2-1]->getId() << " don't generate adjHGrid demand " << it->second << "\n";
+        }*/
+        ++it;
+    }
+}
+
+void
 RouteMgr::passGrid(Net* net, set<Layer*>& alpha) const
 {
     for(auto& seg : net->_netSegs) {
@@ -419,7 +454,6 @@ RouteMgr::passGrid(Net* net, set<Layer*>& alpha) const
         }
     }
 }
-
 
 void
 RouteMgr::add3DDemand(Net* net)
