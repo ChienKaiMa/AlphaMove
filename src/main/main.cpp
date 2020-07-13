@@ -62,9 +62,16 @@ main(int argc, char** argv)
          myexit();
       }
       */
-      alarm(TIME_LIMIT-100);
+      
+      outfile.open(argv[2], ios::out);
+      if (!outfile) {
+         cerr << "Output file open fail!" << endl;
+         return 1;
+      }
+      //alarm(TIME_LIMIT-100);
+      alarm(100);
       signal(SIGALRM, &signal_handler);
-
+      
       routeMgr = new RouteMgr();
       // TODO: generate output file
       string inputFile = argv[1];
@@ -73,14 +80,8 @@ main(int argc, char** argv)
       routeMgr->printInputSummary();
       
       routeMgr->mainPnR();
-      outfile.open(argv[2], ios::out);
-      if (!outfile) {
-         cerr << "Output file open fail!" << endl;
-         return 1;
-      }
       routeMgr->writeCircuit(outfile);
       
-      // rMgr->writeCircuit(outfile);
       myUsage.report(true, true);
       return 0;
    }

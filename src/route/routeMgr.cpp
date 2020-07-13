@@ -105,6 +105,7 @@ RouteMgr::readCircuit(const string& fileName)
 
     genGridList();
     init2DSupply();
+    init3DSupply();
 
     cout << "Reading masterCell and demand\n";
     // MasterCell and demand
@@ -369,6 +370,29 @@ RouteMgr::init2DSupply()
 }
 
 void
+RouteMgr::init3DSupply()
+{
+    for (unsigned i=1; i<=Ggrid::rEnd; ++i) {
+        for (unsigned j=1; j<=Ggrid::cEnd; ++j) {
+            for (unsigned k=1; k<=_laySupply.size(); ++k) {
+                Layer* grid = _gridList[i-1][j-1]->operator[](k);
+                // Find grid supply
+                int total_supply = _laySupply[k-1];
+                MCTri good = MCTri(i, j, k);
+                auto yeah = _nonDefaultSupply.find(good);
+                if (yeah != _nonDefaultSupply.cend())
+                {
+                    total_supply += yeah->second;
+                }
+                grid->setSupply(total_supply);
+            }
+        }
+    }
+    
+}
+
+
+void
 RouteMgr::initCellInstList(){
     for(unsigned i=0;i<_instList.size();++i){
         Ggrid* g = _instList[i]->getGrid();
@@ -412,47 +436,14 @@ RouteMgr::initNeighborDemand(){
 void
 RouteMgr::passGrid(Net* net, set<Layer*>& alpha) const
 {
+    if (net->_netSegs.empty()) {
+        PinPair firstPin = *(net->_pinSet.begin());
+        Pos pinPos = getPinPos(firstPin);
+        int layer = getPinLay(firstPin);
+        alpha.insert((*_gridList[pinPos.first-1][pinPos.second-1])[layer]);
+    }
     for(auto& seg : net->_netSegs) {
-        //seg->print();
-        //cout << "\n";
-        unsigned i0 = seg->startPos[0];
-        unsigned j0 = seg->startPos[1];
-        unsigned k0 = seg->startPos[2];
-        unsigned i1 = seg->endPos[0];
-        unsigned j1 = seg->endPos[1];
-        unsigned k1 = seg->endPos[2];
-        assert(i0);
-        assert(j0);
-        assert(k0);
-        assert(i1);
-        assert(j1);
-        assert(k1);
-
-        if (seg->checkDir() == 'H') {
-            if (j0 > j1) {
-                unsigned tmp = j0;
-                j0 = j1;
-                j1 = tmp;
-            }
-            for (unsigned x=j0; x<=j1; ++x)
-                alpha.insert((*_gridList[i0-1][x-1])[k0]);
-        } else if (seg->checkDir() == 'V') {
-            if (i0 > i1) {
-                unsigned tmp = i0;
-                i0 = i1;
-                i1 = tmp;
-            }
-            for (unsigned x=i0; x<=i1; ++x)
-                alpha.insert((*_gridList[x-1][j0-1])[k0]);
-        } else {
-            if (k0 > k1) {
-                unsigned tmp = k0;
-                k0 = k1;
-                k1 = tmp;
-            }
-            for (unsigned x=k0; x<=k1; ++x)
-                alpha.insert((*_gridList[i0-1][j0-1])[x]);
-        }
+        seg->passGrid(net, alpha);
     }
 }
 
@@ -572,7 +563,7 @@ RouteMgr::remove2DDemand(Net* net) //before each route
 
 void
 RouteMgr::add2DBlkDemand(CellInst* cell){
-    MC* mc = cell->getMC();
+    const MC* mc = cell->getMC();
     Ggrid* grid = cell->getGrid();
     for(unsigned i=0;i<mc->_blkgList.size();++i){
         grid->update2dDemand(mc->_blkgList[i].second);
@@ -581,7 +572,7 @@ RouteMgr::add2DBlkDemand(CellInst* cell){
 
 void
 RouteMgr::remove2DBlkDemand(CellInst* cell){
-    MC* mc = cell->getMC();
+    const MC* mc = cell->getMC();
     Ggrid* grid = cell->getGrid();
     for(unsigned i=0;i<mc->_blkgList.size();++i){
         grid->update2dDemand(-(int)(mc->_blkgList[i].second));
@@ -590,7 +581,7 @@ RouteMgr::remove2DBlkDemand(CellInst* cell){
 
 void
 RouteMgr::add3DBlkDemand(CellInst* cell){
-    MC* mc = cell->getMC();
+    const MC* mc = cell->getMC();
     Ggrid* grid = cell->getGrid();
     for(unsigned i=0;i<mc->_blkgList.size();++i){
         (*grid)[mc->_blkgList[i].first]->addDemand(mc->_blkgList[i].second);
@@ -599,7 +590,7 @@ RouteMgr::add3DBlkDemand(CellInst* cell){
 
 void
 RouteMgr::remove3DBlkDemand(CellInst* cell){
-    MC* mc = cell->getMC();
+    const MC* mc = cell->getMC();
     Ggrid* grid = cell->getGrid();
     for(unsigned i=0;i<mc->_blkgList.size();++i){
         (*grid)[mc->_blkgList[i].first]->removeDemand(mc->_blkgList[i].second);
@@ -713,22 +704,11 @@ RouteMgr::check3dOverflow(unsigned i, unsigned j, unsigned k) {
     assert(j <= Ggrid::cEnd);
     assert(k <= _laySupply.size());
     Layer* grid = _gridList[i-1][j-1]->operator[](k);
-    // Find grid supply
-    int total_supply = _laySupply[k-1];
-    MCTri good = MCTri(i, j, k);
-    auto yeah = _nonDefaultSupply.find(good);
-    if (yeah != _nonDefaultSupply.cend())
-    {
-        total_supply += yeah->second;
-    }
-    if (grid->checkOverflow(total_supply)) {
+    
+    if (grid->checkOverflow()) {
         cerr << "(" << i << ", " << j << ", "
          << k << ") is overflow!\n";
         return true;
-    } else {
-        cerr << "(" << i << ", " << j << ", "
-         << k << ") is not overflow!\n";
-        return false;
     }
 }
 
@@ -740,10 +720,6 @@ RouteMgr::evaluateWireLen() const{
         set<Layer*> alpha;
         passGrid(n, alpha);
         newWL += alpha.size();
-        if (n->_netSegs.size() == 0) {
-            ++newWL;
-        }
-        //newWL += n->passGrid();
     }
     // newWL+=_netList.size();
     cout << "Wire length : " << newWL << endl;

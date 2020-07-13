@@ -42,7 +42,7 @@ void RouteMgr::mainPnR()
     while(true){
         this->place();
         cout << "End of Placing..." << endl;
-        if( _curMoveCnt > _maxMoveCnt ){
+        if( getCurMoveCnt() > _maxMoveCnt ){
             cout << "Maximum cell-movements!!" << endl;
             cout << "P&R terminates..." << endl;
             return;
@@ -66,7 +66,7 @@ void RouteMgr::mainPnR()
 void RouteMgr::place()
 {
     cout << "Place...\n";
-    if(true/*_placeStrategy*/){ //Congestion-based
+    if(_placeStrategy){ //Congestion-based
         netbasedPlace();
     }
     else{ //force-directed
@@ -225,8 +225,6 @@ void RouteMgr::netbasedPlace(){
                 }
             }
 
-            if(_curMovedSet.insert(_instList[ite->first-1]).second == true)
-                ++_curMoveCnt;
             if(_instList[ite->first-1]->getPos().first + offsetRow > Ggrid::rEnd)
                 newRow = Ggrid::rEnd;
             else if(_instList[ite->first-1]->getPos().first + offsetRow < Ggrid::rBeg)
@@ -241,6 +239,11 @@ void RouteMgr::netbasedPlace(){
             else
                 newCol = _instList[ite->first-1]->getPos().second + offsetCol;
             
+            if (Pos(newRow,newCol) != _instList[ite->first-1]->getInitPos()) {
+                _curMovedSet.insert(_instList[ite->first-1]);
+            } else {
+                _curMovedSet.erase(_instList[ite->first-1]);
+            }
             _instList[ite->first-1] -> move(Pos(newRow,newCol));
             add2DBlkDemand(_instList[ite->first-1]);
             add3DBlkDemand(_instList[ite->first-1]);
@@ -297,7 +300,7 @@ void RouteMgr::netbasedPlace(){
         }
         ++ite;
     }
-    cout << "CurMoveCnt: " << _curMoveCnt << "\n";
+    cout << "CurMoveCnt: " << getCurMoveCnt() << "\n";
     for(unsigned i=0;i<_netList.size();++i){
         if(_netList[i]->_toRemoveDemand == true){
             remove2DDemand(_netList[i]);
@@ -388,13 +391,7 @@ void RouteMgr::forcedirectedPlace (){
             remove3DNeighborDemand(_gridList[moveCell->getPos().first-1][prev_col-1]->cellInstList[j], moveCell, 1);
         }
     }
-
-    if(_curMovedSet.insert(moveCell).second == true){
-        ++_curMoveCnt;
-    }
-    moveCell->_hasmovedbyfd = true;
-    cout << "CellInst " << moveCell->getId() << " is moved!\n";
-    cout << "CurMoveCnt: " << _curMoveCnt << "\n";
+    
     for(unsigned i=0; i<moveCell->assoNet.size(); ++i){
         //cout << "Associated net " << _netList[moveCell->assoNet[i]-1]->_netId << "\n";
         int pin_num = _netList[moveCell->assoNet[i]-1]->getPinSet().size() - 1;
@@ -424,6 +421,19 @@ void RouteMgr::forcedirectedPlace (){
         new_col = Ggrid::cEnd;
     else if(new_col < (int)Ggrid::cBeg)
         new_col = Ggrid::cBeg;
+    
+    // <Koova edited>
+    if (Pos(new_row,new_col) != moveCell->getInitPos()) {
+        _curMovedSet.insert(moveCell);
+    } else {
+        _curMovedSet.erase(moveCell);
+    }
+    
+    moveCell->_hasmovedbyfd = true;
+    cout << "CellInst " << moveCell->getId() << " is moved!\n";
+    cout << "CurMoveCnt: " << getCurMoveCnt() << "\n";
+    // </Koova edited>
+
     cout << "Old position: " << moveCell->getPos().first << " " << moveCell->getPos().second << "\n";
     moveCell->move(Pos(new_row,new_col));
     add2DBlkDemand(moveCell);
@@ -517,7 +527,6 @@ RouteMgr::findCand(unsigned min, unsigned max, vector<int>& cands)
     /* Find layer candidates for layer assignment */
     for (unsigned i=min; i<=max; i += 2) {
         cands.push_back(i);
-        cout << "Candidate: L" << i << "\n";
     }
     if (cands.empty()) {
         return false;
@@ -525,12 +534,18 @@ RouteMgr::findCand(unsigned min, unsigned max, vector<int>& cands)
     return true;
 }
 
+bool
+RouteMgr::koova_layerassign(NetList& toLayNet)
+{
+    
+}
 
 bool RouteMgr::layerassign(NetList& toLayNet)
 {
     cout << "LayerAssign...\n";
     vector<Segment*> toDel;
     unsigned maxLayer = _laySupply.size();
+    bool isOV = false;
 
     for (auto& net : toLayNet)
     {
@@ -576,7 +591,7 @@ bool RouteMgr::layerassign(NetList& toLayNet)
             #endif
 
             // Z
-            if (seg->checkDir() == 'Z')
+            if (seg->checkDir() == DIR_Z)
             {
                 if (!(seg->startPos[2] >= minLayer || seg->endPos[2] >= minLayer)) {
                     if (seg->startPos[2] > seg->endPos[2]) {
@@ -590,7 +605,7 @@ bool RouteMgr::layerassign(NetList& toLayNet)
                 } else if (seg->endPos[2] == seg->startPos[2]) {
                     if (seg->startPos[2] == curLayer) {
                         seg->print();
-                        cout << "Stupid seg... Delete it!\n";
+                        cout << " Stupid seg... Delete it!\n";
                         //toDel.push_back(seg);
                         //net->_netSegs.erase(net->_netSegs.begin()+i);
                         //curLayer = seg->startPos[2];
@@ -611,7 +626,7 @@ bool RouteMgr::layerassign(NetList& toLayNet)
             
             // H or V
             int diff = INT16_MAX;
-            if (seg->checkDir() == 'H') {
+            if (seg->checkDir() == DIR_H) {
                 if (candidatesH.size() == 0) {
                     cout << "No candidate was found!\n";
                     cout << "Do placement again!\n";
@@ -693,12 +708,20 @@ bool RouteMgr::layerassign(NetList& toLayNet)
         }
         add3DDemand(net);
         net->printSummary();
+        set<Layer*> alpha;
+        passGrid(net, alpha);
+        for (auto& grid : alpha) {
+            if (grid->checkOverflow() == 2) {
+                cout << "Net " << net->_netId << " causes overflow!\n";
+                isOV = true;
+            }
+        }
     }
     for (auto& seg1 : toDel) {
         cout << "Deleting " << seg1 << "\n";
         delete seg1;
     }
-    return true;
+    return !isOV;
 }
 
 void

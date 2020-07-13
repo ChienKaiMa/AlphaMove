@@ -60,6 +60,29 @@ struct PairHash{
   }
 };
 
+enum SegDirection
+{
+    DIR_H   = 0,
+    DIR_V   = 1,
+    DIR_Z   = 2,
+
+    // dummy
+    UNDEFINED
+};
+
+//----------------------------------------------------------------------
+//    Grid overflow status
+//----------------------------------------------------------------------
+enum GridStatus
+{
+    GRID_HEALTHY    = 0,
+    GRID_FULL_CAP   = 1,
+    GRID_OVERFLOW   = 2,
+
+    // dummy
+    GRID_TOT
+};
+
 
 //--------------------
 // MasterCell class
@@ -101,13 +124,14 @@ class CellInst
     friend MC;
 public:
     CellInst(unsigned id, Ggrid* grid, MC* mc, bool move): 
-    _cellId(id), _grid(grid), _mc(mc), _movable(move) {}
+    _cellId(id), _grid(grid), _mc(mc), _movable(move), _initGrid(grid) {}
     ~CellInst(){}
     Pos getPos();
     Pos getPos() const;
+    Pos getInitPos() const;
     Ggrid* getGrid() {return _grid;}
     unsigned getId() const { return _cellId; }
-    MC* getMC() {return _mc;}
+    const MC* getMC() {return _mc;}
     unsigned getPinLay(unsigned idx) const;
     bool is_movable() { return _movable; }
     vector<int> assoNet; // associated net index // Koova
@@ -118,10 +142,11 @@ public:
     void move(Pos);
     bool     _hasmovedbyfd = false;
 private:
-    unsigned _cellId;
-    Ggrid*   _grid;   // in which grid;
-    MC*      _mc; // storing MasterCell Info.
-    bool     _movable;
+    const unsigned  _cellId;
+    Ggrid*          _grid;   // in which grid;
+    const MC*       _mc; // storing MasterCell Info.
+    const bool      _movable;
+    const Ggrid*    _initGrid; // Use it to check if the cell is moved.
 };
 
 
@@ -134,27 +159,21 @@ class Layer
 {
     friend Ggrid;
 public:
-    Layer() : _demand(0), _watching(false), _overflow(false) {}
+    Layer() : _supply(0) { _capacity = _supply; }
     ~Layer(){}
-    inline void addDemand(int offset){ _demand+=offset; }
-    inline void removeDemand(int offset){ _demand-=offset; }
-    bool checkOverflow(unsigned supply) {
-        cerr << "Demand: " << _demand << ", Supply: " << supply << endl;
-        if (_demand > supply) {
-            // TODO: Add this grid to watchlist
-            _watching = true;
-            _overflow = true;
-        } else if (_demand + 1 == supply) {
-            _watching = true;
-        }
-        return _demand > supply;
+    inline void setSupply(int supply) { _supply = supply; _capacity = supply; }
+    inline void addDemand(int offset) { _capacity -= offset; }
+    inline void removeDemand(int offset) { _capacity += offset; }
+
+    GridStatus checkOverflow() {
+        //cerr << "Demand: " << _supply - _capacity << ", Supply: " << _supply << endl;
+        if (_capacity > 0) { return GRID_HEALTHY; }
+        else if (_capacity == 0) { return GRID_FULL_CAP; }
+        else { return GRID_OVERFLOW; }
     }
-    inline bool isOverflow() { return _overflow; }
-    inline bool isWatching() { return _watching; }
 private:
-    unsigned _demand;
-    bool _watching;
-    bool _overflow;
+    int _supply;
+    int _capacity;  // supply - demand
 };
 
 class Ggrid
@@ -190,13 +209,8 @@ public:
     //double get2dCongestion() const {return _2dCongestion;}
     double get2dCongestion() {return _2dCongestion;}
 
-    void printDemand() const {
-        for (auto& m : _layerList)
-        {
-            cout << m->_demand << setw(5);
-        }
-        cout << endl;
-    }
+    void printCapacity() const;
+    void printDemand() const;
     void update2dDemand( double deltaDemand ) { 
         assert(_2dSupply > 0);
         _2dDemand = _2dDemand + deltaDemand;
@@ -254,10 +268,12 @@ public:
     }
     void print() const;
     void print(ostream&) const;
-    char checkDir() const;
     unsigned getWL() const ; // Manhattan Distance
+    void passGrid(Net* net, set<Layer*>& alpha) const;
     unsigned startPos[3];
     unsigned endPos[3];
+    SegDirection    checkDir() const;
+    bool            isValid() const;
 };
 
 
@@ -300,7 +316,7 @@ private:
     set<PinPair>        _pinSet; // a set of pins i.e. <instance id, pin id>  pair
     vector<Segment*>    _netSegs; //TODO pointer?
     // unordered_map< unsigned, Pos > _pinPos; // a map from instance id->Pos(current placement);
-    bool                _toReroute = false;
+    bool                _toReroute = true; // TODO: decide whether true or false
 
     //bounding box
     unsigned            _centerRow;

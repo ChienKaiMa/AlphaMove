@@ -21,15 +21,39 @@ using namespace std;
 
 extern RouteMgr *routeMgr;
 
+//----------------------------------------------------------------------
+//    routing execution status
+//----------------------------------------------------------------------
+enum RouteExecStatus
+{
+   ROUTE_EXEC_DONE  = 0,
+   ROUTE_EXEC_ERROR = 1,
+   ROUTE_EXEC_QUIT  = 2,
+   ROUTE_EXEC_NOP   = 3,
+
+   // dummy
+   ROUTE_EXEC_TOT
+};
+
+enum RouteExecError
+{
+   ROUTE_OVERFLOW     = 0,
+   ROUTE_DIR_ILLEGAL  = 1,
+
+   // dummy
+   ROUTE_EXEC_ERROR_TOT
+};
 
 class RouteMgr
 {
 friend CellInst;
 friend Net;
+
 public:
     RouteMgr() : _placeStrategy(0) { _startTime = clock(); }
     ~RouteMgr() { // TODO: reset();
     } 
+    friend void Segment::passGrid(Net*, set<Layer*>&) const;
     bool    readCircuit(const string&);
     void    writeCircuit(ostream&) const;
     void    setRouteLog(ofstream *logFile) { _tempRoute = logFile; }
@@ -78,6 +102,7 @@ public:
     /*        Placement&Routing       */
     /**********************************/      
     void     place();
+    size_t   getCurMoveCnt() const { return _curMovedSet.size(); }
     void     netbasedPlace();
     void     forcedirectedPlace ();
     unsigned Share(Net*,Net*);
@@ -94,9 +119,11 @@ public:
     bool    check3dOverflow(unsigned, unsigned, unsigned);
     bool    findCand(unsigned min, unsigned max, vector<int>&);
     bool    layerassign(NetList&);
+    bool    koova_layerassign(NetList&);
 
     //Demand & Supply
     void    init2DSupply();
+    void    init3DSupply();
     void    passGrid(Net*, set<Layer*>&) const;
     void    add3DDemand(Net*);
     void    remove3DDemand(Net*);
@@ -137,7 +164,6 @@ private:
     // Current
     bool              _placeStrategy; // 0 for force-directed, 1 for congestion-based move
     clock_t           _startTime;
-    unsigned          _curMoveCnt = 0;
     unsigned          _initTotalWL;
     InstSet           _curMovedSet;
 

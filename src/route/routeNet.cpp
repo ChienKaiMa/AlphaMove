@@ -18,6 +18,27 @@ unsigned Ggrid::cEnd = 0;
 unsigned Ggrid::rBeg = 0;
 unsigned Ggrid::cBeg = 0;
 
+/********************************/
+/* class Ggrid member functions */
+/********************************/
+void
+Ggrid::printCapacity() const
+{
+    for (auto& m : _layerList)
+    {
+        cout << m->_capacity << setw(5);
+    }
+    cout << endl;
+}
+
+void
+Ggrid::printDemand() const {
+    for (auto& m : _layerList)
+    {
+        cout << m->_supply - m->_capacity << setw(5);
+    }
+    cout << endl;
+}
 
 /*****************************/
 /* class MC member functions */
@@ -45,6 +66,12 @@ Pos
 CellInst::getPos() const
 {
 	return _grid->_pos; 
+}
+
+Pos
+CellInst::getInitPos() const
+{
+	return _initGrid->_pos; 
 }
 
 void
@@ -112,23 +139,76 @@ Segment::print(ostream& outfile) const
     outfile << " " << endPos[0] << " " << endPos[1] << " " << endPos[2];
 }
 
-char
+bool
+Segment::isValid() const
+{
+    if (startPos[0] < Ggrid::rBeg || startPos[0] > Ggrid::rEnd
+        || endPos[0] < Ggrid::rBeg || endPos[0] > Ggrid::rEnd
+        || startPos[1] < Ggrid::cBeg || startPos[1] > Ggrid::cEnd
+        || endPos[1] < Ggrid::cBeg || endPos[1] > Ggrid::cEnd
+        || startPos[2] < 1 || startPos[2] > routeMgr->getLayerCnt()
+        || endPos[2] < 1 || endPos[2] > routeMgr->getLayerCnt()) {
+        print();    cout << " is not valid!\n";
+        return false;
+    } else { return true; }
+}
+
+SegDirection
 Segment::checkDir() const
 {
     if (startPos[0] == endPos[0]) {
         if (startPos[1] == endPos[1]) {
-            return 'Z';
+            return DIR_Z;
         } else {
-            return 'H';
+            return DIR_H;
         }
     } else {
-        return 'V';
+        return DIR_V;
     }
 }
 
 unsigned
 Segment::getWL() const {
     return abs((int)startPos[0]-(int)endPos[0]) + abs((int)startPos[1]-(int)endPos[1]) + abs((int)startPos[2]-(int)endPos[2]);
+}
+
+void
+Segment::passGrid(Net* net, set<Layer*>& alpha) const
+{
+    if (!isValid()) { return; }
+    unsigned i0 = startPos[0];
+    unsigned j0 = startPos[1];
+    unsigned k0 = startPos[2];
+    unsigned i1 = endPos[0];
+    unsigned j1 = endPos[1];
+    unsigned k1 = endPos[2];
+
+    if (checkDir() == DIR_H) {
+        if (j0 > j1) {
+            unsigned tmp = j0;
+            j0 = j1;
+            j1 = tmp;
+        }
+        for (unsigned x=j0; x<=j1; ++x)
+            alpha.insert((*(routeMgr->_gridList[i0-1][x-1]))[k0]);
+    } else if (checkDir() == DIR_V) {
+        if (i0 > i1) {
+            unsigned tmp = i0;
+            i0 = i1;
+            i1 = tmp;
+        }
+        for (unsigned x=i0; x<=i1; ++x)
+            alpha.insert((*(routeMgr->_gridList[x-1][j0-1]))[k0]);
+    } else {
+        if (k0 > k1) {
+            unsigned tmp = k0;
+            k0 = k1;
+            k1 = tmp;
+        }
+        for (unsigned x=k0; x<=k1; ++x) {
+            alpha.insert((*(routeMgr->_gridList[i0-1][j0-1]))[x]);
+        }
+    }
 }
 
 /******************************/

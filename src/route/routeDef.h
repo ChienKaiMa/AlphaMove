@@ -8,8 +8,6 @@
 
 #ifndef ROUTE_DEF_H
 #define ROUTE_DEF_H
-#define H 0 // horizontal
-#define V 1 // Vertical
 #define CONGEST_MIN -2147483647 // INT_MIN
 
 #include <vector>

@@ -36,7 +36,7 @@ void
 RouteMgr::printRouteSummary() const
 {
     cout << "MaxCellMove" << setw(8) << _maxMoveCnt << endl;
-    cout << "CurrentMove" << setw(8) << _curMoveCnt << endl;
+    cout << "CurrentMove" << setw(8) << getCurMoveCnt() << endl;
     cout << "InitWL" << setw(13) << _initTotalWL << "\n";
     cout << "bestWL" << setw(13) << _bestTotalWL << "\n";
 }
