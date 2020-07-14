@@ -32,7 +32,9 @@ bool
 RouteMgr::route2DAll()
 {
     NetList targetNet = NetList();
-    for (auto m : _netList){
+    //for (auto m : _netList){
+    for (auto nPair : _netRank->NetWLpairs){
+        Net* m = _netList[nPair.first-1];
         if (m->shouldReroute()){
             targetNet.push_back(m);
             remove3DDemand(m);
@@ -41,7 +43,7 @@ RouteMgr::route2DAll()
         }
     }
     // sorted by #pins
-    sort( targetNet.begin(), targetNet.end(), netCompare);
+    //sort( targetNet.begin(), targetNet.end(), netCompare);
 
     route2D(targetNet);
     cout << endl;
@@ -52,7 +54,9 @@ RouteMgr::route()
 {
     cout << "Route..." << endl;
     NetList targetNet = NetList();
-    for (auto m : _netList){
+    //for (auto m : _netList){
+    for (auto nPair : _netRank->NetWLpairs){
+        Net* m = _netList[nPair.first-1];
         if (m->shouldReroute()){
             targetNet.push_back(m);
             remove3DDemand(m);
@@ -61,7 +65,7 @@ RouteMgr::route()
         }
     }
     // sorted by #pins
-    sort( targetNet.begin(), targetNet.end(), netCompare);
+    //sort( targetNet.begin(), targetNet.end(), netCompare);
 
     route2D(targetNet);
     cout << endl;

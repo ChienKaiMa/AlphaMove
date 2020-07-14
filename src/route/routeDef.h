@@ -24,6 +24,7 @@ class Net;
 class CellInst;
 class Layer;
 class Segment;
+class NetRank;
 typedef vector<CellInst*> InstList;
 typedef set<CellInst*> InstSet;
 typedef vector<MC*> MCList;

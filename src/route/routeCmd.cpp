@@ -270,7 +270,7 @@ RouteCmd::help() const
 }
 
 //----------------------------------------------------------------------
-//    Optimize < -All | -Overflow | -Evaluate >
+//    Optimize < -All | -Overflow | -Evaluate | -Rank >
 //----------------------------------------------------------------------
 CmdExecStatus
 OptimizeCmd::exec(const string& option)
@@ -301,6 +301,8 @@ OptimizeCmd::exec(const string& option)
       }
    else if (myStrNCmp("-Evaluate", token, 2) == 0)	
       routeMgr->replaceBest();
+   else if (myStrNCmp("-Rank", token, 2) == 0)
+      routeMgr->printRank();
    else 	
       return CmdExec::errorOption(CMD_OPT_ILLEGAL, token);
 
@@ -313,7 +315,7 @@ OptimizeCmd::exec(const string& option)
 void
 OptimizeCmd::usage(ostream& os) const
 {
-   os << "Usage: Optimize < -All | -Overflow | -Evaluate >" << endl;
+   os << "Usage: Optimize < -All | -Overflow | -Evaluate | -Rank >" << endl;
 }
 
 void

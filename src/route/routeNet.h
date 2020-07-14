@@ -83,7 +83,6 @@ enum GridStatus
     GRID_TOT
 };
 
-
 //--------------------
 // MasterCell class
 //--------------------
@@ -166,9 +165,9 @@ public:
     inline void removeDemand(int offset) { _capacity += offset; }
 
     GridStatus checkOverflow() {
-        //cerr << "Demand: " << _supply - _capacity << ", Supply: " << _supply << endl;
         if (_capacity > 0) { return GRID_HEALTHY; }
-        else if (_capacity == 0) { return GRID_FULL_CAP; }
+        cerr << "Demand: " << _supply - _capacity << ", Supply: " << _supply << endl;
+        if (_capacity == 0) { return GRID_FULL_CAP; }
         else { return GRID_OVERFLOW; }
     }
 private:
@@ -215,7 +214,15 @@ public:
         assert(_2dSupply > 0);
         _2dDemand = _2dDemand + deltaDemand;
         //cout << _2dSupply << " " << _2dDemand << "\n";
-        _2dCongestion = ((double)(_2dSupply) - (double)(_2dDemand) /** CONGESTION_PARAMETER*/) / (double)(_2dSupply); 
+        _2dCongestion = ((double)(_2dSupply) - (double)(_2dDemand) *koovaCongParam()/** CONGESTION_PARAMETER*/) / (double)(_2dSupply); 
+    }
+    double koovaCongParam() {
+        double gotcha = 1;
+        for (auto m : _layerList) {
+            gotcha += m->checkOverflow();
+        }
+        // TODO: Maybe average?
+        return gotcha / _layerList.size();
     }
     
     void updatePos( Pos newpos ){
@@ -270,6 +277,8 @@ public:
     void print(ostream&) const;
     unsigned getWL() const ; // Manhattan Distance
     void passGrid(Net* net, set<Layer*>& alpha) const;
+    bool checkOverflow();
+    void rearrange();
     unsigned startPos[3];
     unsigned endPos[3];
     SegDirection    checkDir() const;
@@ -286,6 +295,7 @@ public:
 class Net
 {
     friend RouteMgr;
+    friend NetRank;
 public:
     Net(unsigned id, unsigned layCons): _netId(id), _minLayCons(layCons){};
     ~Net();
@@ -330,5 +340,17 @@ private:
     bool                _toRemoveDemand = false;
 };
 
+class NetRank
+{
+    friend RouteMgr;
+    friend Net;
+public:
+    void init();
+    void update();
+    void showTopTen() const;
+    vector<unsigned> getTopTen() const;
+private:
+    vector<PinPair> NetWLpairs; // <netId, netTotWL>
+};
 
 #endif // ROUTE_NET_H

@@ -8,6 +8,7 @@
 #include <iostream>
 #include <iomanip>
 #include <math.h>
+#include <algorithm>
 #include "routeNet.h"
 #include "routeMgr.h"
 
@@ -17,6 +18,10 @@ unsigned Ggrid::rEnd = 0;
 unsigned Ggrid::cEnd = 0;
 unsigned Ggrid::rBeg = 0;
 unsigned Ggrid::cBeg = 0;
+
+static bool CompareWL(PinPair a, PinPair b) {
+    return a.second > b.second;
+}
 
 /********************************/
 /* class Ggrid member functions */
@@ -211,6 +216,41 @@ Segment::passGrid(Net* net, set<Layer*>& alpha) const
     }
 }
 
+void
+Segment::rearrange()
+{
+    unsigned temp = 1;
+    for (auto i : {0, 1, 2}) {
+        if (startPos[i] > endPos[i]) {
+            temp = endPos[i];
+            endPos[i] = startPos[i];
+            startPos[i] = temp;
+        }
+    }
+}
+
+bool
+Segment::checkOverflow()
+{
+    int OVCNT = 0;
+    int FULLCNT = 0;
+    rearrange();
+    for (unsigned i=startPos[0]; i<=endPos[0]; ++i) {
+        for (unsigned j=startPos[1]; j<=endPos[1]; ++j) {
+            for (unsigned k=startPos[2]; k<=endPos[2]; ++k) {
+                if (routeMgr->check3dOverflow(i, j, k) == GRID_OVERFLOW) {
+                    ++OVCNT;
+                } else if (routeMgr->check3dOverflow(i, j, k) == GRID_FULL_CAP) {
+                    ++FULLCNT;
+                }
+            }
+        }
+    }
+    cout << OVCNT << " grids in "; print(); cout << " is overflown!\n";
+    cout << FULLCNT << " grids in "; print(); cout << " is full!\n";
+}
+    
+
 /******************************/
 /* class Net member functions */
 /******************************/
@@ -370,10 +410,76 @@ Net::passGrid() const{
     return gridNum;
 }
 
+/**********************************/
+/* class NetRank member functions */
+/**********************************/
+void
+NetRank::init()
+{
+    for (auto net : routeMgr->_netList)
+    {
+        set<Layer*> alpha;
+        routeMgr->passGrid(net, alpha);
+        unsigned WL = alpha.size();
+        PinPair newpair = PinPair(net->_netId, WL);
+        NetWLpairs.push_back(newpair);
+    }
+    ::sort(NetWLpairs.begin(), NetWLpairs.end(), CompareWL);
+}
 
+void
+NetRank::update()
+{
+    NetWLpairs.clear();
+    init();
+    // TODO: less memory cost
+}
 
+vector<unsigned>
+NetRank::getTopTen() const
+{
+    vector<unsigned> nets;
+    if (NetWLpairs.size() < 30) {
+        for (auto& nwPair : NetWLpairs)
+        {
+            nets.push_back(nwPair.first);
+        }
+    } else {
+        int cnt = 0;
+        for (auto& nwPair : NetWLpairs)
+        {
+            if (cnt>30) {
+                break;
+            }
+            nets.push_back(nwPair.first);
+            ++cnt;
+        }
+    }
+    return nets;
+}
 
-
+void
+NetRank::showTopTen() const
+{
+    if (NetWLpairs.size() < 10) {
+        for (auto& nwPair : NetWLpairs)
+        {
+            cout << "Net " << nwPair.first << " : "
+                << nwPair.second << "\n";
+        }
+    } else {
+        int cnt = 0;
+        for (auto& nwPair : NetWLpairs)
+        {
+            if (cnt>10) {
+                break;
+            }
+            cout << "Net " << nwPair.first << " : "
+                << nwPair.second << "\n";
+            ++cnt;
+        }
+    }
+}
 
 
 

@@ -48,17 +48,21 @@ class RouteMgr
 {
 friend CellInst;
 friend Net;
+friend NetRank;
+friend void Segment::passGrid(Net*, set<Layer*>&) const;
 
 public:
     RouteMgr() : _placeStrategy(0) { _startTime = clock(); }
     ~RouteMgr() { // TODO: reset();
-    } 
-    friend void Segment::passGrid(Net*, set<Layer*>&) const;
+    }    
     bool    readCircuit(const string&);
     void    writeCircuit(ostream&) const;
     void    setRouteLog(ofstream *logFile) { _tempRoute = logFile; }
     void    genGridList();
 
+    /**********************************/
+    /*     Input file verification    */
+    /**********************************/  
     void    printInputSummary() const;
     void    printRouteSummary() const;
     void    printNetlist() const;
@@ -81,6 +85,7 @@ public:
     void    printAssoNet() const;
     bool    printAssoNet(unsigned idx) const;
     void    printInitSegs() const;
+    void    printRank() const;
     void    replaceBest();
     double  getCongestion(Pos pos) const { 
       if( pos.first<Ggrid::rBeg  || pos.first>Ggrid::rEnd || 
@@ -116,12 +121,13 @@ public:
     void    change_notifier(CellInst*);
     void    koova_route();
     
-    bool    check3dOverflow(unsigned, unsigned, unsigned);
     bool    findCand(unsigned min, unsigned max, vector<int>&);
     bool    layerassign(NetList&);
     bool    koova_layerassign(NetList&);
 
-    //Demand & Supply
+    /**********************************/
+    /*      Overflow prevention       */
+    /**********************************/
     void    init2DSupply();
     void    init3DSupply();
     void    passGrid(Net*, set<Layer*>&) const;
@@ -139,6 +145,7 @@ public:
     void    remove2DNeighborDemand(CellInst*, CellInst*, bool type);
 
     void    initNeighborDemand();
+    GridStatus    check3dOverflow(unsigned, unsigned, unsigned);
     void    initCellInstList();
     /**********************************/
     /*            Output              */
@@ -172,6 +179,7 @@ private:
     vector<OutputSeg> _bestRouteSegs; // TODO: check redundancy
     unsigned          _bestTotalWL;
     ofstream*         _tempRoute;
+    NetRank*          _netRank;
 
 
     //Routing Helper function

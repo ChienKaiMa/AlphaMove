@@ -51,14 +51,16 @@ But only the answer with "<---- Output Valid! ---->" is valid.
 If you see evaluator shows any line starts with [Error!].
 Then it means that you answer is wrong. And the error reason and line number is described subsequently.
 And you will either see "<---- ReadInput Failed! ---->" or "<---- Output Invalid! ---->".
-Then you will not get any point of this case.
+Then the score will be 0 for this case.
 
 The line starts with [WARN!] shows some warning message but will not make you fail the case.
-
 
 Add --verbose in the last argument to turn on verbose mode.
 In verbose mode, evaluator shows the connectivity of each net.
 The gGrid length of each net. And the extra demand information.
+
+The evaluator now automatically generate "input.dmd" and "output.dmd" for you to verify that
+if your demand calculation is consistent with evaluator.
 
 If you have any question or find any bugs of the evaluator, please email to cad.contest.iccad@gmail.com
 

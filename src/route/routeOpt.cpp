@@ -48,6 +48,8 @@ void RouteMgr::mainPnR()
             return;
         }
         bool canRoute = this->route();
+        _netRank->update();
+        _netRank->showTopTen();
         cout << "End of Routing..." << endl;
         if(canRoute){
             unsigned newWL = evaluateWireLen();// evaluate total wirelength
@@ -58,6 +60,7 @@ void RouteMgr::mainPnR()
         }
         this->_placeStrategy = !canRoute;
         printRouteSummary();
+        myUsage.report(true, false);
     }
 }
 
@@ -615,6 +618,8 @@ bool RouteMgr::layerassign(NetList& toLayNet)
                         continue;
                     }
                 }
+                seg->checkOverflow();
+
                 #ifndef DEBUG
                 cout << "Successfully assigned...";
                 seg->print();
@@ -630,7 +635,8 @@ bool RouteMgr::layerassign(NetList& toLayNet)
                 if (candidatesH.size() == 0) {
                     cout << "No candidate was found!\n";
                     cout << "Do placement again!\n";
-                    return false;
+                    isOV = true;
+                    targetLayer = 1;
                 }
                 for (auto& j : candidatesH) {
                     diff = ((diff) < (j-curLayer)) ? diff : j-curLayer;
@@ -639,14 +645,15 @@ bool RouteMgr::layerassign(NetList& toLayNet)
                 if (candidatesV.size() == 0) {
                     cout << "No candidate was found!\n";
                     cout << "Do placement again!\n";
-                    return false;
+                    isOV = true;
+                    targetLayer = 1;
                 }
                 for (auto& j : candidatesV) {
                     diff = ((diff) < (j-curLayer)) ? diff : j-curLayer;
                 }
             }
             targetLayer = curLayer + diff;
-            cout << "targetLayer " << targetLayer << "\n";
+            //cout << "targetLayer " << targetLayer << "\n";
             // 2. Check grid capacity
             /*
             if (!check3dOverflow(seg->startPos[0], seg->startPos[1], i)) {
@@ -663,9 +670,10 @@ bool RouteMgr::layerassign(NetList& toLayNet)
                 zSeg->endPos[1] = seg->startPos[1];
                 zSeg->endPos[2] = seg->startPos[2];
                 net->addSeg(zSeg);
-                cout << "Add new Segment" << endl;
+                cout << "Add new Segment ";
                 zSeg->print();
                 cout << endl;
+                zSeg->checkOverflow();
             }
             
             if (curLayer != targetLayer) {
@@ -676,10 +684,11 @@ bool RouteMgr::layerassign(NetList& toLayNet)
                 zSeg->endPos[1] = seg->startPos[1];
                 zSeg->endPos[2] = targetLayer;
                 net->addSeg(zSeg);
-                cout << "Add new Segment" << endl;
+                cout << "Add new Segment ";
                 zSeg->print();
                 cout << endl;
                 curLayer = targetLayer;
+                zSeg->checkOverflow();
             }
             
             if (seg->endPos[2] && i == segCnt-1) {
@@ -693,21 +702,23 @@ bool RouteMgr::layerassign(NetList& toLayNet)
                     zSeg1->startPos[1] = seg->endPos[1];
                     zSeg1->startPos[2] = curLayer;
                     net->addSeg(zSeg1);
-                    cout << "Add new Segment" << endl;
+                    cout << "Add new Segment ";
                     zSeg1->print();
                     cout << endl;
+                    zSeg1->checkOverflow();
                 }
             }
             // Finish layer assignment
             seg->startPos[2] = targetLayer;
             seg->endPos[2] = targetLayer;
+            seg->checkOverflow();
             cout << "Successfully assigned...";
             seg->print();
             cout << "\n";
             cout << "\n";
         }
         add3DDemand(net);
-        net->printSummary();
+        //net->printSummary();
         set<Layer*> alpha;
         passGrid(net, alpha);
         for (auto& grid : alpha) {
