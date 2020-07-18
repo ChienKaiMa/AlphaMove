@@ -76,8 +76,8 @@ enum SegDirection
 enum GridStatus
 {
     GRID_HEALTHY    = 0,
-    GRID_FULL_CAP   = 1,
-    GRID_OVERFLOW   = 2,
+    GRID_FULL_CAP   = 3,
+    GRID_OVERFLOW   = 4,
 
     // dummy
     GRID_TOT
@@ -165,10 +165,10 @@ public:
     inline void removeDemand(int offset) { _capacity += offset; }
 
     GridStatus checkOverflow() {
-        if (_capacity > 0) { return GRID_HEALTHY; }
+        if (_capacity > 3) { return GRID_HEALTHY; }
         cerr << "Demand: " << _supply - _capacity << ", Supply: " << _supply << endl;
-        if (_capacity == 0) { return GRID_FULL_CAP; }
-        else { return GRID_OVERFLOW; }
+        if (_capacity < 0) { return GRID_OVERFLOW; }
+        else { return GRID_FULL_CAP; }
     }
 private:
     int _supply;
@@ -214,10 +214,10 @@ public:
         assert(_2dSupply > 0);
         _2dDemand = _2dDemand + deltaDemand;
         //cout << _2dSupply << " " << _2dDemand << "\n";
-        _2dCongestion = ((double)(_2dSupply) - (double)(_2dDemand) *koovaCongParam()/** CONGESTION_PARAMETER*/) / (double)(_2dSupply); 
+        _2dCongestion = ((double)(_2dSupply) - (double)(_2dDemand)  - koovaCongParam() /** CONGESTION_PARAMETER*/) / (double)(_2dSupply); 
     }
     double koovaCongParam() {
-        double gotcha = 1;
+        double gotcha = 0;
         for (auto m : _layerList) {
             gotcha += m->checkOverflow();
         }
@@ -311,6 +311,9 @@ public:
     unsigned getMinLayCons() { return _minLayCons; }
     set<PinPair> getPinSet() { return _pinSet; }
     bool shouldReroute() { return _toReroute; }
+    bool findVCand(vector<int>&);
+    bool findHCand(vector<int>&);
+    bool findZCand(vector<int>&);
 
     //Printing functions
     void printPinSet() const;
@@ -318,7 +321,6 @@ public:
     void printAllSeg() const;
     void printAllSeg(ostream&) const;
     void printAssoCellInst() const;
-    unsigned passGrid() const;
     
 private:
     unsigned            _netId;

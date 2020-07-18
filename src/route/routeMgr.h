@@ -114,16 +114,16 @@ public:
     pair<double,double> Move(Net*,Net*,double);
     void     mainPnR();
 
-    void    route2D(NetList&);
-    bool    route2DAll();
-    bool    route();
+    RouteExecStatus    route2D(NetList&);
+    RouteExecStatus    route2DAll();
+    RouteExecStatus    route();
     void    koova_place();
     void    change_notifier(CellInst*);
     void    koova_route();
     
     bool    findCand(unsigned min, unsigned max, vector<int>&);
-    bool    layerassign(NetList&);
-    bool    koova_layerassign(NetList&);
+    RouteExecStatus    layerassign(NetList&);
+    RouteExecStatus    koova_layerassign(NetList&);
 
     /**********************************/
     /*      Overflow prevention       */

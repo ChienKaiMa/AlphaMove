@@ -28,7 +28,7 @@ bool netCompare(Net* n1, Net* n2) // greater than , decsending order
 /**************************************************/
 /*   Public member functions about optimization   */
 /**************************************************/
-bool
+RouteExecStatus
 RouteMgr::route2DAll()
 {
     NetList targetNet = NetList();
@@ -49,30 +49,34 @@ RouteMgr::route2DAll()
     cout << endl;
 }
 
-bool
+RouteExecStatus
 RouteMgr::route()
 {
     cout << "Route..." << endl;
-    NetList targetNet = NetList();
+    //NetList targetNet = NetList();
     //for (auto m : _netList){
     for (auto nPair : _netRank->NetWLpairs){
         Net* m = _netList[nPair.first-1];
         if (m->shouldReroute()){
+            NetList targetNet = NetList();
             targetNet.push_back(m);
             remove3DDemand(m);
             m->ripUp();
+            route2D(targetNet);
+            koova_layerassign(targetNet);
             // cout << m->_netSegs.size() << " " << m->_netSegs.capacity() << endl;
         }
     }
     // sorted by #pins
     //sort( targetNet.begin(), targetNet.end(), netCompare);
 
-    route2D(targetNet);
+    //route2D(targetNet);
     cout << endl;
-    return layerassign(targetNet);
+    return ROUTE_EXEC_DONE;
+    //return layerassign(targetNet);
 }
 
-void RouteMgr::route2D(NetList& toRouteNet)
+RouteExecStatus RouteMgr::route2D(NetList& toRouteNet)
 {
     // 1.   for each to-be routed net , sorted by #Pins
     //      route the largest Net first with Bounds(initially bounding box)
@@ -101,6 +105,7 @@ void RouteMgr::route2D(NetList& toRouteNet)
         }
         n->shouldReroute(false);
     }
+    return ROUTE_EXEC_DONE;
 }
 
 
@@ -200,7 +205,7 @@ bool RouteMgr::route2Pin(Pos p1, Pos p2, Net* net, double demand, unsigned lay1,
         cout << "Unexpected search states!!" << endl;
     }
 
-    // cout << "SearchSteps : " << searchSteps << endl;
+    cout << "SearchSteps : " << searchSteps << endl;
 
     searchSolver.EnsureMemoryFreed();
     return true;

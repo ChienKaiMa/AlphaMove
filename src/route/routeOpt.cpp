@@ -47,11 +47,11 @@ void RouteMgr::mainPnR()
             cout << "P&R terminates..." << endl;
             return;
         }
-        bool canRoute = this->route();
+        RouteExecStatus canRoute = this->route();
         _netRank->update();
         _netRank->showTopTen();
         cout << "End of Routing..." << endl;
-        if(canRoute){
+        if(canRoute == ROUTE_EXEC_DONE){
             unsigned newWL = evaluateWireLen();// evaluate total wirelength
             if( newWL<_bestTotalWL){
                 _bestTotalWL = newWL;
@@ -524,26 +524,195 @@ pair<double,double> RouteMgr::Move(Net* a, Net* b, double BestCH){
     return offset;
 }
 
-bool
-RouteMgr::findCand(unsigned min, unsigned max, vector<int>& cands)
-{
-    /* Find layer candidates for layer assignment */
-    for (unsigned i=min; i<=max; i += 2) {
-        cands.push_back(i);
-    }
-    if (cands.empty()) {
-        return false;
-    }
-    return true;
-}
-
-bool
+RouteExecStatus
 RouteMgr::koova_layerassign(NetList& toLayNet)
 {
-    
+    cout << "Koova-LayerAssign...\n";
+    vector<Segment*> toDel;
+    unsigned maxLayer = _laySupply.size();
+    RouteExecStatus myStatus = ROUTE_EXEC_DONE;
+
+    for (auto& net : toLayNet)
+    {
+        // 1. Find candidates
+        int layCons = net->_minLayCons;
+        int minLayer = layCons ? layCons : 1;
+        int minH = minLayer + (1 - minLayer%2);
+        int minV = minLayer + (minLayer%2);
+
+        int curLayer = 1;
+        int targetLayer = minLayer;
+        vector<int> candidatesV;
+        vector<int> candidatesH;
+        net->findHCand(candidatesH);
+        net->findVCand(candidatesV);
+        
+        unsigned segCnt = net->_netSegs.size();
+        for (unsigned i=0; i<segCnt; ++i)
+        {
+            Segment* seg = net->_netSegs[i];
+            vector<int> candidates;
+            
+            if (!i) { curLayer = seg->startPos[2]; }
+
+            // Z
+            if (seg->checkDir() == DIR_Z)
+            {
+                vector<unsigned> candidatesZ;
+                for (unsigned j=1; j<=_laySupply.size(); ++j) {
+                    if (this->check3dOverflow(seg->startPos[0], seg->startPos[1], j) == GRID_HEALTHY) {
+                        candidatesZ.push_back(j);
+                    }
+                }
+                if (candidatesZ.size() != _laySupply.size()) {
+                    cout << "I'm crazy!!!\n";
+                    //curLayer = _laySupply.size();
+                }
+                
+                if (!(seg->startPos[2] >= minLayer || seg->endPos[2] >= minLayer)) {
+                    if (seg->startPos[2] > seg->endPos[2]) {
+                        seg->startPos[2] = seg->endPos[2];
+                        seg->endPos[2] = minLayer;
+                        curLayer = minLayer;
+                    } else {
+                        seg->endPos[2] = minLayer;
+                        curLayer = minLayer;
+                    }
+                    for (unsigned j=1; j<=_laySupply.size(); ++j) {
+                        if (this->check3dOverflow(seg->startPos[0], seg->startPos[1], j) != GRID_HEALTHY) {
+                            myStatus = ROUTE_EXEC_ERROR;
+                        }
+                    }
+                } else if (seg->endPos[2] == seg->startPos[2]) {
+                    if (seg->startPos[2] == curLayer) {
+                        seg->print();
+                        cout << " Stupid seg... Delete it!\n";
+                        //toDel.push_back(seg);
+                        //net->_netSegs.erase(net->_netSegs.begin()+i);
+                        //curLayer = seg->startPos[2];
+                        continue;
+                    } else {
+                        seg->startPos[2] = curLayer;
+                        continue;
+                    }
+                }
+                seg->checkOverflow();
+
+                #ifndef DEBUG
+                cout << "Successfully assigned...";
+                seg->print();
+                cout << "\n";
+                cout << "\n";
+                #endif
+                continue;
+            }
+            
+            // H or V
+            int diff = INT16_MAX;
+            if (seg->checkDir() == DIR_H) {
+                if (candidatesH.size() == 0) {
+                    cout << "No candidate was found!\n";
+                    cout << "Do placement again!\n";
+                    myStatus = ROUTE_EXEC_ERROR;
+                    targetLayer = 1;
+                }
+                for (auto& j : candidatesH) {
+                    diff = ((diff) < (j-curLayer)) ? diff : j-curLayer;
+                }
+            } else {
+                if (candidatesV.size() == 0) {
+                    cout << "No candidate was found!\n";
+                    cout << "Do placement again!\n";
+                    myStatus = ROUTE_EXEC_ERROR;
+                    targetLayer = 1;
+                }
+                for (auto& j : candidatesV) {
+                    diff = ((diff) < (j-curLayer)) ? diff : j-curLayer;
+                }
+            }
+            targetLayer = curLayer + diff;
+            if (myStatus == ROUTE_EXEC_ERROR) { targetLayer = _laySupply.size(); }
+            //cout << "targetLayer " << targetLayer << "\n";
+            // 2. Check grid capacity
+            /*
+            if (!check3dOverflow(seg->startPos[0], seg->startPos[1], i)) {
+                
+            } else {
+                return false;
+            }
+            */
+            if (seg->startPos[2] && curLayer != seg->startPos[2]) {
+                // Add a Z-seg
+                Segment* zSeg = new Segment(seg);
+                zSeg->startPos[2] = curLayer;
+                zSeg->endPos[0] = seg->startPos[0];
+                zSeg->endPos[1] = seg->startPos[1];
+                zSeg->endPos[2] = seg->startPos[2];
+                net->addSeg(zSeg);
+                cout << "Add new Segment ";
+                zSeg->print();
+                cout << endl;
+                zSeg->checkOverflow();
+            }
+            
+            if (curLayer != targetLayer) {
+                // Add a Z-seg
+                Segment* zSeg = new Segment(seg);
+                zSeg->startPos[2] = curLayer;
+                zSeg->endPos[0] = seg->startPos[0];
+                zSeg->endPos[1] = seg->startPos[1];
+                zSeg->endPos[2] = targetLayer;
+                net->addSeg(zSeg);
+                cout << "Add new Segment ";
+                zSeg->print();
+                cout << endl;
+                curLayer = targetLayer;
+                zSeg->checkOverflow();
+            }
+            
+            if (seg->endPos[2] && i == segCnt-1) {
+                cout << "Last Seg ";
+                seg->print();
+                cout << "\n";
+                if (curLayer != seg->endPos[2]) {
+                    // Add a Z-seg
+                    Segment* zSeg1 = new Segment(seg);
+                    zSeg1->startPos[0] = seg->endPos[0];
+                    zSeg1->startPos[1] = seg->endPos[1];
+                    zSeg1->startPos[2] = curLayer;
+                    net->addSeg(zSeg1);
+                    cout << "Add new Segment ";
+                    zSeg1->print();
+                    cout << endl;
+                    zSeg1->checkOverflow();
+                }
+            }
+            // Finish layer assignment
+            seg->startPos[2] = targetLayer;
+            seg->endPos[2] = targetLayer;
+            seg->checkOverflow();
+            cout << "Successfully assigned...";
+            seg->print();
+            cout << "\n";
+            cout << "\n";
+        }
+        add3DDemand(net);
+        //net->printSummary();
+        set<Layer*> alpha;
+        passGrid(net, alpha);
+        for (auto& grid : alpha) {
+            if (grid->checkOverflow() == GRID_OVERFLOW) {
+                cout << "Net " << net->_netId << " causes overflow!\n";
+                myStatus = ROUTE_EXEC_ERROR;
+                net->shouldReroute(true);
+            }
+        }
+    }
+    assert(myStatus != ROUTE_EXEC_TOT);
+    return myStatus;
 }
 
-bool RouteMgr::layerassign(NetList& toLayNet)
+RouteExecStatus RouteMgr::layerassign(NetList& toLayNet)
 {
     cout << "LayerAssign...\n";
     vector<Segment*> toDel;
@@ -576,8 +745,8 @@ bool RouteMgr::layerassign(NetList& toLayNet)
         vector<int> candidatesV;
         vector<int> candidatesH;
         // 1. Find candidates
-        findCand(minH, maxLayer, candidatesH);
-        findCand(minV, maxLayer, candidatesV);
+        net->findHCand(candidatesH);
+        net->findVCand(candidatesV);
         
         for (unsigned i=0; i<segCnt; ++i)
         {
@@ -722,9 +891,10 @@ bool RouteMgr::layerassign(NetList& toLayNet)
         set<Layer*> alpha;
         passGrid(net, alpha);
         for (auto& grid : alpha) {
-            if (grid->checkOverflow() == 2) {
+            if (grid->checkOverflow() == GRID_OVERFLOW) {
                 cout << "Net " << net->_netId << " causes overflow!\n";
                 isOV = true;
+                net->shouldReroute(true);
             }
         }
     }
@@ -732,7 +902,9 @@ bool RouteMgr::layerassign(NetList& toLayNet)
         cout << "Deleting " << seg1 << "\n";
         delete seg1;
     }
-    return !isOV;
+    //return !isOV;
+    //assert(myStatus == ROUTE_EXEC_TOT);
+    return ROUTE_EXEC_DONE;
 }
 
 void

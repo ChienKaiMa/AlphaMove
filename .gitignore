@@ -10,4 +10,5 @@ lib/libutil.a
 AlphaMove_Work.code-workspace
 bin/cell_move_router
 *.out
+*.dmd
 AlphaMove18.code-workspace

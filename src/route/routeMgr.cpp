@@ -720,6 +720,9 @@ RouteMgr::remove3DNeighborDemand(CellInst* cell_a, CellInst* cell_b, bool type){
 GridStatus
 RouteMgr::check3dOverflow(unsigned i, unsigned j, unsigned k) {
     //cout << "Checking grid (" << i << ", " << j << ", " << k << ")\n";
+    assert(i >= 1);
+    assert(j >= 1);
+    assert(k >= 1);
     assert(i <= Ggrid::rEnd);
     assert(j <= Ggrid::cEnd);
     assert(k <= _laySupply.size());

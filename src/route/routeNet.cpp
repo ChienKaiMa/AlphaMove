@@ -339,75 +339,30 @@ Net::printAssoCellInst() const
     }
 }
 
-unsigned
-Net::passGrid() const{
-    #ifdef DEBUG
-    cout << "In Net" << _netId << "..." << endl;
-    #endif
-    unsigned layNum = routeMgr->_laySupply.size();
-    bool gridGraph[Ggrid::rEnd][Ggrid::cEnd][layNum] ;
-    for (unsigned i=0; i<Ggrid::rEnd; ++i){
-        for(unsigned j=0; j<Ggrid::cEnd;++j){
-            for(unsigned k=0; k<layNum; ++k){
-                gridGraph[i][j][k] = 0;
-            }
-        }
+bool
+Net::findVCand(vector<int>& candsV)
+{
+    /* Find layer candidates for layer assignment */
+    int maxLayer = routeMgr->getLayerCnt();
+    int minLayer = _minLayCons ? _minLayCons : 1;
+    int minV = minLayer + (minLayer%2);
+    for (int i=minV; i<=maxLayer; i += 2) {
+        candsV.push_back(i);
     }
-    unsigned gridNum = 0;
-    for(const auto& seg: _netSegs){
-        unsigned rStart = seg->startPos[0];
-        unsigned cStart = seg->startPos[1];
-        unsigned lStart = seg->startPos[2];
-        unsigned rEnd   = seg->endPos[0];
-        unsigned cEnd   = seg->endPos[1];
-        unsigned lEnd   = seg->endPos[2];
-        // cout << rStart << " " << cStart << " " << lStart << endl;
-        // cout << rEnd << " " << cEnd << " " << lEnd << endl;
-        assert(rEnd);
-        assert(cEnd);
-        assert(lEnd);
-        assert(rStart);
-        assert(cStart);
-        assert(lStart);
-        if(rStart!=rEnd){
-            for(unsigned i = (rStart<rEnd ? rStart : rEnd); i<= (rStart<rEnd ? rEnd : rStart) ; i++){
-                // cout << "GridGraph " << gridGraph[i-1][cEnd-1][lEnd-1] << endl;
-                if(!gridGraph[i-1][cEnd-1][lEnd-1]){
-                    ++gridNum;
-                    gridGraph[i-1][cEnd-1][lEnd-1] = 1;
-                }
-            }
-        }
-        else if(cStart!=cEnd){
-            for(unsigned i = (cStart<cEnd ? cStart : cEnd); i<= (cStart<cEnd ? cEnd : cStart); i++){
-                // cout << "GridGraph " << gridGraph[rEnd-1][i-1][lEnd-1] << endl;
-                if(!gridGraph[rEnd-1][i-1][lEnd-1]){
-                    ++gridNum;
-                    gridGraph[rEnd-1][i-1][lEnd-1] = 1;
-                }
-            }
-        }
-        else if(lStart!=lEnd){
-            for(unsigned i = (lStart<lEnd ? lStart : lEnd); i<= (lStart<lEnd ? lEnd : lStart); i++){
-                // cout << "GridGraph " << gridGraph[rEnd-1][cEnd-1][i-1] << endl;
-                if(!gridGraph[rEnd-1][cEnd-1][i-1]){
-                    ++gridNum;
-                    gridGraph[rEnd-1][cEnd-1][i-1] = 1;
-                }
-            }
-        }
-        else{
-            gridGraph[rEnd-1][cEnd-1][lEnd-1] = 1;
-            ++gridNum;
-        }
+    return !candsV.empty();
+}
+
+bool
+Net::findHCand(vector<int>& candsH)
+{
+    /* Find layer candidates for layer assignment */
+    int maxLayer = routeMgr->getLayerCnt();
+    int minLayer = _minLayCons ? _minLayCons : 1;
+    int minH = minLayer + (1 - minLayer%2);
+    for (int i=minH; i<=maxLayer; i += 2) {
+        candsH.push_back(i);
     }
-    if(_netSegs.empty()){
-        gridNum = 1;
-    }
-    #ifdef DEBUG
-    cout << "Net n" << this->_netId << " passed " << gridNum << "grids" << endl;
-    #endif
-    return gridNum;
+    return !candsH.empty();
 }
 
 /**********************************/
