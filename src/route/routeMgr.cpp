@@ -157,13 +157,17 @@ RouteMgr::readCircuit(const string& fileName)
             ifs >> buffer; // layerName
             tmpCnt3 = stoi(buffer.substr(1));
             MCTri dent(tmpCnt1, tmpCnt2, tmpCnt3);
+            MCTri dent2(tmpCnt2, tmpCnt1, tmpCnt3);
             ifs >> tmpCnt1; // demand
 
             pair<MCTri, unsigned> sGd(dent, tmpCnt1);
+            pair<MCTri, unsigned> sGd2(dent2, tmpCnt1);
             if (tempQ == true) {
                 this->_sameGridDemand.insert(sGd);
+                this->_sameGridDemand.insert(sGd2);
             } else {
                 this->_adjHGridDemand.insert(sGd);
+                this->_adjHGridDemand.insert(sGd2);
             }
         }
         ifs >> buffer; // NumCellInst
@@ -773,17 +777,15 @@ RouteMgr::check3dOverflow(unsigned i, unsigned j, unsigned k) {
     assert(k <= _laySupply.size());
     Layer* grid = _gridList[i-1][j-1]->operator[](k);
     
-    if (grid->checkOverflow() == GRID_FULL_CAP) {
-        cerr << "(" << i << ", " << j << ", "
-         << k << ") is full!\n";
-        return GRID_FULL_CAP;
-    } else if (grid->checkOverflow() == GRID_OVERFLOW) {
+    GridStatus myStatus = grid->checkOverflow();
+    if (myStatus == GRID_FULL_CAP) {
+        //cerr << "(" << i << ", " << j << ", "
+        // << k << ") is full!\n";
+    } else if (myStatus == GRID_OVERFLOW) {
         cerr << "(" << i << ", " << j << ", "
         << k << ") is overflow!\n";
-        return GRID_OVERFLOW;
-    } else {
-        return GRID_HEALTHY;
     }
+    return myStatus;
 }
 
 unsigned 

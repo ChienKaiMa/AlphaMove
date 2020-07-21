@@ -292,9 +292,9 @@ OptimizeCmd::exec(const string& option)
       routeMgr->route();
       routeMgr->replaceBest();
    } else if (myStrNCmp("-Overflow", token, 2) == 0)	
-      for (unsigned i=1; i<=Ggrid::rEnd; ++i) {
-         for (unsigned j=1; j<=Ggrid::cEnd; ++j) {
-            for (unsigned k=1; k<=routeMgr->getLayerCnt(); ++k) {
+      for (unsigned k=1; k<=routeMgr->getLayerCnt(); ++k) {
+         for (unsigned i=1; i<=Ggrid::rEnd; ++i) {
+            for (unsigned j=1; j<=Ggrid::cEnd; ++j) {
                routeMgr->check3dOverflow(i, j, k);
             }
          }

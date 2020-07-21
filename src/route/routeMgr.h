@@ -114,6 +114,7 @@ public:
     pair<double,double> Move(Net*,Net*,double);
     void     mainPnR();
 
+    RouteExecStatus    errorOption(RouteExecError);
     RouteExecStatus    route2D(NetList&);
     RouteExecStatus    route2DAll();
     RouteExecStatus    route();

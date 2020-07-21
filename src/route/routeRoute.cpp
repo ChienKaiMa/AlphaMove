@@ -53,17 +53,15 @@ RouteExecStatus
 RouteMgr::route()
 {
     cout << "Route..." << endl;
-    //NetList targetNet = NetList();
+    NetList targetNet = NetList();
     //for (auto m : _netList){
     for (auto nPair : _netRank->NetWLpairs){
         Net* m = _netList[nPair.first-1];
         if (m->shouldReroute()){
-            NetList targetNet = NetList();
+            //NetList targetNet = NetList();
             targetNet.push_back(m);
             remove3DDemand(m);
             m->ripUp();
-            route2D(targetNet);
-            koova_layerassign(targetNet);
             // cout << m->_netSegs.size() << " " << m->_netSegs.capacity() << endl;
         }
     }
@@ -72,6 +70,8 @@ RouteMgr::route()
 
     //route2D(targetNet);
     cout << endl;
+    route2D(targetNet);
+    koova_layerassign(targetNet);
     return ROUTE_EXEC_DONE;
     //return layerassign(targetNet);
 }

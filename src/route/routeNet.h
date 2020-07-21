@@ -76,6 +76,7 @@ enum SegDirection
 enum GridStatus
 {
     GRID_HEALTHY    = 0,
+    GRID_RISKY      = 2,
     GRID_FULL_CAP   = 3,
     GRID_OVERFLOW   = 4,
 
@@ -166,9 +167,14 @@ public:
 
     GridStatus checkOverflow() {
         if (_capacity > 3) { return GRID_HEALTHY; }
-        cerr << "Demand: " << _supply - _capacity << ", Supply: " << _supply << endl;
-        if (_capacity < 0) { return GRID_OVERFLOW; }
-        else { return GRID_FULL_CAP; }
+        
+        if (_capacity == 0) { 
+            //cerr << "Supply: " << _supply << ", Demand: " << _supply - _capacity << " ";
+            return GRID_FULL_CAP; }
+        else if (_capacity < 0) { 
+            cerr << "Supply: " << _supply << ", Demand: " << _supply - _capacity << " ";
+            return GRID_OVERFLOW; }
+        else { return GRID_RISKY; }
     }
 private:
     int _supply;
