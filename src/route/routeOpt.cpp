@@ -565,7 +565,8 @@ RouteMgr::koova_layerassign(NetList& toLayNet)
         vector<int> candidatesH;
         net->findHCand(candidatesH);
         net->findVCand(candidatesV);
-        
+        set<Layer*> myAlpha;
+
         unsigned segCnt = net->_netSegs.size();
         for (unsigned i=0; i<segCnt; ++i)
         {
@@ -586,13 +587,15 @@ RouteMgr::koova_layerassign(NetList& toLayNet)
                         seg->endPos[2] = minLayer;
                         curLayer = minLayer;
                     }
+                    /*
                     for (unsigned j=seg->startPos[2]; j<=curLayer; ++j) {
-                        if (this->check3dOverflow(seg->startPos[0], seg->startPos[1], j) != GRID_HEALTHY) {
+                        if (this->check3dOverflow(seg->startPos[0], seg->startPos[1], j) == GRID_FULL_CAP) {
                             myStatus = ROUTE_EXEC_ERROR;
                             myError = ROUTE_OVERFLOW;
                             errorOption(myError);
                         }
                     }
+                    */
                 } else if (seg->endPos[2] == seg->startPos[2]) {
                     if (seg->startPos[2] == curLayer) {
                         seg->print();
@@ -600,10 +603,13 @@ RouteMgr::koova_layerassign(NetList& toLayNet)
                         //toDel.push_back(seg);
                         //net->_netSegs.erase(net->_netSegs.begin()+i);
                         //curLayer = seg->startPos[2];
+                        /*
                         if (this->check3dOverflow(seg->startPos[0], seg->startPos[1], curLayer) == GRID_FULL_CAP) {
                             myStatus = ROUTE_EXEC_ERROR;
                             myError = ROUTE_OVERFLOW;
+                            errorOption(myError);
                         }
+                        */
                         continue;
                     } else {
                         seg->startPos[2] = curLayer;
@@ -611,7 +617,8 @@ RouteMgr::koova_layerassign(NetList& toLayNet)
                     }
                 }
                 seg->checkOverflow();
-
+                vector<Layer*> newZGrids = seg->newGrid(net, myAlpha);
+                for (auto g : newZGrids) { myAlpha.insert(g); g->addDemand(1); }
                 #ifndef DEBUG
                 cout << "Successfully assigned...";
                 seg->print();
@@ -622,34 +629,9 @@ RouteMgr::koova_layerassign(NetList& toLayNet)
             }
             
             // H or V
-            int diff = INT16_MAX;
-            if (seg->checkDir() == DIR_H) {
-                if (candidatesH.size() == 0) {
-                    myStatus = ROUTE_EXEC_ERROR;
-                    myError = ROUTE_DIR_ILLEGAL;
-                    errorOption(myError);
-                    targetLayer = 1;
-                    diff = 0;
-                } else {
-                    for (auto& j : candidatesH) {
-                        diff = ((diff) < (j-curLayer)) ? diff : j-curLayer;
-                    }
-                }
-            } else {
-                if (candidatesV.size() == 0) {
-                    myStatus = ROUTE_EXEC_ERROR;
-                    myError = ROUTE_DIR_ILLEGAL;
-                    errorOption(myError);
-                    targetLayer = 1;
-                    diff = 0;
-                } else {
-                    for (auto& j : candidatesV) {
-                        diff = ((diff) < (j-curLayer)) ? diff : j-curLayer;
-                    }
-                }
-            }
-            targetLayer = curLayer + diff;
-
+            // Try to select a layer with no overflow for the H or V segment
+            // If overflow is inevitable, choose the layer closest to curLayer
+            // Connect to the net with Z-segments
             if (seg->startPos[2] && curLayer != seg->startPos[2]) {
                 // Add a Z-seg
                 Segment* zSeg = new Segment(seg);
@@ -661,14 +643,79 @@ RouteMgr::koova_layerassign(NetList& toLayNet)
                 cout << "Add new Segment ";
                 zSeg->print();
                 cout << endl;
+                /*
                 for (unsigned j=zSeg->startPos[2]; j<=zSeg->endPos[2]; ++j) {
                     if (this->check3dOverflow(zSeg->startPos[0], zSeg->startPos[1], j) == GRID_FULL_CAP) {
                         myStatus = ROUTE_EXEC_ERROR;
                         cout << "Should pass it\n";
                     }
                 }
+                */
                 zSeg->checkOverflow();
+                vector<Layer*> newZGrids = zSeg->newGrid(net, myAlpha);
+                for (auto g : newZGrids) { myAlpha.insert(g); g->addDemand(1); }
             }
+
+            int diff = INT16_MAX;
+            if (seg->checkDir() == DIR_H)
+            {
+                if (candidatesH.size() == 0) {
+                    myStatus = ROUTE_EXEC_ERROR;
+                    myError = ROUTE_DIR_ILLEGAL;
+                    errorOption(myError);
+                    targetLayer = 1;
+                    diff = 0;
+                } else {
+                    for (auto& j : candidatesH) {
+                        Segment newSeg = Segment(*seg);
+                        newSeg.assignLayer(j);
+                        vector<Layer*> newGrids = newSeg.newGrid(net, myAlpha);
+                        for (auto g : newGrids) { g->addDemand(1); }
+                        if (!newSeg.checkOverflow()) {
+                            diff = ((diff) < (j-curLayer)) ? diff : j-curLayer;
+                        }
+                        for (auto g : newGrids) { g->removeDemand(1); }
+                    }
+                    if (diff == INT16_MAX) {
+                        myStatus = ROUTE_EXEC_ERROR;
+                        myError = ROUTE_OVERFLOW;
+                        errorOption(myError);
+                        for (auto& j : candidatesH) {
+                            diff = ((diff) < (j-curLayer)) ? diff : j-curLayer;
+                        }
+                    }
+                }
+            } else {
+                if (candidatesV.size() == 0) {
+                    myStatus = ROUTE_EXEC_ERROR;
+                    myError = ROUTE_DIR_ILLEGAL;
+                    errorOption(myError);
+                    targetLayer = 1;
+                    diff = 0;
+                } else {
+                    for (auto& j : candidatesV) {
+                        Segment newSeg = Segment(*seg);
+                        newSeg.assignLayer(j);
+                        vector<Layer*> newGrids = newSeg.newGrid(net, myAlpha);
+                        for (auto g : newGrids) { g->addDemand(1); }
+                        if (!newSeg.checkOverflow()) {
+                            diff = ((diff) < (j-curLayer)) ? diff : j-curLayer;
+                        }
+                        for (auto g : newGrids) { g->removeDemand(1); }
+                    }
+                    if (diff == INT16_MAX) {
+                        myStatus = ROUTE_EXEC_ERROR;
+                        myError = ROUTE_OVERFLOW;
+                        errorOption(myError);
+                        for (auto& j : candidatesV) {
+                            diff = ((diff) < (j-curLayer)) ? diff : j-curLayer;
+                        }
+                    }
+                }
+            }
+            targetLayer = curLayer + diff;
+
+            
             
             if (curLayer != targetLayer) {
                 // Add a Z-seg
@@ -682,13 +729,16 @@ RouteMgr::koova_layerassign(NetList& toLayNet)
                 zSeg->print();
                 cout << endl;
                 curLayer = targetLayer;
+                /*
                 for (unsigned j=zSeg->startPos[2]; j<=zSeg->endPos[2]; ++j) {
                     if (this->check3dOverflow(zSeg->startPos[0], zSeg->startPos[1], j) == GRID_FULL_CAP) {
                         myStatus = ROUTE_EXEC_ERROR;
                         cout << "Should pass it\n";
                     }
-                }
+                }*/
                 zSeg->checkOverflow();
+                vector<Layer*> newZGrids = zSeg->newGrid(net, myAlpha);
+                for (auto g : newZGrids) { myAlpha.insert(g); g->addDemand(1); }
             }
             
             if (seg->endPos[2] && i == segCnt-1) {
@@ -712,30 +762,29 @@ RouteMgr::koova_layerassign(NetList& toLayNet)
                         }
                     }
                     zSeg1->checkOverflow();
+                    vector<Layer*> newZGrids = zSeg1->newGrid(net, myAlpha);
+                    for (auto g : newZGrids) { myAlpha.insert(g); g->addDemand(1); }
                 }
             }
             // Finish layer assignment
             seg->startPos[2] = targetLayer;
             seg->endPos[2] = targetLayer;
             seg->checkOverflow();
+            vector<Layer*> decision = seg->newGrid(net, myAlpha);
+            for (auto g : decision) {
+                myAlpha.insert(g);
+                g->addDemand(1); }
             cout << "Successfully assigned...";
             seg->print();
             cout << "\n";
             cout << "\n";
         }
-        add3DDemand(net);
 
         // Final check for the net
-        set<Layer*> alpha;
-        passGrid(net, alpha);
-        for (auto& grid : alpha) {
-            if (grid->checkOverflow() == GRID_OVERFLOW) {
-                cout << "Net " << net->_netId << " causes overflow!\n";
-                myStatus = ROUTE_EXEC_ERROR;
-                myError = ROUTE_OVERFLOW;
-                net->shouldReroute(true);
-                break;
-            }
+        if (net->checkOverflow()) {
+            myStatus = ROUTE_EXEC_ERROR;
+            myError = ROUTE_OVERFLOW;
+            net->shouldReroute(true);
         }
     }
     assert(myStatus != ROUTE_EXEC_TOT);

@@ -283,6 +283,9 @@ public:
     void print(ostream&) const;
     unsigned getWL() const ; // Manhattan Distance
     void passGrid(Net* net, set<Layer*>& alpha) const;
+    vector<Layer*> newGrid(Net* net, set<Layer*>& alpha) const;
+    void extend(); // TODO or I'm crazy
+    void assignLayer(unsigned);
     bool checkOverflow();
     void rearrange();
     unsigned startPos[3];
@@ -313,6 +316,16 @@ public:
     void initAssoCellInst();
     void avgPinLayer();
 
+    // TODO
+    // Layer assignment
+    RouteExecStatus layerAssign();
+    void addPinDemand();
+    void removePinDemand();
+    void assignH(Segment*);
+    void assignV(Segment*);
+    void assignZ(Segment*);
+    bool checkOverflow();
+    
     //Accessing functions
     unsigned getMinLayCons() { return _minLayCons; }
     set<PinPair> getPinSet() { return _pinSet; }

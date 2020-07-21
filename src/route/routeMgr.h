@@ -21,36 +21,13 @@ using namespace std;
 
 extern RouteMgr *routeMgr;
 
-//----------------------------------------------------------------------
-//    routing execution status
-//----------------------------------------------------------------------
-enum RouteExecStatus
-{
-   ROUTE_EXEC_DONE  = 0,
-   ROUTE_EXEC_ERROR = 1,
-   ROUTE_EXEC_QUIT  = 2,
-   ROUTE_EXEC_NOP   = 3,
-
-   // dummy
-   ROUTE_EXEC_TOT
-};
-
-enum RouteExecError
-{
-   ROUTE_OVERFLOW     = 0,
-   ROUTE_DIR_ILLEGAL  = 1,
-
-   // dummy
-   ROUTE_EXEC_ERROR_TOT
-};
-
 class RouteMgr
 {
 friend CellInst;
 friend Net;
 friend NetRank;
 friend void Segment::passGrid(Net*, set<Layer*>&) const;
-
+friend vector<Layer*> Segment::newGrid(Net* net, set<Layer*>& alpha) const;
 public:
     RouteMgr() : _placeStrategy(0) { _startTime = clock(); }
     ~RouteMgr() { // TODO: reset();

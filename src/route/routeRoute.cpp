@@ -71,8 +71,7 @@ RouteMgr::route()
     //route2D(targetNet);
     cout << endl;
     route2D(targetNet);
-    koova_layerassign(targetNet);
-    return ROUTE_EXEC_DONE;
+    return koova_layerassign(targetNet);
     //return layerassign(targetNet);
 }
 

@@ -36,4 +36,27 @@ typedef vector<Layer*> LayerList;
 typedef tuple<unsigned,unsigned,unsigned> OutputCell; //CellID, row, col
 typedef pair<Segment,unsigned> OutputSeg; //Segment, netID
 
+//----------------------------------------------------------------------
+//    routing execution status
+//----------------------------------------------------------------------
+enum RouteExecStatus
+{
+   ROUTE_EXEC_DONE  = 0,
+   ROUTE_EXEC_ERROR = 1,
+   ROUTE_EXEC_QUIT  = 2,
+   ROUTE_EXEC_NOP   = 3,
+
+   // dummy
+   ROUTE_EXEC_TOT
+};
+
+enum RouteExecError
+{
+   ROUTE_OVERFLOW     = 0,
+   ROUTE_DIR_ILLEGAL  = 1,
+
+   // dummy
+   ROUTE_EXEC_ERROR_TOT
+};
+
 #endif // ROUTE_DEF_H

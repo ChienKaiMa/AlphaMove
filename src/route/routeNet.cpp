@@ -216,6 +216,52 @@ Segment::passGrid(Net* net, set<Layer*>& alpha) const
     }
 }
 
+vector<Layer*>
+Segment::newGrid(Net* net, set<Layer*>& alpha) const
+{
+    if (!isValid()) { return vector<Layer*>(); }
+    unsigned i0 = startPos[0];
+    unsigned j0 = startPos[1];
+    unsigned k0 = startPos[2];
+    unsigned i1 = endPos[0];
+    unsigned j1 = endPos[1];
+    unsigned k1 = endPos[2];
+
+    vector<Layer*> myBoy;
+    if (checkDir() == DIR_H) {
+        if (j0 > j1) {
+            unsigned tmp = j0;
+            j0 = j1;
+            j1 = tmp;
+        }
+        for (unsigned x=j0; x<=j1; ++x) {
+            if ((alpha.find((*(routeMgr->_gridList[i0-1][x-1]))[k0])) == alpha.end())
+            { myBoy.push_back((*(routeMgr->_gridList[i0-1][x-1]))[k0]); }
+        }
+    } else if (checkDir() == DIR_V) {
+        if (i0 > i1) {
+            unsigned tmp = i0;
+            i0 = i1;
+            i1 = tmp;
+        }
+        for (unsigned x=i0; x<=i1; ++x) {
+            if ((alpha.find((*(routeMgr->_gridList[x-1][j0-1]))[k0])) == alpha.end())
+            { myBoy.push_back((*(routeMgr->_gridList[x-1][j0-1]))[k0]); }
+        }
+    } else {
+        if (k0 > k1) {
+            unsigned tmp = k0;
+            k0 = k1;
+            k1 = tmp;
+        }
+        for (unsigned x=k0; x<=k1; ++x) {
+            if ((alpha.find((*(routeMgr->_gridList[i0-1][j0-1]))[x])) == alpha.end())
+            { myBoy.push_back((*(routeMgr->_gridList[i0-1][j0-1]))[x]); }
+        }
+    }
+    return myBoy;
+}
+
 void
 Segment::rearrange()
 {
@@ -227,6 +273,13 @@ Segment::rearrange()
             startPos[i] = temp;
         }
     }
+}
+
+void
+Segment::assignLayer(unsigned l)
+{
+    startPos[2] = l;
+    endPos[2] = l;
 }
 
 bool
@@ -248,6 +301,7 @@ Segment::checkOverflow()
     }
     cout << OVCNT << " grids in "; print(); cout << " is overflown!\n";
     cout << FULLCNT << " grids in "; print(); cout << " is full!\n";
+    return OVCNT;
 }
     
 
@@ -272,6 +326,67 @@ Net::printPinSet() const
         auto a = *it;
         cout << a.first << " " << a.second << endl;
     }
+}
+
+RouteExecStatus
+Net::layerAssign()
+{
+    addPinDemand();
+    for (auto seg : _netSegs)
+    {
+        if (seg->checkDir() == DIR_H) { assignH(seg); }
+        else if (seg->checkDir() == DIR_V) { assignV(seg); }
+        else if (seg->checkDir() == DIR_Z) { assignZ(seg); }
+        seg->isValid();
+    }
+    checkOverflow();
+    return ROUTE_EXEC_DONE;
+}
+
+void
+Net::addPinDemand()
+{
+
+}
+
+void
+Net::removePinDemand()
+{
+    
+}
+
+void
+Net::assignH(Segment*)
+{
+
+}
+
+void
+Net::assignV(Segment*)
+{
+    
+}
+
+void
+Net::assignZ(Segment*)
+{
+    
+}
+
+bool
+Net::checkOverflow()
+{
+    bool isOV = false;
+    set<Layer*> alpha;
+    routeMgr->passGrid(this, alpha);
+    for (auto& grid : alpha) {
+        if (grid->checkOverflow() == GRID_OVERFLOW) {
+            cout << "Net " << _netId << " causes overflow!\n";
+            isOV = true;
+            break;
+        }
+    }
+    return isOV;
 }
 
 void
