@@ -93,15 +93,13 @@ public:
 
     RouteExecStatus    errorOption(RouteExecError);
     RouteExecStatus    route2D(Net*);
-    RouteExecStatus    route2DAll();
     RouteExecStatus    route();
     void    koova_place();
     void    change_notifier(CellInst*);
     void    koova_route();
     
     bool    findCand(unsigned min, unsigned max, vector<int>&);
-    RouteExecStatus    layerassign(NetList&);
-    RouteExecStatus    koova_layerassign(Net*);
+    RouteExecStatus    layerassign(Net*);
 
     /**********************************/
     /*      Overflow prevention       */

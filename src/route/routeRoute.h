@@ -31,6 +31,8 @@ public:
     }
 
     double GetMap(int x, int y){
+        if (x <= 0) return INT32_MAX;
+        if (y <= 0) return INT32_MAX;
         return routeMgr->getCongestion(Pos(x, y));
     }
 

@@ -222,7 +222,7 @@ PlaceCmd::help() const
 }
 
 //----------------------------------------------------------------------
-//    Route [ -3D | -2D | -Check | -Summary ]
+//    Route [ -3D | -Check | -Summary ]
 //----------------------------------------------------------------------
 CmdExecStatus
 RouteCmd::exec(const string& option)
@@ -238,8 +238,6 @@ RouteCmd::exec(const string& option)
 
    if (token.empty() || myStrNCmp("-3D", token, 2) == 0)	
       routeMgr->route();
-   else if (myStrNCmp("-2D", token, 2) == 0)	
-      routeMgr->route2DAll();
    else if (myStrNCmp("-Check", token, 2) == 0) {
       // TODO
       cout << "TODO\n";
@@ -259,7 +257,7 @@ RouteCmd::exec(const string& option)
 void
 RouteCmd::usage(ostream& os) const
 {
-   os << "Usage: Route [ -3D | -2D | -Check | -Summary ]" << endl;
+   os << "Usage: Route [ -3D | -Check | -Summary ]" << endl;
 }
 
 void

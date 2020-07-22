@@ -568,19 +568,17 @@ RouteMgr::errorOption(RouteExecError rError)
 }
 
 RouteExecStatus
-RouteMgr::koova_layerassign(Net* net)
+RouteMgr::layerassign(Net* net)
 {
-    cout << "Koova-LayerAssign...\n";
+    cout << "\nLayerAssign...\n";
     vector<Segment*> toDel;
-    unsigned maxLayer = _laySupply.size();
+    //unsigned maxLayer = _laySupply.size();
     RouteExecStatus myStatus = ROUTE_EXEC_DONE;
     RouteExecError myError = ROUTE_EXEC_ERROR_TOT;
 
         // 1. Find candidates
         int layCons = net->_minLayCons;
         int minLayer = layCons ? layCons : 1;
-        int minH = minLayer + (1 - minLayer%2);
-        int minV = minLayer + (minLayer%2);
 
         int curLayer = 1;
         int targetLayer = minLayer;
@@ -601,7 +599,7 @@ RouteMgr::koova_layerassign(Net* net)
             // Z
             if (seg->checkDir() == DIR_Z)
             {
-                if (!(seg->startPos[2] >= minLayer || seg->endPos[2] >= minLayer)) {
+                if (!(seg->startPos[2] >= unsigned(minLayer) || seg->endPos[2] >= unsigned(minLayer))) {
                     if (seg->startPos[2] > seg->endPos[2]) {
                         seg->startPos[2] = seg->endPos[2];
                         seg->endPos[2] = minLayer;
@@ -611,7 +609,7 @@ RouteMgr::koova_layerassign(Net* net)
                         curLayer = minLayer;
                     }
                 } else if (seg->endPos[2] == seg->startPos[2]) {
-                    if (seg->startPos[2] == curLayer) {
+                    if (seg->startPos[2] == unsigned(curLayer)) {
                         seg->print();
                         #ifdef DEBUG
                         cout << " Stupid seg... Delete it!\n";
@@ -645,7 +643,7 @@ RouteMgr::koova_layerassign(Net* net)
             // Try to select a layer with no overflow for the H or V segment
             // If overflow is inevitable, choose the layer closest to curLayer
             // Connect to the net with Z-segments
-            if (seg->startPos[2] && curLayer != seg->startPos[2]) {
+            if (seg->startPos[2] && unsigned(curLayer) != seg->startPos[2]) {
                 // Add a Z-seg
                 Segment* zSeg = new Segment(seg);
                 zSeg->startPos[2] = curLayer;
@@ -675,7 +673,7 @@ RouteMgr::koova_layerassign(Net* net)
                 }
                 //for (auto g : newZGrids) { g->removeDemand(1); }
                 for (auto g : newZGrids) { myAlpha.insert(g); /*g->addDemand(1);*/ }
-                curLayer = (curLayer < seg->startPos[2]) ? curLayer : seg->startPos[2];
+                curLayer = (unsigned(curLayer) < seg->startPos[2]) ? curLayer : seg->startPos[2];
             }
 
             int diff = INT16_MAX;
@@ -784,10 +782,12 @@ RouteMgr::koova_layerassign(Net* net)
             }
             
             if (seg->endPos[2] && i == segCnt-1) {
+                #ifdef DEBUG
                 cout << "Last Seg ";
                 seg->print();
                 cout << "\n";
-                if (curLayer != seg->endPos[2]) {
+                #endif
+                if (unsigned(curLayer) != seg->endPos[2]) {
                     // Add a Z-seg
                     Segment* zSeg1 = new Segment(seg);
                     zSeg1->startPos[0] = seg->endPos[0];
@@ -848,202 +848,6 @@ RouteMgr::koova_layerassign(Net* net)
     } else { return ROUTE_EXEC_DONE; }
 }
 
-RouteExecStatus RouteMgr::layerassign(NetList& toLayNet)
-{
-    cout << "LayerAssign...\n";
-    vector<Segment*> toDel;
-    unsigned maxLayer = _laySupply.size();
-    bool isOV = false;
-
-    for (auto& net : toLayNet)
-    {
-        // Determine target layer
-        // - Satisfy minLayCons
-        // - Use less layers as possible
-        // 1. Find candidates
-        // ?? < minLayer < ?? < maxLayer
-        // ?? can be curLayer or avgPinLayer or PinLayer
-        // 2. Check grid capacity
-        // 3. Choose the layer with shortest via
-        // 4. Connect the wires
-        // TODO: Add via to minLayer
-        unsigned segCnt = net->_netSegs.size();
-        unsigned layCons = net->_minLayCons;
-        
-        cout << "\nNet " << net->_netId;
-        cout << " MinLayerConstr " << layCons << "\n";
-
-        int minLayer = layCons ? layCons : 1;
-        int minH = minLayer + (1 - minLayer%2);
-        int minV = minLayer + (minLayer%2);
-        int curLayer = 1;
-        int targetLayer = minLayer;
-        vector<int> candidatesV;
-        vector<int> candidatesH;
-        // 1. Find candidates
-        net->findHCand(candidatesH);
-        net->findVCand(candidatesV);
-        
-        for (unsigned i=0; i<segCnt; ++i)
-        {
-            Segment* seg = net->_netSegs[i];
-            vector<int> candidates;
-            
-            if (!i) { curLayer = seg->startPos[2]; }
-            #ifdef DEBUG
-            cout << "Assigning ";
-            seg->print();
-            cout << " on " << seg->checkDir() << "\n";
-            cout << "curLayer " << curLayer << " minLayer " << minLayer
-            << " avgPinLayer " << net->_avgPinLayer << "\n";
-            #endif
-
-            // Z
-            if (seg->checkDir() == DIR_Z)
-            {
-                if (!(seg->startPos[2] >= minLayer || seg->endPos[2] >= minLayer)) {
-                    if (seg->startPos[2] > seg->endPos[2]) {
-                        seg->startPos[2] = seg->endPos[2];
-                        seg->endPos[2] = minLayer;
-                        curLayer = minLayer;
-                    } else {
-                        seg->endPos[2] = minLayer;
-                        curLayer = minLayer;
-                    }
-                } else if (seg->endPos[2] == seg->startPos[2]) {
-                    if (seg->startPos[2] == curLayer) {
-                        seg->print();
-                        cout << " Stupid seg... Delete it!\n";
-                        //toDel.push_back(seg);
-                        //net->_netSegs.erase(net->_netSegs.begin()+i);
-                        //curLayer = seg->startPos[2];
-                        continue;
-                    } else {
-                        seg->startPos[2] = curLayer;
-                        continue;
-                    }
-                }
-                seg->checkOverflow();
-
-                #ifndef DEBUG
-                cout << "Successfully assigned...";
-                seg->print();
-                cout << "\n";
-                cout << "\n";
-                #endif
-                continue;
-            }
-            
-            // H or V
-            int diff = INT16_MAX;
-            if (seg->checkDir() == DIR_H) {
-                if (candidatesH.size() == 0) {
-                    cout << "No candidate was found!\n";
-                    cout << "Do placement again!\n";
-                    isOV = true;
-                    targetLayer = 1;
-                }
-                for (auto& j : candidatesH) {
-                    diff = ((diff) < (j-curLayer)) ? diff : j-curLayer;
-                }
-            } else {
-                if (candidatesV.size() == 0) {
-                    cout << "No candidate was found!\n";
-                    cout << "Do placement again!\n";
-                    isOV = true;
-                    targetLayer = 1;
-                }
-                for (auto& j : candidatesV) {
-                    diff = ((diff) < (j-curLayer)) ? diff : j-curLayer;
-                }
-            }
-            targetLayer = curLayer + diff;
-            //cout << "targetLayer " << targetLayer << "\n";
-            // 2. Check grid capacity
-            /*
-            if (!check3dOverflow(seg->startPos[0], seg->startPos[1], i)) {
-                
-            } else {
-                return false;
-            }
-            */
-            if (seg->startPos[2] && curLayer != seg->startPos[2]) {
-                // Add a Z-seg
-                Segment* zSeg = new Segment(seg);
-                zSeg->startPos[2] = curLayer;
-                zSeg->endPos[0] = seg->startPos[0];
-                zSeg->endPos[1] = seg->startPos[1];
-                zSeg->endPos[2] = seg->startPos[2];
-                net->addSeg(zSeg);
-                cout << "Add new Segment ";
-                zSeg->print();
-                cout << endl;
-                zSeg->checkOverflow();
-            }
-            
-            if (curLayer != targetLayer) {
-                // Add a Z-seg
-                Segment* zSeg = new Segment(seg);
-                zSeg->startPos[2] = curLayer;
-                zSeg->endPos[0] = seg->startPos[0];
-                zSeg->endPos[1] = seg->startPos[1];
-                zSeg->endPos[2] = targetLayer;
-                net->addSeg(zSeg);
-                cout << "Add new Segment ";
-                zSeg->print();
-                cout << endl;
-                curLayer = targetLayer;
-                zSeg->checkOverflow();
-            }
-            
-            if (seg->endPos[2] && i == segCnt-1) {
-                cout << "Last Seg ";
-                seg->print();
-                cout << "\n";
-                if (curLayer != seg->endPos[2]) {
-                    // Add a Z-seg
-                    Segment* zSeg1 = new Segment(seg);
-                    zSeg1->startPos[0] = seg->endPos[0];
-                    zSeg1->startPos[1] = seg->endPos[1];
-                    zSeg1->startPos[2] = curLayer;
-                    net->addSeg(zSeg1);
-                    cout << "Add new Segment ";
-                    zSeg1->print();
-                    cout << endl;
-                    zSeg1->checkOverflow();
-                }
-            }
-            // Finish layer assignment
-            seg->startPos[2] = targetLayer;
-            seg->endPos[2] = targetLayer;
-            seg->checkOverflow();
-            #ifdef DEBUG
-            cout << "Successfully assigned...";
-            seg->print();
-            cout << "\n";
-            cout << "\n";
-            #endif
-        }
-        add3DDemand(net);
-        //net->printSummary();
-        set<Layer*> alpha;
-        passGrid(net, alpha);
-        for (auto& grid : alpha) {
-            if (grid->checkOverflow() == GRID_OVERFLOW) {
-                cout << "Net " << net->_netId << " causes overflow!\n";
-                isOV = true;
-                net->shouldReroute(true);
-            }
-        }
-    }
-    for (auto& seg1 : toDel) {
-        cout << "Deleting " << seg1 << "\n";
-        delete seg1;
-    }
-    //return !isOV;
-    //assert(myStatus == ROUTE_EXEC_TOT);
-    return ROUTE_EXEC_DONE;
-}
 
 void
 RouteMgr::koova_place()
