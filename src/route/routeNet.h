@@ -347,7 +347,7 @@ private:
     set<PinPair>        _pinSet; // a set of pins i.e. <instance id, pin id>  pair
     vector<Segment*>    _netSegs; //TODO pointer?
     // unordered_map< unsigned, Pos > _pinPos; // a map from instance id->Pos(current placement);
-    bool                _toReroute = false; // TODO: decide whether true or false
+    bool                _toReroute = true; // TODO: decide whether true or false
 
     //bounding box
     unsigned            _centerRow;

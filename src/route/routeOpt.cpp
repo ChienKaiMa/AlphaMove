@@ -328,7 +328,7 @@ void RouteMgr::forcedirectedPlace (){
                 break;
             }
         }
-        if(_instList[i]->is_movable() && (_instList[i]->_hasmovedbyfd == false) /*&& (min_lay_constraint == false)*/){
+        if(_instList[i]->is_movable() && (_instList[i]->_hasmovedbyfd == false) && (min_lay_constraint == false)){
             //cout << "CellInst " << i+1 << " on (" << _instList[i]->getPos().first << "," << _instList[i]->getPos().second << ") has 2dcongestion " << setprecision(3) << _instList[i]->getGrid()->get2dCongestion() << "\n";
             moveCell = _instList[i];
             s = i;
@@ -348,7 +348,7 @@ void RouteMgr::forcedirectedPlace (){
                     break;
                 }
             }
-            if((_instList[i]->is_movable()) && (_instList[i]->getGrid()->get2dCongestion() < moveCell->getGrid()->get2dCongestion()) && (_instList[i]->_hasmovedbyfd == false) /*&& (min_lay_constraint == false)*/)
+            if((_instList[i]->is_movable()) && (_instList[i]->getGrid()->get2dCongestion() < moveCell->getGrid()->get2dCongestion()) && (_instList[i]->_hasmovedbyfd == false) && (min_lay_constraint == false))
                 moveCell = _instList[i];
         }
     }
