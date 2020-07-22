@@ -320,7 +320,15 @@ void RouteMgr::forcedirectedPlace (){
     CellInst* moveCell;
     unsigned s=_instList.size()-1;
     for(unsigned i=0; i<_instList.size(); ++i){
-        if(_instList[i]->is_movable() && (_instList[i]->_hasmovedbyfd == false)){
+        bool min_lay_constraint = false;
+        for(unsigned j=0;j<_instList[i]->assoNet.size();++j){
+            if(_netList[_instList[i]->assoNet[j]-1]->getMinLayCons() == _laySupply.size()){
+                min_lay_constraint = true;
+                cout << "Instance " << i+1 << " is in min_lay_constraint net " << _instList[i]->assoNet[j] << "!\n";
+                break;
+            }
+        }
+        if(_instList[i]->is_movable() && (_instList[i]->_hasmovedbyfd == false) /*&& (min_lay_constraint == false)*/){
             //cout << "CellInst " << i+1 << " on (" << _instList[i]->getPos().first << "," << _instList[i]->getPos().second << ") has 2dcongestion " << setprecision(3) << _instList[i]->getGrid()->get2dCongestion() << "\n";
             moveCell = _instList[i];
             s = i;
@@ -331,7 +339,15 @@ void RouteMgr::forcedirectedPlace (){
     for(unsigned i=s+1; i<_instList.size(); ++i){
         // cout << "Grid addr : " << _instList[i]->getGrid() << " Mgr Grid Addr : " << _gridList[_instList[i]->getPos().first-1][_instList[i]->getPos().second-1] << endl; 
         // cout << "CellInst " << i+1 << " on (" << _instList[i]->getPos().first << "," << _instList[i]->getPos().second << ") has 2dcongestion " << setprecision(3) << _instList[i]->getGrid()->get2dCongestion() << "\n";
-        if((_instList[i]->is_movable()) && (_instList[i]->getGrid()->get2dCongestion() < moveCell->getGrid()->get2dCongestion()) && (_instList[i]->_hasmovedbyfd == false))
+        bool min_lay_constraint = false;
+        for(unsigned j=0;j<_instList[i]->assoNet.size();++j){
+            if(_netList[_instList[i]->assoNet[j]-1]->getMinLayCons() == _laySupply.size()){
+                min_lay_constraint = true;
+                cout << "Instance " << i+1 << " is in min_lay_constraint net " << _instList[i]->assoNet[j] << "!\n";
+                break;
+            }
+        }
+        if((_instList[i]->is_movable()) && (_instList[i]->getGrid()->get2dCongestion() < moveCell->getGrid()->get2dCongestion()) && (_instList[i]->_hasmovedbyfd == false) /*&& (min_lay_constraint == false)*/)
             moveCell = _instList[i];
     }
 
