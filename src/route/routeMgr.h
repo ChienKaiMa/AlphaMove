@@ -27,9 +27,9 @@ friend CellInst;
 friend Net;
 friend NetRank;
 friend void Segment::passGrid(Net*, set<Layer*>&) const;
-friend vector<Layer*> Segment::newGrid(Net* net, set<Layer*>& alpha) const;
+friend set<Layer*> Segment::newGrid(Net* net, set<Layer*>& alpha) const;
 public:
-    RouteMgr() : _placeStrategy(0) { _startTime = clock(); }
+    RouteMgr() : _placeStrategy(FORCE_DIRECTED) { _startTime = clock(); }
     ~RouteMgr() { // TODO: reset();
     }    
     bool    readCircuit(const string&);
@@ -92,7 +92,7 @@ public:
     void     mainPnR();
 
     RouteExecStatus    errorOption(RouteExecError);
-    RouteExecStatus    route2D(NetList&);
+    RouteExecStatus    route2D(Net*);
     RouteExecStatus    route2DAll();
     RouteExecStatus    route();
     void    koova_place();
@@ -101,7 +101,7 @@ public:
     
     bool    findCand(unsigned min, unsigned max, vector<int>&);
     RouteExecStatus    layerassign(NetList&);
-    RouteExecStatus    koova_layerassign(NetList&);
+    RouteExecStatus    koova_layerassign(Net*);
 
     /**********************************/
     /*      Overflow prevention       */
@@ -124,6 +124,7 @@ public:
 
     void    initNeighborDemand();
     GridStatus    check3dOverflow(unsigned, unsigned, unsigned);
+    bool    checkOverflow();
     void    initCellInstList();
     /**********************************/
     /*            Output              */
@@ -147,7 +148,7 @@ private:
     unordered_map<MCTri, int, TriHash>        _nonDefaultSupply; // supply offset row,col,lay
     
     // Current
-    bool              _placeStrategy; // 0 for force-directed, 1 for congestion-based move
+    PlaceStrategy     _placeStrategy; // 0 for force-directed, 1 for congestion-based move
     clock_t           _startTime;
     unsigned          _initTotalWL;
     InstSet           _curMovedSet;

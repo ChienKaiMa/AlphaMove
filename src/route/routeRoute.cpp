@@ -44,8 +44,9 @@ RouteMgr::route2DAll()
     }
     // sorted by #pins
     //sort( targetNet.begin(), targetNet.end(), netCompare);
-
-    route2D(targetNet);
+    for (auto n : targetNet) {
+        route2D(n);
+    }
     cout << endl;
 }
 
@@ -54,15 +55,21 @@ RouteMgr::route()
 {
     cout << "Route..." << endl;
     NetList targetNet = NetList();
+    RouteExecStatus myStatus = ROUTE_EXEC_DONE;
     //for (auto m : _netList){
     for (auto nPair : _netRank->NetWLpairs){
         Net* m = _netList[nPair.first-1];
         if (m->shouldReroute()){
-            //NetList targetNet = NetList();
             targetNet.push_back(m);
             remove3DDemand(m);
             m->ripUp();
             // cout << m->_netSegs.size() << " " << m->_netSegs.capacity() << endl;
+        }
+    }
+    for (auto n : targetNet) {
+        route2D(n);
+        if (koova_layerassign(n) == ROUTE_EXEC_ERROR) {
+            myStatus = ROUTE_EXEC_ERROR;
         }
     }
     // sorted by #pins
@@ -70,12 +77,12 @@ RouteMgr::route()
 
     //route2D(targetNet);
     cout << endl;
-    route2D(targetNet);
-    return koova_layerassign(targetNet);
+    
+    return myStatus;
     //return layerassign(targetNet);
 }
 
-RouteExecStatus RouteMgr::route2D(NetList& toRouteNet)
+RouteExecStatus RouteMgr::route2D(Net* n)
 {
     // 1.   for each to-be routed net , sorted by #Pins
     //      route the largest Net first with Bounds(initially bounding box)
@@ -85,25 +92,23 @@ RouteExecStatus RouteMgr::route2D(NetList& toRouteNet)
     // 4.   iteratively untill all net is routed in 2D Grid graph.      
     cout << "2D-Routing..." << endl;
     
-    for (auto n : toRouteNet){
-        auto pinSet = n->_pinSet;
-        cout << "Routing N" << n->_netId << endl;
-        unsigned availale_layer = _laySupply.size() - n->getMinLayCons() + 1;
-        double demand = ((double)_laySupply.size() / (double)availale_layer);
-        for(auto it=pinSet.begin(); it != --pinSet.end();){
-            Pos pos1 = getPinPos(*it);
-            Pos pos2 = getPinPos(*(++it));
-            unsigned lay1 = getPinLay(*(--it));
-            unsigned lay2 = getPinLay(*(++it));
-            if (!route2Pin(pos1, pos2, n, demand, lay1, lay2)) {
-                cout << "route2Pin("
-                << pos1.first << " " << pos1.second << ", " 
-                << pos2.first << " " << pos2.second
-                << " ) failed!" << endl;
-            }
+    auto pinSet = n->_pinSet;
+    cout << "Routing N" << n->_netId << endl;
+    unsigned availale_layer = _laySupply.size() - n->getMinLayCons() + 1;
+    double demand = ((double)_laySupply.size() / (double)availale_layer);
+    for(auto it=pinSet.begin(); it != --pinSet.end();){
+        Pos pos1 = getPinPos(*it);
+        Pos pos2 = getPinPos(*(++it));
+        unsigned lay1 = getPinLay(*(--it));
+        unsigned lay2 = getPinLay(*(++it));
+        if (!route2Pin(pos1, pos2, n, demand, lay1, lay2)) {
+            cout << "route2Pin("
+            << pos1.first << " " << pos1.second << ", " 
+            << pos2.first << " " << pos2.second
+            << " ) failed!" << endl;
         }
-        n->shouldReroute(false);
     }
+    n->shouldReroute(false);
     return ROUTE_EXEC_DONE;
 }
 

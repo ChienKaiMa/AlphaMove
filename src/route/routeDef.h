@@ -37,6 +37,15 @@ typedef tuple<unsigned,unsigned,unsigned> OutputCell; //CellID, row, col
 typedef pair<Segment,unsigned> OutputSeg; //Segment, netID
 
 //----------------------------------------------------------------------
+//    placement strategy
+//----------------------------------------------------------------------
+enum PlaceStrategy
+{
+   FORCE_DIRECTED,
+   CONGESTION_BASED,
+};
+
+//----------------------------------------------------------------------
 //    routing execution status
 //----------------------------------------------------------------------
 enum RouteExecStatus

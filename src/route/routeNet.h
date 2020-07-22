@@ -283,7 +283,7 @@ public:
     void print(ostream&) const;
     unsigned getWL() const ; // Manhattan Distance
     void passGrid(Net* net, set<Layer*>& alpha) const;
-    vector<Layer*> newGrid(Net* net, set<Layer*>& alpha) const;
+    set<Layer*> newGrid(Net* net, set<Layer*>& alpha) const;
     void extend(); // TODO or I'm crazy
     void assignLayer(unsigned);
     bool checkOverflow();
@@ -347,7 +347,7 @@ private:
     set<PinPair>        _pinSet; // a set of pins i.e. <instance id, pin id>  pair
     vector<Segment*>    _netSegs; //TODO pointer?
     // unordered_map< unsigned, Pos > _pinPos; // a map from instance id->Pos(current placement);
-    bool                _toReroute = true; // TODO: decide whether true or false
+    bool                _toReroute = false; // TODO: decide whether true or false
 
     //bounding box
     unsigned            _centerRow;

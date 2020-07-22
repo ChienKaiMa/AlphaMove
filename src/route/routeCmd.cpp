@@ -291,14 +291,9 @@ OptimizeCmd::exec(const string& option)
       routeMgr->place();
       routeMgr->route();
       routeMgr->replaceBest();
-   } else if (myStrNCmp("-Overflow", token, 2) == 0)	
-      for (unsigned k=1; k<=routeMgr->getLayerCnt(); ++k) {
-         for (unsigned i=1; i<=Ggrid::rEnd; ++i) {
-            for (unsigned j=1; j<=Ggrid::cEnd; ++j) {
-               routeMgr->check3dOverflow(i, j, k);
-            }
-         }
-      }
+   } else if (myStrNCmp("-Overflow", token, 2) == 0) {
+      routeMgr->checkOverflow();
+   }
    else if (myStrNCmp("-Evaluate", token, 2) == 0)	
       routeMgr->replaceBest();
    else if (myStrNCmp("-Rank", token, 2) == 0)

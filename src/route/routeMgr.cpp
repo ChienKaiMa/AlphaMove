@@ -788,6 +788,23 @@ RouteMgr::check3dOverflow(unsigned i, unsigned j, unsigned k) {
     return myStatus;
 }
 
+bool
+RouteMgr::checkOverflow()
+{
+    int OVCNT = 0;	
+    for (unsigned k=1; k<=routeMgr->getLayerCnt(); ++k) {
+        for (unsigned i=1; i<=Ggrid::rEnd; ++i) {
+            for (unsigned j=1; j<=Ggrid::cEnd; ++j) {
+                if (routeMgr->check3dOverflow(i, j, k) == GRID_OVERFLOW) {
+                    ++OVCNT;
+                }
+            }
+        }
+    }
+    cout << OVCNT << " grids are overflown!\n";
+    return OVCNT;
+}
+
 unsigned 
 RouteMgr::evaluateWireLen() const{
     unsigned newWL = 0;

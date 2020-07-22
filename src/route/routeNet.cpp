@@ -216,10 +216,10 @@ Segment::passGrid(Net* net, set<Layer*>& alpha) const
     }
 }
 
-vector<Layer*>
+set<Layer*>
 Segment::newGrid(Net* net, set<Layer*>& alpha) const
 {
-    if (!isValid()) { return vector<Layer*>(); }
+    if (!isValid()) { return set<Layer*>(); }
     unsigned i0 = startPos[0];
     unsigned j0 = startPos[1];
     unsigned k0 = startPos[2];
@@ -227,7 +227,7 @@ Segment::newGrid(Net* net, set<Layer*>& alpha) const
     unsigned j1 = endPos[1];
     unsigned k1 = endPos[2];
 
-    vector<Layer*> myBoy;
+    set<Layer*> myBoy;
     if (checkDir() == DIR_H) {
         if (j0 > j1) {
             unsigned tmp = j0;
@@ -236,7 +236,7 @@ Segment::newGrid(Net* net, set<Layer*>& alpha) const
         }
         for (unsigned x=j0; x<=j1; ++x) {
             if ((alpha.find((*(routeMgr->_gridList[i0-1][x-1]))[k0])) == alpha.end())
-            { myBoy.push_back((*(routeMgr->_gridList[i0-1][x-1]))[k0]); }
+            { myBoy.insert((*(routeMgr->_gridList[i0-1][x-1]))[k0]); }
         }
     } else if (checkDir() == DIR_V) {
         if (i0 > i1) {
@@ -246,7 +246,7 @@ Segment::newGrid(Net* net, set<Layer*>& alpha) const
         }
         for (unsigned x=i0; x<=i1; ++x) {
             if ((alpha.find((*(routeMgr->_gridList[x-1][j0-1]))[k0])) == alpha.end())
-            { myBoy.push_back((*(routeMgr->_gridList[x-1][j0-1]))[k0]); }
+            { myBoy.insert((*(routeMgr->_gridList[x-1][j0-1]))[k0]); }
         }
     } else {
         if (k0 > k1) {
@@ -256,7 +256,7 @@ Segment::newGrid(Net* net, set<Layer*>& alpha) const
         }
         for (unsigned x=k0; x<=k1; ++x) {
             if ((alpha.find((*(routeMgr->_gridList[i0-1][j0-1]))[x])) == alpha.end())
-            { myBoy.push_back((*(routeMgr->_gridList[i0-1][j0-1]))[x]); }
+            { myBoy.insert((*(routeMgr->_gridList[i0-1][j0-1]))[x]); }
         }
     }
     return myBoy;
