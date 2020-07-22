@@ -29,28 +29,6 @@ bool netCompare(Net* n1, Net* n2) // greater than , decsending order
 /*   Public member functions about optimization   */
 /**************************************************/
 RouteExecStatus
-RouteMgr::route2DAll()
-{
-    NetList targetNet = NetList();
-    //for (auto m : _netList){
-    for (auto nPair : _netRank->NetWLpairs){
-        Net* m = _netList[nPair.first-1];
-        if (m->shouldReroute()){
-            targetNet.push_back(m);
-            remove3DDemand(m);
-            m->ripUp();
-            // cout << m->_netSegs.size() << " " << m->_netSegs.capacity() << endl;
-        }
-    }
-    // sorted by #pins
-    //sort( targetNet.begin(), targetNet.end(), netCompare);
-    for (auto n : targetNet) {
-        route2D(n);
-    }
-    cout << endl;
-}
-
-RouteExecStatus
 RouteMgr::route()
 {
     cout << "Route..." << endl;
@@ -68,7 +46,7 @@ RouteMgr::route()
     }
     for (auto n : targetNet) {
         route2D(n);
-        if (koova_layerassign(n) == ROUTE_EXEC_ERROR) {
+        if (layerassign(n) == ROUTE_EXEC_ERROR) {
             myStatus = ROUTE_EXEC_ERROR;
         }
     }
@@ -77,7 +55,7 @@ RouteMgr::route()
 
     //route2D(targetNet);
     cout << endl;
-    
+    if (checkOverflow() == ROUTE_EXEC_ERROR) { myStatus = ROUTE_EXEC_ERROR; }
     return myStatus;
     //return layerassign(targetNet);
 }

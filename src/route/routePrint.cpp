@@ -55,7 +55,7 @@ RouteMgr::printNetlist() const
 bool
 RouteMgr::printNet(int idx) const
 {
-    if (idx > _netList.size() || idx <= 0) {
+    if (size_t(idx) > _netList.size() || idx <= 0) {
         return false;
     } else {
         cout << endl;
@@ -68,7 +68,7 @@ RouteMgr::printNet(int idx) const
 bool
 RouteMgr::printAssoInst(int idx) const
 {
-    if (idx > _netList.size() || idx <= 0) {
+    if (size_t(idx) > _netList.size() || idx <= 0) {
         return false;
     } else {
         cout << endl;

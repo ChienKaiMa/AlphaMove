@@ -778,6 +778,7 @@ RouteMgr::check3dOverflow(unsigned i, unsigned j, unsigned k) {
     Layer* grid = _gridList[i-1][j-1]->operator[](k);
     
     GridStatus myStatus = grid->checkOverflow();
+    #ifdef DEBUG
     if (myStatus == GRID_FULL_CAP) {
         //cerr << "(" << i << ", " << j << ", "
         // << k << ") is full!\n";
@@ -785,6 +786,7 @@ RouteMgr::check3dOverflow(unsigned i, unsigned j, unsigned k) {
         cerr << "(" << i << ", " << j << ", "
         << k << ") is overflow!\n";
     }
+    #endif
     return myStatus;
 }
 

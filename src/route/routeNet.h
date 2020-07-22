@@ -171,8 +171,10 @@ public:
         if (_capacity == 0) { 
             //cerr << "Supply: " << _supply << ", Demand: " << _supply - _capacity << " ";
             return GRID_FULL_CAP; }
-        else if (_capacity < 0) { 
+        else if (_capacity < 0) {
+            #ifdef DEBUG 
             cerr << "Supply: " << _supply << ", Demand: " << _supply - _capacity << " ";
+            #endif
             return GRID_OVERFLOW; }
         else { return GRID_RISKY; }
     }
