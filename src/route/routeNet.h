@@ -161,7 +161,7 @@ class Layer
 public:
     Layer() : _supply(0) { _capacity = _supply; }
     ~Layer(){}
-    inline void setSupply(int supply) { _supply = supply; _capacity = supply; }
+    inline void setSupply(unsigned supply) { _supply = supply; _capacity = supply; }
     inline void addDemand(int offset) { _capacity -= offset; }
     inline void removeDemand(int offset) { _capacity += offset; }
 
@@ -179,7 +179,7 @@ public:
         else { return GRID_RISKY; }
     }
 private:
-    int _supply;
+    unsigned _supply;
     int _capacity;  // supply - demand
 };
 
@@ -311,7 +311,7 @@ public:
     Net(unsigned id, unsigned layCons): _netId(id), _minLayCons(layCons){};
     ~Net();
     inline void addPin(PinPair pin){ _pinSet.insert(pin); }
-    void addSeg(Segment* s) { _netSegs.push_back(s); }
+    void addSeg(Segment*& s) { _netSegs.push_back(s); }
     void shouldReroute(bool q) { _toReroute = q; }
     bool operator > (const Net& net ) const { return this->_pinSet.size() > net._pinSet.size(); }
     void ripUp();
@@ -349,7 +349,7 @@ private:
     set<PinPair>        _pinSet; // a set of pins i.e. <instance id, pin id>  pair
     vector<Segment*>    _netSegs; //TODO pointer?
     // unordered_map< unsigned, Pos > _pinPos; // a map from instance id->Pos(current placement);
-    bool                _toReroute = true; // TODO: decide whether true or false
+    bool                _toReroute = false; // TODO: decide whether true or false
 
     //bounding box
     unsigned            _centerRow;

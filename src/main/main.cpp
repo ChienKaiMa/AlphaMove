@@ -68,8 +68,8 @@ main(int argc, char** argv)
          cerr << "Output file open fail!" << endl;
          return 1;
       }
-      //alarm(TIME_LIMIT-100);
-      alarm(100);
+      alarm(TIME_LIMIT-100);
+      //alarm(20);
       signal(SIGALRM, &signal_handler);
       
       routeMgr = new RouteMgr();

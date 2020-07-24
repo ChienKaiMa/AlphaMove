@@ -133,7 +133,7 @@ private:
     // Initial
     unsigned          _maxMoveCnt;
     unsigned          _initTotalSegNum; // segment num
-    vector<OutputSeg> _initRouteSegs; // TODO: check redundancy
+    //vector<OutputSeg> _initRouteSegs; // TODO: check redundancy
     vector<OutputCell>_initCells;
     MCList            _mcList; // id->MC*
     InstList          _instList; // 1D array

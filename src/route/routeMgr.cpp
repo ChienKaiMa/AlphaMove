@@ -61,6 +61,7 @@ RouteMgr::readCircuit(const string& fileName)
     // Layers and supply
     ifs >> buffer; // NumLayers
     ifs >> tmpCnt; // LayerCount
+    _laySupply.resize(tmpCnt);
     for(unsigned i=0; i<tmpCnt; ++i)
     {
         // Layer* lay = new Layer;
@@ -69,8 +70,9 @@ RouteMgr::readCircuit(const string& fileName)
         ifs >> buffer; // Idx
         ifs >> buffer; // RoutingDirection
         ifs >> supply; // defaultSupplyOfOneGGrid
-        _laySupply.push_back(supply);
+        _laySupply[i] = supply;
     }
+    myUsage.report(true, true);cout << "\n";
     ifs >> buffer; // NumNonDefaultSupplyGGrid or NumMasterCell
     cout << "Reading nondefaultSupply\n";
     if (buffer == "NumNonDefaultSupplyGGrid")
@@ -102,14 +104,21 @@ RouteMgr::readCircuit(const string& fileName)
         }
         ifs >> buffer; // NumMasterCell
     }
-
+    myUsage.report(true, true);cout << "\n";
+    cout << "genGridList\n";
     genGridList();
+    myUsage.report(true, true);cout << "\n";
+    cout << "Init 2D supply\n";
     init2DSupply();
+    myUsage.report(true, true);cout << "\n";
+    cout << "Init 3D supply\n";
     init3DSupply();
-
+    myUsage.report(true, true);cout << "\n";
     cout << "Reading masterCell and demand\n";
     // MasterCell and demand
     ifs >> tmpCnt; // masterCellCount
+    _mcList.resize(tmpCnt);
+
     for(unsigned i=1; i<tmpCnt+1; ++i)
     {
         ifs >> buffer; // MasterCell
@@ -139,8 +148,9 @@ RouteMgr::readCircuit(const string& fileName)
                 Laren->addBlkg(j, layer, tmpCnt3);
             }
         }
-        _mcList.push_back(Laren);
+        _mcList[i-1] = Laren;
     }
+    myUsage.report(true, true);cout << "\n";
     ifs >> buffer; // NumNeighborCellExtraDemand or NumCellInst
     if (buffer == "NumNeighborCellExtraDemand")
     {
@@ -172,10 +182,13 @@ RouteMgr::readCircuit(const string& fileName)
         }
         ifs >> buffer; // NumCellInst
     }
+    myUsage.report(true, true);cout << "\n";
     cout << "Reading CellInst...\n";
     // CellInst and initial placement
     ifs >> tmpCnt; // cellInstCount
     int mcNum;
+    _instList.resize(tmpCnt);
+
     for(unsigned i=0; i<tmpCnt; ++i)
     {
         ifs >> buffer; // CellInst
@@ -188,14 +201,17 @@ RouteMgr::readCircuit(const string& fileName)
         tempQ = (buffer == "Movable") ? true : false;
         // Ggrid* cool = new Ggrid(Pos(tmpCnt1, tmpCnt2));
         CellInst* love = new CellInst(i+1, _gridList[tmpCnt1-1][tmpCnt2-1], this->_mcList[mcNum-1], tempQ);
-        _instList.push_back(love);
+        _instList[i] = love;
 
         OutputCell cell(i+1, tmpCnt1, tmpCnt2);
         _initCells.push_back(cell);
     }
+    myUsage.report(true, true);cout << "\n";
     cout << "Reading nets\n";
     ifs >> buffer; // NumNets
     ifs >> tmpCnt; // netCount
+    _netList.resize(tmpCnt);
+
     for(unsigned i=0; i<tmpCnt; ++i)
     {
         ifs >> buffer; // Net
@@ -222,13 +238,18 @@ RouteMgr::readCircuit(const string& fileName)
             // TODO: genAssoNet
             _instList[inst-1]->assoNet.push_back(i+1);
         }
-        _netList.push_back(brook);
+        _netList[i] = brook;
         brook->avgPinLayer();
     }
+    myUsage.report(true, true);cout << "\n";
+
     cout << "Reading init route\n";
     // Initial routing data
     ifs >> buffer; // NumRoutes
     ifs >> _initTotalSegNum; // routeSegmentCount
+    //_initRouteSegs.resize(_initTotalSegNum);
+    _bestRouteSegs.resize(_initTotalSegNum);
+
     for(unsigned i=0; i<_initTotalSegNum; ++i)
     {
         Segment* damn = new Segment();
@@ -241,10 +262,11 @@ RouteMgr::readCircuit(const string& fileName)
         _netList[netIdx-1]->addSeg(damn);
 
         OutputSeg seg(*damn, (unsigned)netIdx);
-        _initRouteSegs.push_back(seg);
-        _bestRouteSegs.push_back(seg);
+        //_initRouteSegs[i] = seg;
+        _bestRouteSegs[i] = seg;
     }
-    
+    myUsage.report(true, true); cout << "\n";
+
     cout << "initialize cell instance list of gGrids\n";
     initCellInstList();
     /*for(unsigned i=Ggrid::rBeg-1;i<Ggrid::rEnd;++i){
@@ -256,37 +278,44 @@ RouteMgr::readCircuit(const string& fileName)
             cout << "\n";
         }
     }*/
-
+    myUsage.report(true, true);cout << "\n";
     cout << "adding 2D demand\n";
     for(auto& m : _netList){
         add2DDemand(m);
     }
+    myUsage.report(true, true);cout << "\n";
     cout << "adding 3D demand\n";
     for(auto& m : _netList){
         add3DDemand(m);
     }
+    myUsage.report(true, true);cout << "\n";
     cout << "adding 2D Blkg demand\n";
     for(auto& m : _instList){
         add2DBlkDemand(m);
     }
+    myUsage.report(true, true);cout << "\n";
     cout << "adding 3D Blkg demand\n";
     for(auto& m : _instList){
         add3DBlkDemand(m);
     }
+    myUsage.report(true, true);cout << "\n";
     cout << "adding sameGGrid/adjHGrid demand\n";
     initNeighborDemand();
-
+    myUsage.report(true, true);cout << "\n";
     cout << "initialize associated cell instances of nets\n";
     for(auto& m : _netList){
         m->initAssoCellInst();
+        
         //cout << "Net " << m->_netId << "\n";
         //m->printAssoCellInst();
     }
-
+    myUsage.report(true, true);cout << "\n";
     _netRank = new NetRank;
     _netRank->init();
+    myUsage.report(true, true);cout << "\n";
     _netRank->showTopTen();
     _initTotalWL = evaluateWireLen();
+    myUsage.report(true, true);cout << "\n";
     _bestTotalWL = _initTotalWL;
     return true;
 }
@@ -333,13 +362,15 @@ RouteMgr::storeBestResult(){
 void
 RouteMgr::genGridList()
 {
+    _gridList.resize(Ggrid::rEnd, vector<Ggrid*>(Ggrid::cEnd));
     for (unsigned i=1; i<=Ggrid::rEnd; ++i) {
-        vector<Ggrid*> bar;
+        //vector<Ggrid*> bar;
         for (unsigned j=1; j<=Ggrid::cEnd; ++j) {
             Ggrid* g = new Ggrid(Pos(i, j), _laySupply.size());
-            bar.push_back(g);
+            _gridList[i-1][j-1] = g;
+            //bar.push_back(g);
         }
-        _gridList.push_back(bar);
+        //_gridList.push_back(bar);
     }
 }
 
@@ -384,7 +415,7 @@ RouteMgr::init3DSupply()
             for (unsigned k=1; k<=_laySupply.size(); ++k) {
                 Layer* grid = _gridList[i-1][j-1]->operator[](k);
                 // Find grid supply
-                int total_supply = _laySupply[k-1];
+                unsigned total_supply = _laySupply[k-1];
                 MCTri good = MCTri(i, j, k);
                 auto yeah = _nonDefaultSupply.find(good);
                 if (yeah != _nonDefaultSupply.cend())
@@ -659,9 +690,11 @@ RouteMgr::add2DNeighborDemand(CellInst* cell_a, CellInst* cell_b, bool type){
             std::unordered_map<MCTri, unsigned, TriHash>::iterator it = _sameGridDemand.find(t);
             if(it!=_sameGridDemand.end()){
                 cell_a->getGrid()->update2dDemand(it->second);
+                #ifdef DEBUG
                 cout << "Cell " << cell_a->getId() << " (MC " << cell_a->getMC()->_mcId
                      << ") and cell " << cell_b->getId() << " (MC " << cell_b->getMC()->_mcId
                      << ") generate sameGGrid demand " << it->second << "\n";
+                #endif
             }
         }
     }
@@ -671,9 +704,11 @@ RouteMgr::add2DNeighborDemand(CellInst* cell_a, CellInst* cell_b, bool type){
             std::unordered_map<MCTri, unsigned, TriHash>::iterator it = _adjHGridDemand.find(t);
             if(it!=_adjHGridDemand.end()){
                 cell_a->getGrid()->update2dDemand(it->second);
+                #ifdef DEBUG
                 cout << "Cell " << cell_a->getId() << " (MC " << cell_a->getMC()->_mcId
                      << ") and cell " << cell_b->getId() << " (MC " << cell_b->getMC()->_mcId
                      << ") generate adjHGGrid demand " << it->second << "\n";
+                #endif
             }
         }
     }
@@ -688,9 +723,11 @@ RouteMgr::remove2DNeighborDemand(CellInst* cell_a, CellInst* cell_b, bool type){
             std::unordered_map<MCTri, unsigned, TriHash>::iterator it = _sameGridDemand.find(t);
             if(it!=_sameGridDemand.end()){
                 cell_a->getGrid()->update2dDemand(-(int)(it->second));
+                #ifdef DEBUG
                 cout << "Cell " << cell_a->getId() << " (MC " << cell_a->getMC()->_mcId
                      << ") and cell " << cell_b->getId() << " (MC " << cell_b->getMC()->_mcId
                      << ") remove sameGGrid demand " << it->second << "\n";
+                #endif
             }
         }
     }
@@ -700,9 +737,11 @@ RouteMgr::remove2DNeighborDemand(CellInst* cell_a, CellInst* cell_b, bool type){
             std::unordered_map<MCTri, unsigned, TriHash>::iterator it = _adjHGridDemand.find(t);
             if(it!=_adjHGridDemand.end()){
                 cell_a->getGrid()->update2dDemand(-(int)(it->second));
+                #ifdef DEBUG
                 cout << "Cell " << cell_a->getId() << " (MC " << cell_a->getMC()->_mcId
                      << ") and cell " << cell_b->getId() << " (MC " << cell_b->getMC()->_mcId
                      << ") remove adjHGGrid demand " << it->second << "\n";
+                #endif
             }
         }
     }
@@ -717,9 +756,11 @@ RouteMgr::add3DNeighborDemand(CellInst* cell_a, CellInst* cell_b, bool type){
             std::unordered_map<MCTri, unsigned, TriHash>::iterator it = _sameGridDemand.find(t);
             if(it!=_sameGridDemand.end()){
                 (*(cell_a->getGrid()))[it->first.layNum]->addDemand(it->second);
+                #ifdef DEBUG
                 cout << "Cell " << cell_a->getId() << " (MC " << cell_a->getMC()->_mcId
                      << ") and cell " << cell_b->getId() << " (MC " << cell_b->getMC()->_mcId
                      << ") generate sameGGrid demand " << it->second << " on layer " << it->first.layNum << "\n";
+                #endif
             }
         }
     }
@@ -729,9 +770,11 @@ RouteMgr::add3DNeighborDemand(CellInst* cell_a, CellInst* cell_b, bool type){
             std::unordered_map<MCTri, unsigned, TriHash>::iterator it = _adjHGridDemand.find(t);
             if(it!=_adjHGridDemand.end()){
                 (*(cell_a->getGrid()))[it->first.layNum]->addDemand(it->second);
+                #ifdef DEBUG
                 cout << "Cell " << cell_a->getId() << " (MC " << cell_a->getMC()->_mcId
                      << ") and cell " << cell_b->getId() << " (MC " << cell_b->getMC()->_mcId
                      << ") generate adjHGGrid demand " << it->second << " on layer " << it->first.layNum << "\n";
+                #endif
             }
         }
     }
@@ -746,9 +789,11 @@ RouteMgr::remove3DNeighborDemand(CellInst* cell_a, CellInst* cell_b, bool type){
             std::unordered_map<MCTri, unsigned, TriHash>::iterator it = _sameGridDemand.find(t);
             if(it!=_sameGridDemand.end()){
                 (*(cell_a->getGrid()))[it->first.layNum]->removeDemand(it->second);
+                #ifdef DEBUG
                 cout << "Cell " << cell_a->getId() << " (MC " << cell_a->getMC()->_mcId
                      << ") and cell " << cell_b->getId() << " (MC " << cell_b->getMC()->_mcId
                      << ") remove sameGGrid demand " << it->second << " on layer " << it->first.layNum << "\n";
+                #endif
             }
         }
     }
@@ -758,9 +803,11 @@ RouteMgr::remove3DNeighborDemand(CellInst* cell_a, CellInst* cell_b, bool type){
             std::unordered_map<MCTri, unsigned, TriHash>::iterator it = _adjHGridDemand.find(t);
             if(it!=_adjHGridDemand.end()){
                 (*(cell_a->getGrid()))[it->first.layNum]->removeDemand(it->second);
+                #ifdef DEBUG
                 cout << "Cell " << cell_a->getId() << " (MC " << cell_a->getMC()->_mcId
                      << ") and cell " << cell_b->getId() << " (MC " << cell_b->getMC()->_mcId
                      << ") remove adjHGGrid demand " << it->second << " on layer " << it->first.layNum << "\n";
+                #endif
             }
         }
     }
