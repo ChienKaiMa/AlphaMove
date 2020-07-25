@@ -164,6 +164,8 @@ public:
     inline void setSupply(unsigned supply) { _supply = supply; _capacity = supply; }
     inline void addDemand(int offset) { _capacity -= offset; }
     inline void removeDemand(int offset) { _capacity += offset; }
+    inline unsigned getSupply() { return _supply; }
+    inline int getDemand() { return (((int)_supply) - _capacity);}
 
     GridStatus checkOverflow() {
         if (_capacity > 3) { return GRID_HEALTHY; }

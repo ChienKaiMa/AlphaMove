@@ -340,6 +340,20 @@ RouteMgr::writeCircuit(ostream& outfile) const
             << _bestRouteSegs[_bestRouteSegs.size()-1].second;
 }
 
+void    
+RouteMgr::writeDemand(ostream& outfile) const{
+    outfile << "row col lay supply demand\n";
+    //cout << "row col lay supply demand\n";
+    for(unsigned k=1; k<=_laySupply.size(); ++k){
+        for(unsigned i=Ggrid::rBeg; i<=Ggrid::rEnd; ++i){
+            for(unsigned j=Ggrid::cBeg; j<=Ggrid::cEnd; ++j){
+                //cout << i << " " << j << " " << k << " " << (*_gridList[i-1][j-1])[k]->getSupply() << " " << (*_gridList[i-1][j-1])[k]->getDemand() << "\n";
+                outfile << i << " " << j << " " << k << " " << (*_gridList[i-1][j-1])[k]->getSupply() << " " << (*_gridList[i-1][j-1])[k]->getDemand() << "\n";
+            }
+        }
+    }
+}
+
 void
 RouteMgr::storeBestResult(){
     _bestMovedCells.resize(0);

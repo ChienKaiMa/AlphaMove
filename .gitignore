@@ -12,3 +12,6 @@ bin/cell_move_router
 *.out
 *.dmd
 AlphaMove18.code-workspace
+*.tgz
+md5checksum
+readme
