@@ -114,6 +114,7 @@ public:
     void    remove3DBlkDemand(CellInst*);
     void    add3DNeighborDemand(CellInst*, CellInst*, bool type);
     void    remove3DNeighborDemand(CellInst*, CellInst*, bool type);
+    void    add3DNeighborDemand(MC*, MC*, Ggrid*, bool);
     void    add2DDemand(Net*);
     void    remove2DDemand(Net*);
     void    add2DBlkDemand(CellInst*);
