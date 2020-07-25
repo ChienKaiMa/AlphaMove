@@ -39,6 +39,7 @@ extern RouteMgr* routeMgr;
 void RouteMgr::mainPnR()
 {
     cout << "Initial WL : " << _bestTotalWL << endl;
+    unsigned reRouteCnt = 0;
     while(true){
         this->place();
         cout << "End of Placing..." << endl;
@@ -47,7 +48,26 @@ void RouteMgr::mainPnR()
             cout << "P&R terminates..." << endl;
             return;
         }
+        
         RouteExecStatus canRoute = this->route();
+
+        if (getCurMoveCnt() > reRouteCnt * 2) {
+            if (checkOverflow()) {
+                for (auto net : _netList) {
+                    if (net->checkOverflow()) {
+                        if (net->getPinSet().size() <= 2) {
+                            remove3DDemand(net);
+                            net->ripUp();
+                            route2D(net);
+                            layerassign(net);
+                        }
+                    }
+                    if (!checkOverflow()) { break; }
+                }
+            }
+            ++reRouteCnt;
+            cout << "Rerouting... " << reRouteCnt << "\n";
+        }
         _netRank->update();
         _netRank->showTopTen();
         cout << "End of Routing..." << endl;
@@ -58,6 +78,7 @@ void RouteMgr::mainPnR()
                 storeBestResult();
             }
         }
+        
         this->_placeStrategy = (canRoute == ROUTE_EXEC_DONE) ? FORCE_DIRECTED : CONGESTION_BASED;
         printRouteSummary();
         myUsage.report(true, false);
@@ -677,6 +698,7 @@ RouteMgr::layerassign(Net* net)
             }
 
             int diff = INT16_MAX;
+            unsigned newLength = INT_MAX;
             if (seg->checkDir() == DIR_H)
             {
                 if (candidatesH.size() == 0) {
@@ -699,7 +721,11 @@ RouteMgr::layerassign(Net* net)
                         for (auto zg : newZGrids) { newGrids.insert(zg); }
                         for (auto g : newGrids) { g->addDemand(1); }
                         if (!newSeg.checkOverflow() && !newZSeg.checkOverflow()) {
-                            diff = ((diff) < (j-curLayer)) ? diff : j-curLayer;
+                            if (newGrids.size() < newLength) {
+                                newLength = newGrids.size();
+                                diff = j-curLayer;
+                            }
+                            //diff = ((diff) < (j-curLayer)) ? diff : j-curLayer;
                         }
                         for (auto g : newGrids) { g->removeDemand(1); }
                     }
@@ -733,7 +759,11 @@ RouteMgr::layerassign(Net* net)
                         for (auto zg : newZGrids) { newGrids.insert(zg); }
                         for (auto g : newGrids) { g->addDemand(1); }
                         if (!newSeg.checkOverflow() && !newZSeg.checkOverflow()) {
-                            diff = ((diff) < (j-curLayer)) ? diff : j-curLayer;
+                            if (newGrids.size() < newLength) {
+                                newLength = newGrids.size();
+                                diff = j-curLayer;
+                            }
+                            //diff = ((diff) < (j-curLayer)) ? diff : j-curLayer;
                         }
                         for (auto g : newGrids) { g->removeDemand(1); }
                     }

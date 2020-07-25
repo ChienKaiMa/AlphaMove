@@ -383,7 +383,9 @@ Net::checkOverflow()
     routeMgr->passGrid(this, alpha);
     for (auto& grid : alpha) {
         if (grid->checkOverflow() == GRID_OVERFLOW) {
+            #ifdef DEBUG
             cout << "Net " << _netId << " causes overflow!\n";
+            #endif
             isOV = true;
             break;
         }
