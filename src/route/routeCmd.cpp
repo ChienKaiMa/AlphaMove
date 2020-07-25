@@ -116,7 +116,7 @@ RouteReadCmd::help() const
 }
 
 //----------------------------------------------------------------------
-//    Write [(int gateId)][-Output (string txtFile)]
+//    Write [(int gateId)][-Output (string txtFile)][-Demand (string File)]
 //----------------------------------------------------------------------
 CmdExecStatus
 RouteWriteCmd::exec(const string& option)
@@ -136,10 +136,23 @@ RouteWriteCmd::exec(const string& option)
       return CMD_EXEC_DONE;
    }
    bool hasFile = false;
+   bool type = 0;
 
    ofstream outfile;
    for (size_t i = 0, n = options.size(); i < n; ++i) {
       if (myStrNCmp("-Output", options[i], 2) == 0) {
+         type = 0;
+         if (hasFile) 
+            return CmdExec::errorOption(CMD_OPT_EXTRA, options[i]);
+         if (++i == n)
+            return CmdExec::errorOption(CMD_OPT_MISSING, options[i-1]);
+         outfile.open(options[i].c_str(), ios::out);
+         if (!outfile)
+            return CmdExec::errorOption(CMD_OPT_FOPEN_FAIL, options[1]);
+         hasFile = true;
+      }
+      else if (myStrNCmp("-Demand", options[i], 2) == 0) {
+         type = 1;
          if (hasFile) 
             return CmdExec::errorOption(CMD_OPT_EXTRA, options[i]);
          if (++i == n)
@@ -152,7 +165,10 @@ RouteWriteCmd::exec(const string& option)
       else return CmdExec::errorOption(CMD_OPT_ILLEGAL, options[i]);
    }
    assert (hasFile);
-   routeMgr->writeCircuit(outfile);
+   if (type == 0)
+      routeMgr->writeCircuit(outfile);
+   else
+      routeMgr->writeDemand(outfile);
 
    return CMD_EXEC_DONE;
 }
@@ -160,7 +176,7 @@ RouteWriteCmd::exec(const string& option)
 void
 RouteWriteCmd::usage(ostream& os) const
 {
-   os << "Usage: Write [(int gateId)][-Output (string txtFile)]" << endl;
+   os << "Usage: Write [(int gateId)][-Output (string txtFile)][-Demand (string File)]" << endl;
 }
 
 void
