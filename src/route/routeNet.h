@@ -131,7 +131,7 @@ public:
     Pos getInitPos() const;
     Ggrid* getGrid() {return _grid;}
     unsigned getId() const { return _cellId; }
-    const MC* getMC() {return _mc;}
+    MC* getMC() {return (MC*)_mc;}
     unsigned getPinLay(unsigned idx) const;
     bool is_movable() { return _movable; }
     vector<int> assoNet; // associated net index // Koova

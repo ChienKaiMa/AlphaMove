@@ -917,11 +917,11 @@ RouteMgr::add3DNeighborDemand(MC* mc_a, MC* mc_b, Ggrid* grid, bool type){
             std::unordered_map<MCTri, unsigned, TriHash>::iterator it = _sameGridDemand.find(t);
             if(it!=_sameGridDemand.end()){
                 (*grid)[it->first.layNum]->addDemand(it->second);
-                #ifdef DEBUG
+                //#ifdef DEBUG
                 cout << "MC " << mc_a->_mcId
-                    << "and MC " << mc_b->_mcId
+                    << " and MC " << mc_b->_mcId
                     << " generate sameGGrid demand " << it->second << " on layer " << it->first.layNum << "\n";
-                #endif
+                //#endif
             }
         }
     }
@@ -931,11 +931,43 @@ RouteMgr::add3DNeighborDemand(MC* mc_a, MC* mc_b, Ggrid* grid, bool type){
             std::unordered_map<MCTri, unsigned, TriHash>::iterator it = _adjHGridDemand.find(t);
             if(it!=_adjHGridDemand.end()){
                 (*grid)[it->first.layNum]->addDemand(it->second);
-                #ifdef DEBUG
+                //#ifdef DEBUG
                 cout << "MC " << mc_a->_mcId
-                    << "and MC " << mc_b->_mcId
+                    << " and MC " << mc_b->_mcId
                     << " generate adjHGrid demand " << it->second << " on layer " << it->first.layNum << "\n";
-                #endif
+                //#endif
+            }
+        }
+    }
+}
+
+void
+RouteMgr::remove3DNeighborDemand(MC* mc_a, MC* mc_b, Ggrid* grid, bool type){
+    if(type == 0){
+        for(unsigned i=0;i<_laySupply.size();++i){
+            MCTri t(mc_a->_mcId, mc_b->_mcId, i+1);
+            std::unordered_map<MCTri, unsigned, TriHash>::iterator it = _sameGridDemand.find(t);
+            if(it!=_sameGridDemand.end()){
+                (*grid)[it->first.layNum]->removeDemand(it->second);
+                //#ifdef DEBUG
+                cout << "MC " << mc_a->_mcId
+                    << " and MC " << mc_b->_mcId
+                    << " remove sameGGrid demand " << it->second << " on layer " << it->first.layNum << "\n";
+                //#endif
+            }
+        }
+    }
+    else{
+        for(unsigned i=0;i<_laySupply.size();++i){
+            MCTri t(mc_a->_mcId, mc_b->_mcId, i+1);
+            std::unordered_map<MCTri, unsigned, TriHash>::iterator it = _adjHGridDemand.find(t);
+            if(it!=_adjHGridDemand.end()){
+                (*grid)[it->first.layNum]->removeDemand(it->second);
+                //#ifdef DEBUG
+                cout << "MC " << mc_a->_mcId
+                    << " and MC " << mc_b->_mcId
+                    << " generate adjHGrid demand " << it->second << " on layer " << it->first.layNum << "\n";
+                //#endif
             }
         }
     }

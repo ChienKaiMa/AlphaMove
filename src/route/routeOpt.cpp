@@ -399,45 +399,105 @@ void RouteMgr::forcedirectedPlace (){
         }
     }
     //remove same gGrid demand
-    for(unsigned j=0;j<moveCell->getGrid()->cellInstList.size();++j){
-        if(moveCell->getGrid()->cellInstList[j] != moveCell){
-            remove2DNeighborDemand(moveCell,moveCell->getGrid()->cellInstList[j],0);
-            remove3DNeighborDemand(moveCell,moveCell->getGrid()->cellInstList[j],0);
+    map<unsigned,unsigned> mcMap; //key : id of MC; value : num of MC of the id in the Ggrid
+    for(unsigned k=0;k<moveCell->getGrid()->cellInstList.size();++k){
+        pair<std::map<unsigned,unsigned>::iterator, bool> ret = mcMap.insert(pair<unsigned,unsigned>(moveCell->getGrid()->cellInstList[k]->getMC()->_mcId,1));
+        if(ret.second == false){
+            ++ret.first->second;
         }
     }
+    std::map<unsigned,unsigned>::iterator move_ite = mcMap.find(moveCell->getMC()->_mcId);
+    std::map<unsigned,unsigned>::iterator cur_ite = mcMap.begin();
+    for(unsigned i=0;i<mcMap.size();++i){
+        if(move_ite != cur_ite){
+            if(move_ite->second < cur_ite->second){
+                remove3DNeighborDemand(_mcList[move_ite->first-1],_mcList[cur_ite->first-1],moveCell->getGrid(),0);
+            }
+        }
+        ++cur_ite;
+    }
+
     //remove adjHGrid demand
     if(moveCell->getPos().second == Ggrid::cBeg){
-        unsigned next_col = moveCell->getPos().second + 1;
-        for(unsigned j=0;j<_gridList[moveCell->getPos().first-1][next_col-1]->cellInstList.size();++j){
-            remove2DNeighborDemand(moveCell, _gridList[moveCell->getPos().first-1][next_col-1]->cellInstList[j], 1);
-            remove2DNeighborDemand(_gridList[moveCell->getPos().first-1][next_col-1]->cellInstList[j], moveCell, 1);
-            remove3DNeighborDemand(moveCell, _gridList[moveCell->getPos().first-1][next_col-1]->cellInstList[j], 1);
-            remove3DNeighborDemand(_gridList[moveCell->getPos().first-1][next_col-1]->cellInstList[j], moveCell, 1);
+        map<unsigned,unsigned> nxtMcMap;
+        unsigned moveMcNum = 0;
+        for(unsigned k=0;k<moveCell->getGrid()->cellInstList.size();++k){
+            if(moveCell->getGrid()->cellInstList[k] != moveCell){
+                if(moveCell->getGrid()->cellInstList[k]->getMC() == moveCell->getMC())
+                    ++moveMcNum;
+            }
+        }
+        for(unsigned k=0;k<_gridList[moveCell->getPos().first-1][moveCell->getPos().second]->cellInstList.size();++k){
+            pair<std::map<unsigned,unsigned>::iterator, bool> ret = nxtMcMap.insert(pair<unsigned,unsigned>(_gridList[moveCell->getPos().first-1][moveCell->getPos().second]->cellInstList[k]->getMC()->_mcId,1));
+            if(ret.second == false){
+                ++ret.first->second;
+            }
+        }
+        std::map<unsigned,unsigned>::iterator ite = nxtMcMap.begin();
+        for(unsigned k=0;k<nxtMcMap.size();++k){
+            if(moveMcNum < ite->second){
+                remove3DNeighborDemand(moveCell->getMC(),_mcList[ite->first-1],moveCell->getGrid(),1);
+            }
+            ++ite;
         }
     }
     else if(moveCell->getPos().second == Ggrid::cEnd){
-        unsigned prev_col = moveCell->getPos().second - 1;
-        for(unsigned j=0;j<_gridList[moveCell->getPos().first-1][prev_col-1]->cellInstList.size();++j){
-            remove2DNeighborDemand(moveCell, _gridList[moveCell->getPos().first-1][prev_col-1]->cellInstList[j], 1);
-            remove2DNeighborDemand(_gridList[moveCell->getPos().first-1][prev_col-1]->cellInstList[j], moveCell, 1);
-            remove3DNeighborDemand(moveCell, _gridList[moveCell->getPos().first-1][prev_col-1]->cellInstList[j], 1);
-            remove3DNeighborDemand(_gridList[moveCell->getPos().first-1][prev_col-1]->cellInstList[j], moveCell, 1);
+        map<unsigned,unsigned> prevMcMap;
+        unsigned moveMcNum = 0;
+        for(unsigned k=0;k<moveCell->getGrid()->cellInstList.size();++k){
+            if(moveCell->getGrid()->cellInstList[k] != moveCell){
+                if(moveCell->getGrid()->cellInstList[k]->getMC() == moveCell->getMC())
+                    ++moveMcNum;
+            }
+        }
+        for(unsigned k=0;k<_gridList[moveCell->getPos().first-1][moveCell->getPos().second-2]->cellInstList.size();++k){
+            pair<std::map<unsigned,unsigned>::iterator, bool> ret = prevMcMap.insert(pair<unsigned,unsigned>(_gridList[moveCell->getPos().first-1][moveCell->getPos().second-2]->cellInstList[k]->getMC()->_mcId,1));
+            if(ret.second == false){
+                ++ret.first->second;
+            }
+        }
+        std::map<unsigned,unsigned>::iterator ite = prevMcMap.begin();
+        for(unsigned k=0;k<prevMcMap.size();++k){
+            if(moveMcNum < ite->second){
+                remove3DNeighborDemand(moveCell->getMC(),_mcList[ite->first-1],moveCell->getGrid(),1);
+            }
+            ++ite;
         }
     }
     else{
-        unsigned next_col = moveCell->getPos().second + 1;
-        unsigned prev_col = moveCell->getPos().second - 1;
-        for(unsigned j=0;j<_gridList[moveCell->getPos().first-1][next_col-1]->cellInstList.size();++j){
-            remove2DNeighborDemand(moveCell, _gridList[moveCell->getPos().first-1][next_col-1]->cellInstList[j], 1);
-            remove2DNeighborDemand(_gridList[moveCell->getPos().first-1][next_col-1]->cellInstList[j], moveCell, 1);
-            remove3DNeighborDemand(moveCell, _gridList[moveCell->getPos().first-1][next_col-1]->cellInstList[j], 1);
-            remove3DNeighborDemand(_gridList[moveCell->getPos().first-1][next_col-1]->cellInstList[j], moveCell, 1);
+        map<unsigned,unsigned> nxtMcMap, prevMcMap;
+        unsigned moveMcNum = 0;
+        for(unsigned k=0;k<moveCell->getGrid()->cellInstList.size();++k){
+            if(moveCell->getGrid()->cellInstList[k] != moveCell){
+                if(moveCell->getGrid()->cellInstList[k]->getMC() == moveCell->getMC())
+                    ++moveMcNum;
+            }
         }
-        for(unsigned j=0;j<_gridList[moveCell->getPos().first-1][prev_col-1]->cellInstList.size();++j){
-            remove2DNeighborDemand(moveCell, _gridList[moveCell->getPos().first-1][prev_col-1]->cellInstList[j], 1);
-            remove2DNeighborDemand(_gridList[moveCell->getPos().first-1][prev_col-1]->cellInstList[j], moveCell, 1);
-            remove3DNeighborDemand(moveCell, _gridList[moveCell->getPos().first-1][prev_col-1]->cellInstList[j], 1);
-            remove3DNeighborDemand(_gridList[moveCell->getPos().first-1][prev_col-1]->cellInstList[j], moveCell, 1);
+        for(unsigned k=0;k<_gridList[moveCell->getPos().first-1][moveCell->getPos().second]->cellInstList.size();++k){
+            pair<std::map<unsigned,unsigned>::iterator, bool> ret = nxtMcMap.insert(pair<unsigned,unsigned>(_gridList[moveCell->getPos().first-1][moveCell->getPos().second]->cellInstList[k]->getMC()->_mcId,1));
+            if(ret.second == false){
+                ++ret.first->second;
+            }
+        }
+        for(unsigned k=0;k<_gridList[moveCell->getPos().first-1][moveCell->getPos().second-2]->cellInstList.size();++k){
+            pair<std::map<unsigned,unsigned>::iterator, bool> ret = prevMcMap.insert(pair<unsigned,unsigned>(_gridList[moveCell->getPos().first-1][moveCell->getPos().second-2]->cellInstList[k]->getMC()->_mcId,1));
+            if(ret.second == false){
+                ++ret.first->second;
+            }
+        }
+        std::map<unsigned,unsigned>::iterator ite = nxtMcMap.begin();
+        for(unsigned k=0;k<nxtMcMap.size();++k){
+            if(moveMcNum < ite->second){
+                remove3DNeighborDemand(moveCell->getMC(),_mcList[ite->first-1],moveCell->getGrid(),1);
+            }
+            ++ite;
+        }
+        ite = prevMcMap.begin();
+        for(unsigned k=0;k<prevMcMap.size();++k){
+            if(moveMcNum < ite->second){
+                remove3DNeighborDemand(moveCell->getMC(),_mcList[ite->first-1],moveCell->getGrid(),1);
+            }
+            ++ite;
         }
     }
     
@@ -487,15 +547,114 @@ void RouteMgr::forcedirectedPlace (){
     moveCell->move(Pos(new_row,new_col));
     add2DBlkDemand(moveCell);
     add3DBlkDemand(moveCell);
-    //remove same gGrid demand
-    for(unsigned j=0;j<moveCell->getGrid()->cellInstList.size();++j){
+    //add same gGrid demand
+    mcMap.clear(); //key : id of MC; value : num of MC of the id in the Ggrid
+    for(unsigned k=0;k<moveCell->getGrid()->cellInstList.size();++k){
+        pair<std::map<unsigned,unsigned>::iterator, bool> ret = mcMap.insert(pair<unsigned,unsigned>(moveCell->getGrid()->cellInstList[k]->getMC()->_mcId,1));
+        if(ret.second == false){
+            ++ret.first->second;
+        }
+    }
+    move_ite = mcMap.find(moveCell->getMC()->_mcId);
+    cur_ite = mcMap.begin();
+    for(unsigned i=0;i<mcMap.size();++i){
+        if(move_ite != cur_ite){
+            if(move_ite->second < cur_ite->second){
+                add3DNeighborDemand(_mcList[move_ite->first-1],_mcList[cur_ite->first-1],moveCell->getGrid(),0);
+            }
+        }
+        ++cur_ite;
+    }
+    /*for(unsigned j=0;j<moveCell->getGrid()->cellInstList.size();++j){
         if(moveCell->getGrid()->cellInstList[j] != moveCell){
             add2DNeighborDemand(moveCell,moveCell->getGrid()->cellInstList[j],0);
             add3DNeighborDemand(moveCell,moveCell->getGrid()->cellInstList[j],0);
         }
-    }
-    //remove adjHGrid demand
+    }*/
+    //add adjHGrid demand
     if(moveCell->getPos().second == Ggrid::cBeg){
+        map<unsigned,unsigned> nxtMcMap;
+        unsigned moveMcNum = 0;
+        for(unsigned k=0;k<moveCell->getGrid()->cellInstList.size();++k){
+            if(moveCell->getGrid()->cellInstList[k] != moveCell){
+                if(moveCell->getGrid()->cellInstList[k]->getMC() == moveCell->getMC())
+                    ++moveMcNum;
+            }
+        }
+        for(unsigned k=0;k<_gridList[moveCell->getPos().first-1][moveCell->getPos().second]->cellInstList.size();++k){
+            pair<std::map<unsigned,unsigned>::iterator, bool> ret = nxtMcMap.insert(pair<unsigned,unsigned>(_gridList[moveCell->getPos().first-1][moveCell->getPos().second]->cellInstList[k]->getMC()->_mcId,1));
+            if(ret.second == false){
+                ++ret.first->second;
+            }
+        }
+        std::map<unsigned,unsigned>::iterator ite = nxtMcMap.begin();
+        for(unsigned k=0;k<nxtMcMap.size();++k){
+            if(moveMcNum < ite->second){
+                add3DNeighborDemand(moveCell->getMC(),_mcList[ite->first-1],moveCell->getGrid(),1);
+            }
+            ++ite;
+        }
+    }
+    else if(moveCell->getPos().second == Ggrid::cEnd){
+        map<unsigned,unsigned> prevMcMap;
+        unsigned moveMcNum = 0;
+        for(unsigned k=0;k<moveCell->getGrid()->cellInstList.size();++k){
+            if(moveCell->getGrid()->cellInstList[k] != moveCell){
+                if(moveCell->getGrid()->cellInstList[k]->getMC() == moveCell->getMC())
+                    ++moveMcNum;
+            }
+        }
+        for(unsigned k=0;k<_gridList[moveCell->getPos().first-1][moveCell->getPos().second-2]->cellInstList.size();++k){
+            pair<std::map<unsigned,unsigned>::iterator, bool> ret = prevMcMap.insert(pair<unsigned,unsigned>(_gridList[moveCell->getPos().first-1][moveCell->getPos().second-2]->cellInstList[k]->getMC()->_mcId,1));
+            if(ret.second == false){
+                ++ret.first->second;
+            }
+        }
+        std::map<unsigned,unsigned>::iterator ite = prevMcMap.begin();
+        for(unsigned k=0;k<prevMcMap.size();++k){
+            if(moveMcNum < ite->second){
+                add3DNeighborDemand(moveCell->getMC(),_mcList[ite->first-1],moveCell->getGrid(),1);
+            }
+            ++ite;
+        }
+    }
+    else{
+        map<unsigned,unsigned> nxtMcMap, prevMcMap;
+        unsigned moveMcNum = 0;
+        for(unsigned k=0;k<moveCell->getGrid()->cellInstList.size();++k){
+            if(moveCell->getGrid()->cellInstList[k] != moveCell){
+                if(moveCell->getGrid()->cellInstList[k]->getMC() == moveCell->getMC())
+                    ++moveMcNum;
+            }
+        }
+        for(unsigned k=0;k<_gridList[moveCell->getPos().first-1][moveCell->getPos().second]->cellInstList.size();++k){
+            pair<std::map<unsigned,unsigned>::iterator, bool> ret = nxtMcMap.insert(pair<unsigned,unsigned>(_gridList[moveCell->getPos().first-1][moveCell->getPos().second]->cellInstList[k]->getMC()->_mcId,1));
+            if(ret.second == false){
+                ++ret.first->second;
+            }
+        }
+        for(unsigned k=0;k<_gridList[moveCell->getPos().first-1][moveCell->getPos().second-2]->cellInstList.size();++k){
+            pair<std::map<unsigned,unsigned>::iterator, bool> ret = prevMcMap.insert(pair<unsigned,unsigned>(_gridList[moveCell->getPos().first-1][moveCell->getPos().second-2]->cellInstList[k]->getMC()->_mcId,1));
+            if(ret.second == false){
+                ++ret.first->second;
+            }
+        }
+        std::map<unsigned,unsigned>::iterator ite = nxtMcMap.begin();
+        for(unsigned k=0;k<nxtMcMap.size();++k){
+            if(moveMcNum < ite->second){
+                add3DNeighborDemand(moveCell->getMC(),_mcList[ite->first-1],moveCell->getGrid(),1);
+            }
+            ++ite;
+        }
+        ite = prevMcMap.begin();
+        for(unsigned k=0;k<prevMcMap.size();++k){
+            if(moveMcNum < ite->second){
+                add3DNeighborDemand(moveCell->getMC(),_mcList[ite->first-1],moveCell->getGrid(),1);
+            }
+            ++ite;
+        }
+    }
+    /*if(moveCell->getPos().second == Ggrid::cBeg){
         unsigned next_col = moveCell->getPos().second + 1;
         for(unsigned j=0;j<_gridList[moveCell->getPos().first-1][next_col-1]->cellInstList.size();++j){
             add2DNeighborDemand(moveCell, _gridList[moveCell->getPos().first-1][next_col-1]->cellInstList[j], 1);
@@ -528,7 +687,7 @@ void RouteMgr::forcedirectedPlace (){
             add3DNeighborDemand(moveCell, _gridList[moveCell->getPos().first-1][prev_col-1]->cellInstList[j], 1);
             add3DNeighborDemand(_gridList[moveCell->getPos().first-1][prev_col-1]->cellInstList[j], moveCell, 1);
         }
-    }
+    }*/
     //add to new cellInstList
     moveCell->getGrid()->cellInstList.push_back(moveCell);
 
