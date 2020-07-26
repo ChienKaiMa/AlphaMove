@@ -112,21 +112,25 @@ public:
     void    remove3DDemand(Net*);
     void    add3DBlkDemand(CellInst*);
     void    remove3DBlkDemand(CellInst*);
-    void    add3DNeighborDemand(CellInst*, CellInst*, bool type);
-    void    remove3DNeighborDemand(CellInst*, CellInst*, bool type);
-    void    add3DNeighborDemand(MC*, MC*, Ggrid*, bool);
-    void    remove3DNeighborDemand(MC*, MC*, Ggrid*, bool);
+    //void    add3DNeighborDemand(CellInst*, CellInst*, bool type);
+    //void    remove3DNeighborDemand(CellInst*, CellInst*, bool type);
+    void    addNeighborDemand(MC*, MC*, Ggrid*, bool); //type=0: same gGrid, type=1: adj gGrid
+    void    removeNeighborDemand(MC*, MC*, Ggrid*, bool);
     void    add2DDemand(Net*);
     void    remove2DDemand(Net*);
     void    add2DBlkDemand(CellInst*);
     void    remove2DBlkDemand(CellInst*);
-    void    add2DNeighborDemand(CellInst*, CellInst*, bool type); //type=0: same gGrid, type=1: adj gGrid
-    void    remove2DNeighborDemand(CellInst*, CellInst*, bool type);
+    //void    add2DNeighborDemand(CellInst*, CellInst*, bool type); 
+    //void    remove2DNeighborDemand(CellInst*, CellInst*, bool type);
 
     void    initNeighborDemand();
     GridStatus    check3dOverflow(unsigned, unsigned, unsigned);
     bool    checkOverflow();
     void    initCellInstList();
+    void    removeSameGgridDemand(CellInst*);
+    void    removeAdjHGgridDemand(CellInst*);
+    void    addSameGgridDemand(CellInst*);
+    void    addAdjHGgridDemand(CellInst*);
     /**********************************/
     /*            Output              */
     /**********************************/ 
