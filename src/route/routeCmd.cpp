@@ -284,7 +284,7 @@ RouteCmd::help() const
 }
 
 //----------------------------------------------------------------------
-//    Optimize < -All | -Overflow | -Evaluate | -Rank >
+//    Optimize < -All | -Overflow | -2pinreroute | -Evaluate | -Rank >
 //----------------------------------------------------------------------
 CmdExecStatus
 OptimizeCmd::exec(const string& option)
@@ -307,6 +307,8 @@ OptimizeCmd::exec(const string& option)
       routeMgr->replaceBest();
    } else if (myStrNCmp("-Overflow", token, 2) == 0) {
       routeMgr->checkOverflow();
+   } else if (myStrNCmp("-2PinReroute", token, 2) == 0) {
+      routeMgr->reduceOverflow();
    }
    else if (myStrNCmp("-Evaluate", token, 2) == 0)	
       routeMgr->replaceBest();
@@ -324,7 +326,7 @@ OptimizeCmd::exec(const string& option)
 void
 OptimizeCmd::usage(ostream& os) const
 {
-   os << "Usage: Optimize < -All | -Overflow | -Evaluate | -Rank >" << endl;
+   os << "Usage: Optimize < -All | -Overflow | -2pinreroute | -Evaluate | -Rank >" << endl;
 }
 
 void

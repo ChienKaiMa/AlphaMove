@@ -126,6 +126,7 @@ public:
     void    initNeighborDemand();
     GridStatus    check3dOverflow(unsigned, unsigned, unsigned);
     bool    checkOverflow();
+    bool    reduceOverflow();
     void    initCellInstList();
     void    removeSameGgridDemand(CellInst*);
     void    removeAdjHGgridDemand(CellInst*);

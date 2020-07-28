@@ -28,8 +28,8 @@ ofstream outfile;
 extern RouteMgr *routeMgr;
 
 static void signal_handler(int signum){
-   cout << "Time limit exceeded!!" << endl;
-   cout << "Output file ...   " << endl;
+   //cout << "Time limit exceeded!!" << endl;
+   cout << "\nOutput file ... \n";
    routeMgr->writeCircuit(outfile);
    exit(0);
 }
@@ -69,8 +69,14 @@ main(int argc, char** argv)
          return 1;
       }
       alarm(TIME_LIMIT-100);
-      //alarm(20);
+      //alarm(200);
       signal(SIGALRM, &signal_handler);
+      struct sigaction sigCHandler;
+      sigCHandler.sa_handler = signal_handler;
+      sigemptyset(&sigCHandler.sa_mask);
+      sigCHandler.sa_flags = 0;
+      sigaction(SIGINT, &sigCHandler, NULL);
+      sigaction(SIGSEGV, &sigCHandler, NULL);
       
       routeMgr = new RouteMgr();
       // TODO: generate output file

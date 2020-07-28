@@ -50,28 +50,15 @@ void RouteMgr::mainPnR()
         }
         
         RouteExecStatus canRoute = this->route();
-
-        if (getCurMoveCnt() > reRouteCnt * 2) {
-            if (checkOverflow()) {
-                for (auto net : _netList) {
-                    if (net->checkOverflow()) {
-                        if (net->getPinSet().size() <= 2) {
-                            remove3DDemand(net);
-                            net->ripUp();
-                            route2D(net);
-                            layerassign(net);
-                        }
-                    }
-                    if (!checkOverflow()) { break; }
-                }
-            }
+        if (checkOverflow() && getCurMoveCnt() > reRouteCnt * 2) {
+            reduceOverflow();
             ++reRouteCnt;
             cout << "Rerouting... " << reRouteCnt << "\n";
         }
         _netRank->update();
         _netRank->showTopTen();
         cout << "End of Routing..." << endl;
-        if(canRoute == ROUTE_EXEC_DONE){
+        if(!checkOverflow()){
             unsigned newWL = evaluateWireLen();// evaluate total wirelength
             if( newWL<_bestTotalWL){
                 _bestTotalWL = newWL;

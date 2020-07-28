@@ -299,10 +299,12 @@ Segment::checkOverflow()
             }
         }
     }
+    #ifdef DEBUG
     if (OVCNT) {
     cout << OVCNT << " grids in "; print(); cout << " is overflown!\n"; }
     if (FULLCNT) {
     cout << FULLCNT << " grids in "; print(); cout << " is full!\n"; }
+    #endif
     return OVCNT;
 }
     

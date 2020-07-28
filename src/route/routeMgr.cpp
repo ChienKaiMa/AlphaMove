@@ -846,6 +846,26 @@ RouteMgr::checkOverflow()
     return OVCNT;
 }
 
+bool
+RouteMgr::reduceOverflow()
+{
+    for (auto net : _netList) {
+        if (net->checkOverflow()) {
+            if (net->getPinSet().size() <= 2) {
+                remove3DDemand(net);
+                net->ripUp();
+                route2D(net);
+                layerassign(net);
+                if (!net->checkOverflow()) {
+                    cout << "Net " << net->_netId << " no Overflow!\n";
+                }
+                if (!checkOverflow()) { return true; }
+            }
+        }
+    }
+    return true;
+}
+
 unsigned 
 RouteMgr::evaluateWireLen() const{
     unsigned newWL = 0;
