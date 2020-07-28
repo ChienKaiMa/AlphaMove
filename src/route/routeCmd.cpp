@@ -453,34 +453,60 @@ CellPrintCmd::help() const
 }
 
 //----------------------------------------------------------------------
-//    LAYPrint [-SUMmary | -SUPply | -Demand | -2DSupply | -2DDemand]
+//    LAYPrint [Pos pos][int layer][-SUMmary | -SUPply | -Demand | -2DSupply | -2DDemand]
 //----------------------------------------------------------------------
 CmdExecStatus
 LayPrintCmd::exec(const string& option)
 {
    // check option
-   string token;
-   if (!CmdExec::lexSingleOption(option, token))
+   vector<string> tokens;
+   if (!CmdExec::lexOptions(option, tokens))
       return CMD_EXEC_ERROR;
 
    if (!routeMgr) {
       cerr << "Error: circuit is not yet constructed!!" << endl;
       return CMD_EXEC_ERROR;
    }
-   if (token.empty() || myStrNCmp("-SUMmary", token, 4) == 0)
+
+   if (tokens.empty())
+      // TODO
       cout << "routeMgr->printSummary()" << endl;
-   else if (myStrNCmp("-SUPply", token, 4) == 0)
-      routeMgr->printLaySupply();
-   else if (myStrNCmp("-Demand", token, 2) == 0)
-      routeMgr->printGridDemand();
-   else if (myStrNCmp("-2DSupply", token, 4) == 0)
-      routeMgr->print2DSupply();
-   else if (myStrNCmp("-2DDemand", token, 4) == 0)
-      routeMgr->print2DDemand();
-   else if (myStrNCmp("-2DCongestion", token, 4) == 0)
-      routeMgr->print2DCongestion();
-   else
-      return CmdExec::errorOption(CMD_OPT_ILLEGAL, token);
+   else if (tokens.size() == 1) {
+      if (myStrNCmp("-Summary", tokens[0], 2) == 0) {
+         // TODO
+         cout << "routeMgr->printSummary()" << endl;
+      } else if (myStrNCmp("-SUPply", tokens[0], 4) == 0)
+         routeMgr->printLaySupply();
+      else if (myStrNCmp("-Demand", tokens[0], 2) == 0)
+         routeMgr->printGridDemand();
+      else if (myStrNCmp("-2DSupply", tokens[0], 4) == 0)
+         routeMgr->print2DSupply();
+      else if (myStrNCmp("-2DDemand", tokens[0], 4) == 0)
+         routeMgr->print2DDemand();
+      else if (myStrNCmp("-2DCongestion", tokens[0], 4) == 0)
+         routeMgr->print2DCongestion();
+      else
+         return CmdExec::errorOption(CMD_OPT_ILLEGAL, tokens[0]);
+   } else if (tokens.size() == 2) {
+      int idx1, idx2;
+      if (myStr2Int(tokens[0], idx1) && myStr2Int(tokens[1], idx2)) {
+         routeMgr->getGrid(Pos(idx1, idx2))->printSummary();
+      } else {
+         return CmdExec::errorOption(CMD_OPT_ILLEGAL, tokens[0]);
+      }
+   } else if (tokens.size() == 3) {
+      int idx1, idx2, idx3;
+      if (myStr2Int(tokens[0], idx1)
+          && myStr2Int(tokens[1], idx2)
+          && myStr2Int(tokens[2], idx3)) {
+         Ggrid* mygrid = routeMgr->getGrid(Pos(idx1, idx2));
+         ((*(mygrid))[idx3])->printSummary();
+      } else {
+         return CmdExec::errorOption(CMD_OPT_ILLEGAL, tokens[0]);
+      }
+   } else {
+      return CmdExec::errorOption(CMD_OPT_EXTRA, tokens[3]);
+   }
 
    return CMD_EXEC_DONE;
 }
@@ -488,7 +514,7 @@ LayPrintCmd::exec(const string& option)
 void
 LayPrintCmd::usage(ostream& os) const
 {  
-   os << "Usage: LAYPrint [-SUMmary | -SUPply | -Demand | -2DSupply  "
+   os << "Usage: LAYPrint [Pos pos][int layer][-SUMmary | -SUPply | -Demand | -2DSupply  "
       << "| -2DDemand | -2DCongestion]" << endl;
 }
 

@@ -16,3 +16,5 @@ AlphaMove18.code-workspace
 md5checksum
 readme
 *.txt
+src/util/.depend.mak
+src/route/.depend.mak

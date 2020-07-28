@@ -78,7 +78,7 @@ enum GridStatus
     GRID_HEALTHY    = 0,
     GRID_RISKY      = 2,
     GRID_FULL_CAP   = 3,
-    GRID_OVERFLOW   = 4,
+    GRID_OVERFLOW   = 6,
 
     // dummy
     GRID_TOT
@@ -167,19 +167,8 @@ public:
     inline unsigned getSupply() { return _supply; }
     inline int getDemand() { return (((int)_supply) - _capacity);}
 
-    GridStatus checkOverflow() {
-        if (_capacity > 3) { return GRID_HEALTHY; }
-        
-        if (_capacity == 0) { 
-            //cerr << "Supply: " << _supply << ", Demand: " << _supply - _capacity << " ";
-            return GRID_FULL_CAP; }
-        else if (_capacity < 0) {
-            #ifdef DEBUG 
-            cerr << "Supply: " << _supply << ", Demand: " << _supply - _capacity << " ";
-            #endif
-            return GRID_OVERFLOW; }
-        else { return GRID_RISKY; }
-    }
+    void printSummary() const;
+    GridStatus checkOverflow() const;
 private:
     unsigned _supply;
     int _capacity;  // supply - demand
@@ -218,6 +207,7 @@ public:
     //double get2dCongestion() const {return _2dCongestion;}
     double get2dCongestion() {return _2dCongestion;}
 
+    void printSummary() const;
     void printCapacity() const;
     void printDemand() const;
     void update2dDemand( double deltaDemand ) { 
@@ -226,6 +216,7 @@ public:
         //cout << _2dSupply << " " << _2dDemand << "\n";
         _2dCongestion = ((double)(_2dSupply) - (double)(_2dDemand)  - koovaCongParam() /** CONGESTION_PARAMETER*/) / (double)(_2dSupply); 
     }
+    unsigned getOverflowCount() const;
     double koovaCongParam() {
         double gotcha = 0;
         for (auto m : _layerList) {
@@ -319,6 +310,7 @@ public:
     void ripUp();
     void initAssoCellInst();
     void avgPinLayer();
+    set<PinPair> sortPinSet();
 
     // TODO
     // Layer assignment

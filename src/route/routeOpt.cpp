@@ -58,7 +58,7 @@ void RouteMgr::mainPnR()
         _netRank->update();
         _netRank->showTopTen();
         cout << "End of Routing..." << endl;
-        if(!checkOverflow()){
+        if(canRoute == ROUTE_EXEC_DONE){
             unsigned newWL = evaluateWireLen();// evaluate total wirelength
             if( newWL<_bestTotalWL){
                 _bestTotalWL = newWL;

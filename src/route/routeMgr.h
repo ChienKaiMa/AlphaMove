@@ -36,6 +36,7 @@ public:
     void    writeCircuit(ostream&) const;
     void    setRouteLog(ofstream *logFile) { _tempRoute = logFile; }
     void    genGridList();
+    Ggrid*  getGrid(Pos);
     void    writeDemand(ostream&) const;
 
     /**********************************/

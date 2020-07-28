@@ -388,6 +388,12 @@ RouteMgr::genGridList()
     }
 }
 
+Ggrid*
+RouteMgr::getGrid(Pos pos)
+{
+    return _gridList[pos.first-1][pos.second-1];
+}
+
 void
 RouteMgr::init2DSupply()
 {
@@ -837,12 +843,14 @@ RouteMgr::checkOverflow()
         for (unsigned i=1; i<=Ggrid::rEnd; ++i) {
             for (unsigned j=1; j<=Ggrid::cEnd; ++j) {
                 if (routeMgr->check3dOverflow(i, j, k) == GRID_OVERFLOW) {
+                    cerr << "(" << i << ", " << j << ", "
+                        << k << ")\n";
                     ++OVCNT;
                 }
             }
         }
     }
-    cout << OVCNT << " grids are overflown!\n";
+    cout << OVCNT << " grids overflow!\n";
     return OVCNT;
 }
 

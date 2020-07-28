@@ -68,13 +68,15 @@ RouteExecStatus RouteMgr::route2D(Net* n)
     //      dynamically update the congestion 
     // 3.   if can't route, rip-up the pre-exist segments , enlarge the bound, and goto 2.
     // 4.   iteratively untill all net is routed in 2D Grid graph.      
-    cout << "2D-Routing..." << endl;
+    cout << "\n2D-Routing...\n";
     
-    auto pinSet = n->_pinSet;
+    //auto pinSet = n->_pinSet;
     cout << "Routing N" << n->_netId << endl;
     unsigned availale_layer = _laySupply.size() - n->getMinLayCons() + 1;
     double demand = ((double)_laySupply.size() / (double)availale_layer);
-    for(auto it=pinSet.begin(); it != --pinSet.end();){
+    auto pinSet = n->sortPinSet();
+    for(auto it=pinSet.begin(); it != --pinSet.end();)
+    {
         Pos pos1 = getPinPos(*it);
         Pos pos2 = getPinPos(*(++it));
         unsigned lay1 = getPinLay(*(--it));
@@ -142,8 +144,10 @@ bool RouteMgr::route2Pin(Pos p1, Pos p2, Net* net, double demand, unsigned lay1,
         }else{
             Segment* news = new Segment(node->x, node->y, lay1,
                                         node->x, node->y, lay2);
+            #ifdef DEBUG
             cout << "New Segment!! : " << node->x << " " << node->y << " " << lay1 << ", "
                                        << node->x << " " << node->y << " " << lay2 << endl; 
+            #endif
             net->addSeg(news);
         }
         Pos segStart = Pos(node->x, node->y);
@@ -155,8 +159,10 @@ bool RouteMgr::route2Pin(Pos p1, Pos p2, Net* net, double demand, unsigned lay1,
             if( dir != ((node->x-next->x)==0) ) { // changing direction
                 Segment* news = new Segment(segStart.first, segStart.second, dirCnt==0 ? lay1 : 0,
                                             node->x       , node->y        , 0);
+                #ifdef DEBUG
                 cout << "New Segment!! : " << segStart.first << " " << segStart.second << " " << ( dirCnt==0 ? lay1 : 0 ) << " , "
                                            << node->x        << " " << node->y         << " " << 0 << endl; 
+                #endif
                 net->addSeg(news);
                 segStart.first = node->x;
                 segStart.second = node->y;
@@ -166,8 +172,10 @@ bool RouteMgr::route2Pin(Pos p1, Pos p2, Net* net, double demand, unsigned lay1,
             if( next==goal ){
                 Segment* news = new Segment(segStart.first, segStart.second, dirCnt==0 ? lay1 : 0,
                                             next->x       , next->y        , lay2 );
+                #ifdef DEBUG
                 cout << "New Segment!! : " << segStart.first << " " << segStart.second << " " << (dirCnt==0 ? lay1 : 0) << " , "
                                            << next->x        << " " << next->y         << " " << lay2 << endl; 
+                #endif
                 net->addSeg(news);                           
             }
             (routeMgr->_gridList[next->x-1][next->y-1])->update2dDemand(demand);
