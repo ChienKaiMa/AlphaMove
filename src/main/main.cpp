@@ -69,7 +69,7 @@ main(int argc, char** argv)
          return 1;
       }
       alarm(TIME_LIMIT-100);
-      //alarm(200);
+      //alarm(60);
       signal(SIGALRM, &signal_handler);
       struct sigaction sigCHandler;
       sigCHandler.sa_handler = signal_handler;

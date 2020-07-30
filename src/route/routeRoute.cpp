@@ -151,7 +151,7 @@ bool RouteMgr::route2Pin(Pos p1, Pos p2, Net* net, double demand, unsigned lay1,
             net->addSeg(news);
         }
         Pos segStart = Pos(node->x, node->y);
-        (routeMgr->_gridList[node->x-1][node->y-1])->update2dDemand(1);
+        (routeMgr->_gridList[node->x-1][node->y-1])->update2dDemand(demand);
 
         int steps = 0;
         int dirCnt = 0;

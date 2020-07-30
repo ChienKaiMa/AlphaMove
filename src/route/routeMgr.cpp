@@ -310,9 +310,21 @@ RouteMgr::readCircuit(const string& fileName)
         //m->printAssoCellInst();
     }
     myUsage.report(true, true);cout << "\n";
+    cout << "initialize min_layer_constraint\n";
+    for(unsigned i=0;i<_netList.size();++i){
+        if(_netList[i]->getMinLayCons() == _laySupply.size()){
+            auto ite = _netList[i]->_assoCellInstMap.begin();
+            for(unsigned j=0;j<_netList[i]->_assoCellInstMap.size();++j){
+                _instList[ite->first-1]->min_layer_constraint = true;
+            }
+        }
+    }
+    myUsage.report(true, true);cout << "\n";
+    cout << "initialize net rank\n";
     _netRank = new NetRank;
     _netRank->init();
     myUsage.report(true, true);cout << "\n";
+    cout << "evaluate wire length\n";
     _netRank->showTopTen();
     _initTotalWL = evaluateWireLen();
     myUsage.report(true, true);cout << "\n";
