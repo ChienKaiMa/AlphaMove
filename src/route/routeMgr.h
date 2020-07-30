@@ -168,14 +168,11 @@ private:
     unsigned          _bestTotalWL;
     ofstream*         _tempRoute;
     NetRank*          _netRank;
-<<<<<<< HEAD
     vector<Ggrid*>    _overflowGgrids;
     LayerList         _overflowLayers;
-=======
 
     //Placement Helper Function
     static bool compare(pair<unsigned,double> a, pair<unsigned,double> b) { return a.second < b.second; }
->>>>>>> 11f8187fd8b726ac5b2a11c84fb08f755abaeb10
 
     //Routing Helper function
     bool route2Pin(Pos p1, Pos p2, Net* net, double demand, unsigned lay1, unsigned lay2);
