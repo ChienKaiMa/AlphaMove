@@ -28,6 +28,7 @@ extern RouteMgr* routeMgr;
 /**************************************/
 /*   Static variables and functions   */
 /**************************************/
+#define FORCE_DIRECTED_RATIO 200 
 
 /**************************************************/
 /*   Public member functions about optimization   */
@@ -251,126 +252,128 @@ void RouteMgr::netbasedPlace(){
 void RouteMgr::forcedirectedPlace (){
     cout << "Force-directed placement...\n";
 
-    CellInst* moveCell;
-    unsigned s=_instList.size()-1;
-    for(unsigned i=0; i<_instList.size(); ++i){
-        bool min_lay_constraint = false;
-        for(unsigned j=0;j<_instList[i]->assoNet.size();++j){
-            if(_netList[_instList[i]->assoNet[j]-1]->getMinLayCons() == _laySupply.size()){
-                min_lay_constraint = true;
-                cout << "Instance " << i+1 << " is in min_lay_constraint net " << _instList[i]->assoNet[j] << "!\n";
+    vector<CellInst*> moveCells;
+    vector<pair<unsigned,double>> congestionList; //first: cellInst index; second: 2d_congestion
+    for(unsigned i=0;i<_instList.size();++i){
+        congestionList.push_back(pair<unsigned,double>(i+1,_instList[i]->getGrid()->get2dCongestion()));
+    }
+    sort(congestionList.begin(), congestionList.end(), compare);
+    unsigned i = 0;
+    unsigned move_cell_num = ceil((double)_maxMoveCnt/(double)FORCE_DIRECTED_RATIO);
+    #ifndef DEBUG
+    cout << "move_cell_num = " << move_cell_num << "\n";
+    #endif
+    while(moveCells.size() < move_cell_num){
+        if(i == _instList.size()-1){
+            if(_instList[congestionList[i].first-1]->is_movable() && (_instList[congestionList[i].first-1]->_hasmovedbyfd == false) && (_instList[congestionList[i].first-1]->min_layer_constraint == false)){
+                moveCells.push_back(_instList[congestionList[i].first-1]);
+                for(unsigned j=0;j<_instList.size();++j)
+                    _instList[j]->_hasmovedbyfd = false;
+                break;
+            }
+            for(unsigned j=0;j<_instList.size();++j)
+                _instList[j]->_hasmovedbyfd = false;
+            break;
+        }
+        if(_instList[congestionList[i].first-1]->is_movable() && (_instList[congestionList[i].first-1]->_hasmovedbyfd == false) && (_instList[congestionList[i].first-1]->min_layer_constraint == false)){
+            moveCells.push_back(_instList[congestionList[i].first-1]);
+        }
+        ++i;
+    }
+    #ifndef DEBUG
+    for(unsigned i=0;i<moveCells.size();++i){
+        cout << "Cell " << moveCells[i]->getId() << " with congestion " << moveCells[i]->getGrid()->get2dCongestion() << " is to be moved.\n";
+    }
+    #endif
+    //go through _netList, find out all associated nets and thus associated cells and multiplications, then calculating new pos
+    for(unsigned i=0;i<moveCells.size();++i){
+        double row_numerator = 0;
+        double row_denominator = 0;
+        double col_numerator = 0;
+        double col_denominator = 0;
+        int new_row;
+        int new_col;
+        change_notifier(moveCells[i]);
+        remove2DBlkDemand(moveCells[i]);
+        remove3DBlkDemand(moveCells[i]);
+        //remove from original cellInstList
+        for(unsigned j=0;j<moveCells[i]->getGrid()->cellInstList.size();++j){
+            if(moveCells[i]->getGrid()->cellInstList[j] == moveCells[i]){
+                moveCells[i]->getGrid()->cellInstList.erase(moveCells[i]->getGrid()->cellInstList.begin() + j);
                 break;
             }
         }
-        if(_instList[i]->is_movable() && (_instList[i]->_hasmovedbyfd == false) && (min_lay_constraint == false)){
-            //cout << "CellInst " << i+1 << " on (" << _instList[i]->getPos().first << "," << _instList[i]->getPos().second << ") has 2dcongestion " << setprecision(3) << _instList[i]->getGrid()->get2dCongestion() << "\n";
-            moveCell = _instList[i];
-            s = i;
-            break;
-        }
-    }
-    
-    if(s<_instList.size()-1){
-        for(unsigned i=s+1; i<_instList.size(); ++i){
-            // cout << "Grid addr : " << _instList[i]->getGrid() << " Mgr Grid Addr : " << _gridList[_instList[i]->getPos().first-1][_instList[i]->getPos().second-1] << endl; 
-            // cout << "CellInst " << i+1 << " on (" << _instList[i]->getPos().first << "," << _instList[i]->getPos().second << ") has 2dcongestion " << setprecision(3) << _instList[i]->getGrid()->get2dCongestion() << "\n";
-            bool min_lay_constraint = false;
-            for(unsigned j=0;j<_instList[i]->assoNet.size();++j){
-                if(_netList[_instList[i]->assoNet[j]-1]->getMinLayCons() == _laySupply.size()){
-                    min_lay_constraint = true;
-                    cout << "Instance " << i+1 << " is in min_lay_constraint net " << _instList[i]->assoNet[j] << "!\n";
-                    break;
+        //remove same gGrid demand
+        removeSameGgridDemand(moveCells[i]);
+        //remove adjHGrid demand
+        removeAdjHGgridDemand(moveCells[i]);
+        
+        for(unsigned j=0; j<moveCells[i]->assoNet.size(); ++j){
+            //cout << "Associated net " << _netList[moveCell->assoNet[i]-1]->_netId << "\n";
+            int pin_num = _netList[moveCells[i]->assoNet[j]-1]->getPinSet().size() - 1;
+            std::set<PinPair>::iterator it = _netList[moveCells[i]->assoNet[j]-1]->getPinSet().begin();
+            if(pin_num > 0){
+                for(int k=0; k<pin_num+1; ++k){
+                    if(_instList[(*it).first-1] != moveCells[i]){
+                        //cout << _instList[(*it).first-1]->getPos().first << " " << _instList[(*it).first-1]->getPos().second << "\n";
+                        //cout << "Pin_num: " << (double)pin_num << "\n";
+                        row_numerator += ((double)(_instList[(*it).first-1]->getPos().first))/((double)(pin_num));
+                        col_numerator += ((double)(_instList[(*it).first-1]->getPos().second))/((double)(pin_num));
+                        row_denominator += 1.0/((double)(pin_num));
+                        col_denominator += 1.0/((double)(pin_num));
+                    }
+                    ++it;
                 }
             }
-            if((_instList[i]->is_movable()) && (_instList[i]->getGrid()->get2dCongestion() < moveCell->getGrid()->get2dCongestion()) && (_instList[i]->_hasmovedbyfd == false) && (min_lay_constraint == false))
-                moveCell = _instList[i];
+            _netList[moveCells[i]->assoNet[j]-1]->_toRemoveDemand = true;
         }
-    }
-    else if(_instList[s]->is_movable() && (_instList[s]->_hasmovedbyfd == false)){
-        moveCell = _instList[s];
-    }
-    else{
-        netbasedPlace();
-        return;
+        //calculate new position
+        new_row = (int)(round((double)(row_numerator) / (double)(row_denominator)));
+        new_col = (int)(round((double)(col_numerator) / (double)(col_denominator)));
+        if(new_row > (int)Ggrid::rEnd)
+            new_row = Ggrid::rEnd;
+        else if(new_row < (int)Ggrid::rBeg)
+            new_row = Ggrid::rBeg;
+        if(new_col > (int)Ggrid::cEnd)
+            new_col = Ggrid::cEnd;
+        else if(new_col < (int)Ggrid::cBeg)
+            new_col = Ggrid::cBeg;
+        
+        // <Koova edited>
+        if (Pos(new_row,new_col) != moveCells[i]->getInitPos()) {
+            _curMovedSet.insert(moveCells[i]);
+        } 
+        else {
+            _curMovedSet.erase(moveCells[i]);
+        }
+        
+        moveCells[i]->_hasmovedbyfd = true;
+        cout << "CellInst " << moveCells[i]->getId() << " is moved!\n";
+        // </Koova edited>
+
+        cout << "Old position: " << moveCells[i]->getPos().first << " " << moveCells[i]->getPos().second << "\n";
+        moveCells[i]->move(Pos(new_row,new_col));
+        add2DBlkDemand(moveCells[i]);
+        add3DBlkDemand(moveCells[i]);
+        //add same gGrid demand
+        addSameGgridDemand(moveCells[i]);
+        //add adjHGrid demand
+        addAdjHGgridDemand(moveCells[i]);
+        //add to new cellInstList
+        moveCells[i]->getGrid()->cellInstList.push_back(moveCells[i]);
+
+        cout << "New position: " << moveCells[i]->getPos().first << " " << moveCells[i]->getPos().second << "\n";
     }
 
-    //go through _netList, find out all associated nets and thus associated cells and multiplications, then calculating new pos
-    double row_numerator = 0;
-    double row_denominator = 0;
-    double col_numerator = 0;
-    double col_denominator = 0;
-    int new_row;
-    int new_col;
-    change_notifier(moveCell);
-    remove2DBlkDemand(moveCell);
-    remove3DBlkDemand(moveCell);
-    //remove from original cellInstList
-    for(unsigned j=0;j<moveCell->getGrid()->cellInstList.size();++j){
-        if(moveCell->getGrid()->cellInstList[j] == moveCell){
-            moveCell->getGrid()->cellInstList.erase(moveCell->getGrid()->cellInstList.begin() + j);
-            break;
-        }
-    }
-    //remove same gGrid demand
-    removeSameGgridDemand(moveCell);
-    //remove adjHGrid demand
-    removeAdjHGgridDemand(moveCell);
-    
-    for(unsigned i=0; i<moveCell->assoNet.size(); ++i){
-        //cout << "Associated net " << _netList[moveCell->assoNet[i]-1]->_netId << "\n";
-        int pin_num = _netList[moveCell->assoNet[i]-1]->getPinSet().size() - 1;
-        std::set<PinPair>::iterator it = _netList[moveCell->assoNet[i]-1]->getPinSet().begin();
-        if(pin_num > 0){
-            for(int j=0; j<pin_num+1; ++j){
-                if(_instList[(*it).first-1] != moveCell){
-                    //cout << _instList[(*it).first-1]->getPos().first << " " << _instList[(*it).first-1]->getPos().second << "\n";
-                    //cout << "Pin_num: " << (double)pin_num << "\n";
-                    row_numerator += ((double)(_instList[(*it).first-1]->getPos().first))/((double)(pin_num));
-                    col_numerator += ((double)(_instList[(*it).first-1]->getPos().second))/((double)(pin_num));
-                    row_denominator += 1.0/((double)(pin_num));
-                    col_denominator += 1.0/((double)(pin_num));
-                }
-                ++it;
-            }
-        }
-        remove2DDemand(_netList[moveCell->assoNet[i]-1]);
-    }
-    new_row = (int)(round((double)(row_numerator) / (double)(row_denominator)));
-    new_col = (int)(round((double)(col_numerator) / (double)(col_denominator)));
-    if(new_row > (int)Ggrid::rEnd)
-        new_row = Ggrid::rEnd;
-    else if(new_row < (int)Ggrid::rBeg)
-        new_row = Ggrid::rBeg;
-    if(new_col > (int)Ggrid::cEnd)
-        new_col = Ggrid::cEnd;
-    else if(new_col < (int)Ggrid::cBeg)
-        new_col = Ggrid::cBeg;
-    
-    // <Koova edited>
-    if (Pos(new_row,new_col) != moveCell->getInitPos()) {
-        _curMovedSet.insert(moveCell);
-    } 
-    else {
-        _curMovedSet.erase(moveCell);
-    }
-    
-    moveCell->_hasmovedbyfd = true;
-    cout << "CellInst " << moveCell->getId() << " is moved!\n";
     cout << "CurMoveCnt: " << getCurMoveCnt() << "\n";
-    // </Koova edited>
-
-    cout << "Old position: " << moveCell->getPos().first << " " << moveCell->getPos().second << "\n";
-    moveCell->move(Pos(new_row,new_col));
-    add2DBlkDemand(moveCell);
-    add3DBlkDemand(moveCell);
-    //add same gGrid demand
-    addSameGgridDemand(moveCell);
-    //add adjHGrid demand
-    addAdjHGgridDemand(moveCell);
-    //add to new cellInstList
-    moveCell->getGrid()->cellInstList.push_back(moveCell);
-
-    cout << "New position: " << moveCell->getPos().first << " " << moveCell->getPos().second << "\n";
+    for(unsigned i=0;i<_netList.size();++i){
+        if(_netList[i]->_toRemoveDemand == true){
+            remove2DDemand(_netList[i]);
+            _netList[i]->_toReroute = true;
+            //cout << "Net " << i+1 << " need to be rerouted.\n";
+            _netList[i]->_toRemoveDemand = false;
+        }
+    }
 }
 
 void
