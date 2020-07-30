@@ -402,26 +402,33 @@ CellPrintCmd::exec(const string& option)
 
    if (tokens.empty())
       // TODO
-      cout << "routeMgr->printSummary()" << endl;
+      routeMgr->printCellSummary();
    else if (tokens.size() == 1) {
       if (myStrNCmp("-Summary", tokens[0], 2) == 0) {
          // TODO
-         cout << "routeMgr->printSummary()" << endl;
+         routeMgr->printCellSummary();
       } else if (myStrNCmp("-ALl", tokens[0], 3) == 0)
          routeMgr->printCellInst();
       else if (myStrNCmp("-MC", tokens[0], 3) == 0)
          routeMgr->printMCList();
       else if (myStrNCmp("-ASsonet", tokens[0], 3) == 0)
          routeMgr->printAssoNet();
-      else
-         return CmdExec::errorOption(CMD_OPT_ILLEGAL, tokens[0]);
+      else {
+         int idx;
+         if (!myStr2Int(tokens[0], idx)) {
+            return CmdExec::errorOption(CMD_OPT_ILLEGAL, tokens[0]);
+         }
+         if (!(routeMgr->printCellInst(idx))) {
+            return CmdExec::errorOption(CMD_OPT_ILLEGAL, tokens[0]);
+         }
+      }
    } else if (tokens.size() == 2) {
       int idx;
       if (myStrNCmp("-MC", tokens[0], 3) == 0) {
          if (!myStr2Int(tokens[1], idx)) {
             return CmdExec::errorOption(CMD_OPT_ILLEGAL, tokens[1]);
          }
-         if (!(routeMgr->printMCList(idx))) {
+         if (!(routeMgr->printMC(idx))) {
             return CmdExec::errorOption(CMD_OPT_ILLEGAL, tokens[1]);
          }
       } else if (myStrNCmp("-ASsonet", tokens[0], 3) == 0) {

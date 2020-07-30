@@ -839,12 +839,16 @@ bool
 RouteMgr::checkOverflow()
 {
     int OVCNT = 0;	
+    _overflowGgrids.clear();
+    _overflowLayers.clear();
     for (unsigned k=1; k<=routeMgr->getLayerCnt(); ++k) {
         for (unsigned i=1; i<=Ggrid::rEnd; ++i) {
             for (unsigned j=1; j<=Ggrid::cEnd; ++j) {
-                if (routeMgr->check3dOverflow(i, j, k) == GRID_OVERFLOW) {
+                if (this->check3dOverflow(i, j, k) == GRID_OVERFLOW) {
                     cerr << "(" << i << ", " << j << ", "
-                        << k << ")\n";
+                        << k << ") ";
+                    _overflowGgrids.push_back(this->_gridList[i-1][j-1]);
+                    _overflowLayers.push_back((*(this->_gridList[i-1][j-1]))[k]);
                     ++OVCNT;
                 }
             }
@@ -857,6 +861,7 @@ RouteMgr::checkOverflow()
 bool
 RouteMgr::reduceOverflow()
 {
+    // TODO: reduceOverflow from _overflowGgrids
     for (auto net : _netList) {
         if (net->checkOverflow()) {
             if (net->getPinSet().size() <= 2) {

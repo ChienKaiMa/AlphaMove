@@ -66,13 +66,13 @@ RouteMgr::printNet(int idx) const
 
 
 bool
-RouteMgr::printAssoInst(int idx) const
+RouteMgr::printAssoInst(unsigned netId) const
 {
-    if (size_t(idx) > _netList.size() || idx <= 0) {
+    if (netId > _netList.size() || netId <= 0) {
         return false;
     } else {
         cout << endl;
-        _netList[idx-1]->printAssoCellInst();
+        _netList[netId-1]->printAssoCellInst();
         return true;
     }
 }
@@ -88,13 +88,13 @@ RouteMgr::printMCList() const
 }
 
 bool
-RouteMgr::printMCList(unsigned idx) const
+RouteMgr::printMC(unsigned mcId) const
 {
-    if (idx > _mcList.size() || idx <= 0) {
+    if (mcId > _mcList.size() || mcId <= 0) {
         return false;
     } else {
         cout << endl;
-        _mcList[idx-1]->printMC();
+        _mcList[mcId-1]->printMC();
         return true;
     }
 }
@@ -192,12 +192,37 @@ RouteMgr::print2DCongestion() const
 }
 
 void
+RouteMgr::printCellSummary() const
+{
+    cout << "\nMaxCellMove " << setw(12) << _maxMoveCnt << "\n";
+    cout << "CurrentMove " << setw(12) << getCurMoveCnt() << "\n";
+    cout << "Total CellInst " << setw(9) << _instList.size() << "\n";
+    cout << "Movable CellInst " << setw(7);
+    unsigned mvbCnt = 0;
+    for (auto& ci : _instList) { if (ci->is_movable()) { ++mvbCnt; } }
+    cout << mvbCnt << "\n";
+    // TODO: stacked cellInst, cellInst with most pins, most used masterCell...
+}
+
+void
 RouteMgr::printCellInst() const
 {
     for(unsigned i=0; i<_instList.size(); ++i)
     {
         cout << endl;
         _instList[i]->printCell();
+    }
+}
+
+bool
+RouteMgr::printCellInst(unsigned instIdx) const
+{
+    if (instIdx > _instList.size() || instIdx <= 0) {
+        return false;
+    } else {
+        cout << endl;
+        _instList[instIdx-1]->printCell();
+        return true;
     }
 }
 
@@ -211,13 +236,13 @@ RouteMgr::printAssoNet() const
 }
 
 bool
-RouteMgr::printAssoNet(unsigned idx) const
+RouteMgr::printAssoNet(unsigned instIdx) const
 {
-    if (idx > _instList.size() || idx <= 0) {
+    if (instIdx > _instList.size() || instIdx <= 0) {
         return false;
     } else {
         cout << endl;
-        _instList[idx-1]->printAssoNet();
+        _instList[instIdx-1]->printAssoNet();
         return true;
     }
 }

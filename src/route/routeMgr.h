@@ -46,9 +46,9 @@ public:
     void    printRouteSummary() const;
     void    printNetlist() const;
     bool    printNet(int idx) const;
-    bool    printAssoInst(int idx) const;
+    bool    printAssoInst(unsigned netId) const;
     void    printMCList() const;
-    bool    printMCList(unsigned idx) const;
+    bool    printMC(unsigned mcId) const;
 
     void    printLaySupply() const;
     void    printNonDefaultSupply() const;
@@ -60,9 +60,11 @@ public:
 
     void    print2DCongestion() const;
 
+    void    printCellSummary() const;
     void    printCellInst() const;
+    bool    printCellInst(unsigned instIdx) const;
     void    printAssoNet() const;
-    bool    printAssoNet(unsigned idx) const;
+    bool    printAssoNet(unsigned instIdx) const;
     void    printInitSegs() const;
     void    printRank() const;
     void    replaceBest();
@@ -166,7 +168,8 @@ private:
     unsigned          _bestTotalWL;
     ofstream*         _tempRoute;
     NetRank*          _netRank;
-
+    vector<Ggrid*>    _overflowGgrids;
+    LayerList         _overflowLayers;
 
     //Routing Helper function
     bool route2Pin(Pos p1, Pos p2, Net* net, double demand, unsigned lay1, unsigned lay2);

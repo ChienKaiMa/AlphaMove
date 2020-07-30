@@ -123,7 +123,9 @@ void Ggrid::printDemand() const
 /*****************************/
 void MC::printMC() const
 {
-    cout << "MasterCell MC" << _mcId << " " << _layerOfPin.size() << " " << _blkgList.size() << endl;
+    cout << "MasterCell MC" << _mcId << "\n";
+    cout << "Pin count: " << _layerOfPin.size() << "\n";
+    cout << "Blkg count: " << _blkgList.size() << "\n";
     for (unsigned i = 0; i < _layerOfPin.size(); ++i)
         cout << "Pin "
              << "P" << i + 1 << " "
@@ -159,12 +161,12 @@ void CellInst::printPos(ostream &outfile) const
 
 void CellInst::printPos() const
 {
-    cout << "row: " << getPos().first << ", col: " << getPos().second << endl;
+    cout << "Position: (" << getPos().first << "," << getPos().second << ")\n";
 }
 
 void CellInst::printCell() const
 {
-    cout << _cellId << endl;
+    cout << "CellInst " << _cellId << endl;
     if (_movable)
     {
         cout << "Movable" << endl;
@@ -174,12 +176,13 @@ void CellInst::printCell() const
         cout << "Not movable" << endl;
     }
     printPos();
+    cout << "Associated nets: ";
+    printAssoNet();
     _mc->printMC();
 }
 
 void CellInst::printAssoNet() const
 {
-    cout << "CellInst" << _cellId << endl;
     for (auto const m : assoNet)
     {
         cout << "N" << m << " ";
