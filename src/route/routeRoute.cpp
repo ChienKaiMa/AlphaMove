@@ -151,6 +151,9 @@ bool RouteMgr::route2Pin(Pos p1, Pos p2, Net* net, double demand, unsigned lay1,
             net->addSeg(news);
         }
         Pos segStart = Pos(node->x, node->y);
+        #ifdef DEBUG
+        cout << "Net " << net->_netId << "\n";
+        #endif
         (routeMgr->_gridList[node->x-1][node->y-1])->update2dDemand(demand);
 
         int steps = 0;
@@ -178,6 +181,9 @@ bool RouteMgr::route2Pin(Pos p1, Pos p2, Net* net, double demand, unsigned lay1,
                 #endif
                 net->addSeg(news);                           
             }
+            #ifdef DEBUG
+            cout << "Net " << net->_netId << "\n";
+            #endif
             (routeMgr->_gridList[next->x-1][next->y-1])->update2dDemand(demand);
             // node->PrintNodeInfo();
             // next->PrintNodeInfo();

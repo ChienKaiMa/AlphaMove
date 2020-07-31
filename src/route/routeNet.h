@@ -214,7 +214,9 @@ public:
     void update2dDemand( double deltaDemand ) { 
         assert(_2dSupply > 0);
         _2dDemand = _2dDemand + deltaDemand;
-        //cout << _2dSupply << " " << _2dDemand << "\n";
+        #ifdef DEBUG
+        cout << "Grid (" << _pos.first << "," << _pos.second << ") delta demand " << deltaDemand << "\n"; 
+        #endif
         _2dCongestion = ((double)(_2dSupply) - (double)(_2dDemand)  - koovaCongParam() /** CONGESTION_PARAMETER*/) / (double)(_2dSupply); 
     }
     unsigned getOverflowCount() const;
