@@ -36,6 +36,7 @@ given where due.
 #include <set>
 #include <vector>
 #include <cfloat>
+#include <unordered_map>
 
 using namespace std;
 
@@ -51,6 +52,10 @@ using namespace std;
 #if defined(WIN32) && defined(_WINDOWS)
 #pragma warning( disable : 4786 )
 #endif
+
+struct MCTri;
+// hasher for triple
+struct TriHash;
 
 template <class T> class AStarState;
 
@@ -261,8 +266,10 @@ public: // methods
 
 			// User provides this functions and uses AddSuccessor to add each successor of
 			// node 'n' to m_Successors
-			bool ret = n->m_UserState.GetSuccessors( this, n->parent ? &n->parent->m_UserState : NULL ); 
-
+			
+			unordered_map<MCTri, unsigned, TriHash>* happy = new unordered_map<MCTri, unsigned, TriHash>();
+			bool ret = n->m_UserState.GetSuccessors( this, happy); 
+			delete happy;
 			if( !ret )
 			{
 
@@ -823,7 +830,7 @@ public:
 	virtual ~AStarState() {}
 	virtual float GoalDistanceEstimate( T &nodeGoal ) = 0; // Heuristic function which computes the estimated cost to the goal node
 	virtual bool IsGoal( T &nodeGoal ) = 0; // Returns true if this node is the goal node
-	virtual bool GetSuccessors( AStarSearch<T> *astarsearch, T *parent_node ) = 0; // Retrieves all successors to this node and adds them via astarsearch.addSuccessor()
+	virtual bool GetSuccessors( AStarSearch<T> *astarsearch, unordered_map<MCTri, unsigned, TriHash> *parent_node ) = 0; // Retrieves all successors to this node and adds them via astarsearch.addSuccessor()
 	virtual float GetCost( T &successor ) = 0; // Computes the cost of travelling from this node to the successor node
 	virtual bool IsSameState( T &rhs ) = 0; // Returns true if this node is the same as the rhs node
 };

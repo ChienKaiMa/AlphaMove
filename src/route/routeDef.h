@@ -12,6 +12,7 @@
 
 #include <vector>
 #include <tuple>
+#include <set>
 
 using namespace std;
 
@@ -35,6 +36,35 @@ typedef pair<unsigned, unsigned> PinPair;
 typedef vector<Layer*> LayerList;
 typedef tuple<unsigned,unsigned,unsigned> OutputCell; //CellID, row, col
 typedef pair<Segment,unsigned> OutputSeg; //Segment, netID
+
+//--------------------------
+// Self-Defined Hasher& Key
+//--------------------------
+//self defined struct for sameGrid & adjGrid MC pairs & nonDefault
+struct MCTri{
+  unsigned idx1, idx2, layNum;
+  MCTri(const unsigned n1, const unsigned n2, const unsigned layN){
+    idx1 = n1;
+    idx2 = n2;
+    layNum = layN;
+  }
+  bool operator == (const MCTri& p ) const{
+    return (this->idx1 == p.idx1) && (this->idx2 == p.idx2) && 
+            (this->layNum == p.layNum);
+  }
+};
+// hasher for triple
+struct TriHash{
+  size_t operator()(const MCTri& p) const{
+    return ((p.idx1 << 13)+(p.idx2 << 27)+p.layNum);
+  }
+};
+// hasher for ordered pair
+struct PairHash{
+  size_t operator() (const pair<unsigned, unsigned>& p) const{
+    return ((p.first << 16)+p.second);
+  }
+};
 
 //----------------------------------------------------------------------
 //    placement strategy

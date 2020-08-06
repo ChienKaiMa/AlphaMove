@@ -46,6 +46,7 @@ RouteMgr::route()
     }
     for (auto n : targetNet) {
         route2D(n);
+        
         if (layerassign(n) == ROUTE_EXEC_ERROR) {
             myStatus = ROUTE_EXEC_ERROR;
         }
@@ -92,6 +93,31 @@ RouteExecStatus RouteMgr::route2D(Net* n)
     return ROUTE_EXEC_DONE;
 }
 
+RouteExecStatus RouteMgr::route3D(Net* n)
+{   
+    cout << "\n3D-Routing...\n";
+    
+    //auto pinSet = n->_pinSet;
+    cout << "Routing N" << n->_netId << endl;
+    unsigned availale_layer = _laySupply.size() - n->getMinLayCons() + 1;
+    double demand = ((double)_laySupply.size() / (double)availale_layer);
+    auto pinSet = n->sortPinSet();
+    for(auto it=pinSet.begin(); it != --pinSet.end();)
+    {
+        Pos pos1 = getPinPos(*it);
+        Pos pos2 = getPinPos(*(++it));
+        unsigned lay1 = getPinLay(*(--it));
+        unsigned lay2 = getPinLay(*(++it));
+        if (!route2Pin3D(pos1, pos2, n, demand, lay1, lay2)) {
+            cout << "route2Pin3D("
+            << pos1.first << " " << pos1.second << " " << lay1 << ", " 
+            << pos2.first << " " << pos2.second << " " << lay2
+            << " ) failed!" << endl;
+        }
+    }
+    n->shouldReroute(false);
+    return ROUTE_EXEC_DONE;
+}
 
 bool RouteMgr::route2Pin(Pos p1, Pos p2, Net* net, double demand, unsigned lay1, unsigned lay2)
 {
@@ -189,6 +215,130 @@ bool RouteMgr::route2Pin(Pos p1, Pos p2, Net* net, double demand, unsigned lay1,
         searchSolver.FreeSolutionNodes();
     }
     else if(searchState == AStarSearch<MapSearchNode>::SEARCH_STATE_FAILED){
+        cout << "Search terminated. Failed to find goal state" << endl;
+    }
+    else{
+        cout << "Unexpected search states!!" << endl;
+    }
+
+    cout << "SearchSteps : " << searchSteps << endl;
+
+    searchSolver.EnsureMemoryFreed();
+    return true;
+}
+
+bool RouteMgr::route2Pin3D(Pos p1, Pos p2, Net* net, double demand, unsigned lay1, unsigned lay2)
+{
+    AStarSearch<CubeSearchNode> searchSolver;
+    CubeSearchNode s = CubeSearchNode(p1.first, p1.second, lay1); // start node
+    CubeSearchNode t = CubeSearchNode(p2.first, p2.second, lay2); // terminal node
+    searchSolver.SetStartAndGoalStates(s, t);
+    cout << "route2Pin3D from : " << p1.first << " " << p1.second << " " << lay1 << ", to "
+                                << p2.first << " " << p2.second << " " << lay2 << "." << endl;
+    unsigned searchState;
+    unsigned searchSteps = 0;
+    do{
+        searchState = searchSolver.SearchStep();
+        cout << searchSteps << "\n";
+        searchSteps++;
+        #ifdef DEBUG
+            cout << "Step: " << searchSteps << endl;
+            int len = 0;
+            // open lists
+            cout << "Open:\n";
+            CubeSearchNode* p = searchSolver.GetOpenListStart();
+            while(p){
+                len++;
+                p->PrintNodeInfo();
+                p = searchSolver.GetOpenListNext();
+            }
+            cout << "Open list has " << len <<  " nodes\n";
+            len = 0;
+
+            // closed list
+            cout << "Closed:\n";
+            p = searchSolver.GetClosedListStart();
+            while(p){
+                len++;
+                p->PrintNodeInfo();
+                p = searchSolver.GetClosedListNext();
+            }
+            cout << "Closed list has " << len << " nodes\n";
+        #endif
+    }
+    while(searchState == AStarSearch<CubeSearchNode>::SEARCH_STATE_SEARCHING);
+
+    if(searchState == AStarSearch<CubeSearchNode>::SEARCH_STATE_SUCCEEDED){
+        // cout << "Search found goal state\n";
+        CubeSearchNode* goal = searchSolver.GetSolutionEnd();
+        CubeSearchNode* node =  searchSolver.GetSolutionStart(); 
+        CubeSearchNode* next = searchSolver.GetSolutionNext();
+        bool dir = 0;
+        if(next){
+            dir = (node->x - next->x)==0; // 1:col 0:row
+        }else{
+            Segment* news = new Segment(node->x, node->y, lay1,
+                                        node->x, node->y, lay2);
+            #ifdef DEBUG
+            cout << "New Segment!! : " << node->x << " " << node->y << " " << lay1 << ", "
+                                       << node->x << " " << node->y << " " << lay2 << endl; 
+            #endif
+            net->addSeg(news);
+        }
+        Pos segStart = Pos(node->x, node->y);
+        int myZ = node->z;
+        //(routeMgr->_gridList[node->x-1][node->y-1])->update2dDemand(demand);
+
+        int steps = 0;
+        int dirCnt = 0;
+        while(next){
+            Segment* news = new Segment(segStart.first, segStart.second, myZ,
+                                        node->x       , node->y        , node->z);
+            #ifdef DEBUG
+            cout << "New Segment!! : " << segStart.first << " " << segStart.second << " " << ( dirCnt==0 ? lay1 : 0 ) << " , "
+                                        << node->x        << " " << node->y         << " " << node->z << endl; 
+            #endif
+            net->addSeg(news);
+            segStart.first = node->x;
+            segStart.second = node->y;
+            myZ = node->z;
+            /*
+            if( dir != ((node->x-next->x)==0) ) { // changing direction
+                Segment* news = new Segment(segStart.first, segStart.second, myZ,
+                                            node->x       , node->y        , node->z);
+                #ifdef DEBUG
+                cout << "New Segment!! : " << segStart.first << " " << segStart.second << " " << ( dirCnt==0 ? lay1 : 0 ) << " , "
+                                           << node->x        << " " << node->y         << " " << node->z << endl; 
+                #endif
+                net->addSeg(news);
+                segStart.first = node->x;
+                segStart.second = node->y;
+                myZ = node->z;
+                dir = (node->x-next->x)==0 ;
+                dirCnt++;
+            }
+            */
+            if( next==goal ){
+                Segment* news = new Segment(segStart.first, segStart.second, myZ,
+                                            next->x       , next->y        , lay2 );
+                #ifdef DEBUG
+                cout << "New Segment!! : " << segStart.first << " " << segStart.second << " " << (dirCnt==0 ? lay1 : 0) << " , "
+                                           << next->x        << " " << next->y         << " " << lay2 << endl; 
+                #endif
+                net->addSeg(news);                           
+            }
+            
+            //(routeMgr->_gridList[next->x-1][next->y-1])->update2dDemand(demand);
+            // node->PrintNodeInfo();
+            // next->PrintNodeInfo();
+            node = next;
+            next = searchSolver.GetSolutionNext();
+            steps++;
+        }
+        // cout << "Solution steps " << steps << endl;        
+        searchSolver.FreeSolutionNodes();
+    }
+    else if(searchState == AStarSearch<CubeSearchNode>::SEARCH_STATE_FAILED){
         cout << "Search terminated. Failed to find goal state" << endl;
     }
     else{

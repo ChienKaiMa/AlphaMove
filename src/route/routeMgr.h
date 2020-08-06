@@ -97,6 +97,7 @@ public:
 
     RouteExecStatus    errorOption(RouteExecError);
     RouteExecStatus    route2D(Net*);
+    RouteExecStatus    route3D(Net*);
     RouteExecStatus    route();
     void    koova_place();
     void    change_notifier(CellInst*);
@@ -176,6 +177,7 @@ private:
 
     //Routing Helper function
     bool route2Pin(Pos p1, Pos p2, Net* net, double demand, unsigned lay1, unsigned lay2);
+    bool route2Pin3D(Pos p1, Pos p2, Net* net, double demand, unsigned lay1, unsigned lay2);
     Pos getPinPos(const PinPair) const; // 2D
     unsigned getPinLay(const PinPair) const;
 };
