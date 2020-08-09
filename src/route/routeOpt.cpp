@@ -652,7 +652,7 @@ RouteMgr::errorOption(RouteExecError rError)
 RouteExecStatus
 RouteMgr::layerassign(Net* net)
 {
-    cout << "\nLayerAssign...\n";
+    //cout << "\nLayerAssign...\n";
     vector<Segment*> toDel;
     //unsigned maxLayer = _laySupply.size();
     RouteExecStatus myStatus = ROUTE_EXEC_DONE;
@@ -692,7 +692,7 @@ RouteMgr::layerassign(Net* net)
                     }
                 } else if (seg->endPos[2] == seg->startPos[2]) {
                     if (seg->startPos[2] == unsigned(curLayer)) {
-                        seg->print();
+                        //seg->print();
                         #ifdef DEBUG
                         cout << " Stupid seg... Delete it!\n";
                         #endif

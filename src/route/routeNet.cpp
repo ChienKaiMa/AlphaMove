@@ -224,6 +224,11 @@ bool Segment::isValid() const
         cout << " is not valid!\n";
         return false;
     }
+    else if (startPos[0] == endPos[0] && startPos[1] == endPos[1] && startPos[2] == endPos[2])
+    {
+        //cout << "[WARN] 0-width segment\n";
+        return true;
+    }
     else
     {
         return true;
@@ -434,6 +439,23 @@ bool Segment::checkOverflow()
 /******************************/
 /* class Net member functions */
 /******************************/
+unsigned Net::getWirelength()
+{
+    return routeMgr->evaluateWireLen(this);
+}
+
+void Net::reduceSeg()
+{
+    for (auto it = _netSegs.begin(); it!=_netSegs.end(); ++it)
+    {
+        if (!(*it)->isValid())
+        {
+            delete (*it);
+            _netSegs.erase(it);
+        }
+    }
+}
+
 void Net::printSummary() const
 {
     cout << "N" << _netId << endl;

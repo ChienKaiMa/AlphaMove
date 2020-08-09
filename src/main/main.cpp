@@ -85,6 +85,7 @@ main(int argc, char** argv)
       routeMgr->readCircuit(inputFile);
       routeMgr->printInputSummary();
       
+      routeMgr->reroute();
       routeMgr->mainPnR();
       routeMgr->writeCircuit(outfile);
       

@@ -330,6 +330,8 @@ public:
     bool findVCand(vector<int>&);
     bool findHCand(vector<int>&);
     bool findZCand(vector<int>&);
+    unsigned getWirelength();
+    void reduceSeg();
 
     //Printing functions
     void printPinSet() const;

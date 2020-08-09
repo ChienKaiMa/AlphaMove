@@ -82,6 +82,7 @@ public:
     }
 
     unsigned evaluateWireLen() const;
+    unsigned evaluateWireLen(Net*) const;
 
     
     /**********************************/
@@ -98,6 +99,8 @@ public:
     RouteExecStatus    errorOption(RouteExecError);
     RouteExecStatus    route2D(Net*);
     RouteExecStatus    route();
+    RouteExecStatus    reroute();
+    RouteExecStatus    reroute(Net*);
     void    koova_place();
     void    change_notifier(CellInst*);
     void    koova_route();

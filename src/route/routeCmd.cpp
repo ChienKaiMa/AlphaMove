@@ -284,7 +284,7 @@ RouteCmd::help() const
 }
 
 //----------------------------------------------------------------------
-//    Optimize < -All | -Overflow | -2pinreroute | -Evaluate | -Rank >
+//    Optimize < -All | -Overflow | -REroute | -2pinreroute | -Evaluate | -RAnk >
 //----------------------------------------------------------------------
 CmdExecStatus
 OptimizeCmd::exec(const string& option)
@@ -305,6 +305,8 @@ OptimizeCmd::exec(const string& option)
       routeMgr->place();
       routeMgr->route();
       routeMgr->replaceBest();
+   } else if (myStrNCmp("-REroute", token, 3) == 0) {
+      routeMgr->reroute();
    } else if (myStrNCmp("-Overflow", token, 2) == 0) {
       routeMgr->checkOverflow();
    } else if (myStrNCmp("-2PinReroute", token, 2) == 0) {
@@ -312,7 +314,7 @@ OptimizeCmd::exec(const string& option)
    }
    else if (myStrNCmp("-Evaluate", token, 2) == 0)	
       routeMgr->replaceBest();
-   else if (myStrNCmp("-Rank", token, 2) == 0)
+   else if (myStrNCmp("-RAnk", token, 3) == 0)
       routeMgr->printRank();
    else 	
       return CmdExec::errorOption(CMD_OPT_ILLEGAL, token);
@@ -326,7 +328,7 @@ OptimizeCmd::exec(const string& option)
 void
 OptimizeCmd::usage(ostream& os) const
 {
-   os << "Usage: Optimize < -All | -Overflow | -2pinreroute | -Evaluate | -Rank >" << endl;
+   os << "Usage: Optimize < -All | -Overflow | -REroute | -2pinreroute | -Evaluate | -RAnk >" << endl;
 }
 
 void
@@ -571,6 +573,8 @@ NetPrintCmd::exec(const string& option)
             return CmdExec::errorOption(CMD_OPT_ILLEGAL, tokens[1]);
          }
       }
+      else
+         return CmdExec::errorOption(CMD_OPT_ILLEGAL, tokens[1]);
    } else {
       return CmdExec::errorOption(CMD_OPT_EXTRA, tokens[2]);
    }

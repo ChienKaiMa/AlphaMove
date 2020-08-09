@@ -905,6 +905,13 @@ RouteMgr::evaluateWireLen() const{
     return newWL;
 }
 
+unsigned 
+RouteMgr::evaluateWireLen(Net* n) const{
+    set<Layer*> alpha;
+    passGrid(n, alpha);
+    return alpha.size();
+}
+
 void 
 RouteMgr::replaceBest(){
     cout << "Evaluating WL ..." << endl;
