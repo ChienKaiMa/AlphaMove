@@ -260,7 +260,7 @@ void RouteMgr::forcedirectedPlace (){
     sort(congestionList.begin(), congestionList.end(), compare);
     unsigned i = 0;
     unsigned move_cell_num = ceil((double)_maxMoveCnt/(double)FORCE_DIRECTED_RATIO);
-    #ifndef DEBUG
+    #ifdef DEBUG
     cout << "move_cell_num = " << move_cell_num << "\n";
     #endif
     while(moveCells.size() < move_cell_num){
@@ -280,7 +280,7 @@ void RouteMgr::forcedirectedPlace (){
         }
         ++i;
     }
-    #ifndef DEBUG
+    #ifdef DEBUG
     for(unsigned i=0;i<moveCells.size();++i){
         cout << "Cell " << moveCells[i]->getId() << " with congestion " << moveCells[i]->getGrid()->get2dCongestion() << " is to be moved.\n";
     }

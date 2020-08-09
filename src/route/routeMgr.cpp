@@ -223,7 +223,7 @@ RouteMgr::readCircuit(const string& fileName)
             int layCons = stoi(buffer.substr(1));
             brook = new Net(i+1, layCons);
         } else {
-            brook = new Net(i+1, 0); // [Important] NoCstr
+            brook = new Net(i+1, 1); // [Important] NoCstr
         }
         for(unsigned j=0; j<tmpCnt1; ++j)
         {
@@ -635,6 +635,9 @@ RouteMgr::add2DDemand(Net* net) //Initialize after each route
     if(net->_netSegs.size() == 0) {
         //cout << "Net" << net->_netId << " is empty!\n";
     }
+    #ifdef DEBUG
+    cout << "Net " << net->_netId << " " << _laySupply.size() << " " << net->getMinLayCons() << " constraint " << constraint << "\n";
+    #endif
     for(auto& s : net->_netSegs) {
         if(s->startPos[2] == s->endPos[2]){
             if(s->startPos[0] != s->endPos[0]){
@@ -662,7 +665,10 @@ RouteMgr::add2DDemand(Net* net) //Initialize after each route
             }
         }
         else{
-            int num_of_layer = abs((int)(s->startPos[2]) - (int)(s->endPos[2]));
+            int num_of_layer = abs((int)(s->startPos[2]) - (int)(s->endPos[2])) + 1;
+            #ifdef DEBUG
+            cout << "num_of_layer " << num_of_layer << "\n";
+            #endif
             _gridList[(s->startPos[0])-1][(s->startPos[1])-1]->update2dDemand(num_of_layer*constraint);
         }
     }
@@ -679,7 +685,9 @@ RouteMgr::remove2DDemand(Net* net) //before each route
 {
     unsigned availale_layer = _laySupply.size() - net->getMinLayCons() + 1;
     double constraint = (double) (_laySupply.size() / availale_layer);
-
+    #ifdef DEBUG
+    cout << "Net " << net->_netId << "\n";
+    #endif
     for(auto& s : net->_netSegs) {
         if(s->startPos[2] == s->endPos[2]){
             if(s->startPos[0] != s->endPos[0]){
@@ -706,7 +714,7 @@ RouteMgr::remove2DDemand(Net* net) //before each route
             }
         }
         else{
-            int num_of_layer = abs((int)(s->startPos[2]) - (int)(s->endPos[2]));
+            int num_of_layer = abs((int)(s->startPos[2]) - (int)(s->endPos[2])) + 1;
             _gridList[(s->startPos[0])-1][(s->startPos[1])-1]->update2dDemand(-num_of_layer*constraint);
         }
     }
@@ -722,6 +730,9 @@ void
 RouteMgr::add2DBlkDemand(CellInst* cell){
     const MC* mc = cell->getMC();
     Ggrid* grid = cell->getGrid();
+    #ifdef DEBUG
+    cout << "Cell blockage " << cell->getId() << "\n";
+    #endif
     for(unsigned i=0;i<mc->_blkgList.size();++i){
         grid->update2dDemand(mc->_blkgList[i].second);
     }
@@ -731,6 +742,9 @@ void
 RouteMgr::remove2DBlkDemand(CellInst* cell){
     const MC* mc = cell->getMC();
     Ggrid* grid = cell->getGrid();
+    #ifdef DEBUG
+    cout << "Cell blockage " << cell->getId() << "\n";
+    #endif
     for(unsigned i=0;i<mc->_blkgList.size();++i){
         grid->update2dDemand(-(int)(mc->_blkgList[i].second));
     }
@@ -766,7 +780,7 @@ RouteMgr::addNeighborDemand(MC* mc_a, MC* mc_b, Ggrid* grid, bool type){
                 #ifdef DEBUG
                 cout << "MC " << mc_a->_mcId
                     << " and MC " << mc_b->_mcId
-                    << " generate sameGGrid demand " << it->second << " on layer " << it->first.layNum << "\n";
+                    << " generate sameGGrid demand " << it->second << " on grid (" << grid->getPos().first << "," << grid->getPos().second << ")\n";
                 #endif
             }
         }
@@ -781,7 +795,7 @@ RouteMgr::addNeighborDemand(MC* mc_a, MC* mc_b, Ggrid* grid, bool type){
                 #ifdef DEBUG
                 cout << "MC " << mc_a->_mcId
                     << " and MC " << mc_b->_mcId
-                    << " generate adjHGrid demand " << it->second << " on layer " << it->first.layNum << "\n";
+                    << " generate adjHGrid demand " << it->second << " on grid (" << grid->getPos().first << "," << grid->getPos().second << ")\n";
                 #endif
             }
         }
@@ -800,7 +814,7 @@ RouteMgr::removeNeighborDemand(MC* mc_a, MC* mc_b, Ggrid* grid, bool type){
                 #ifdef DEBUG
                 cout << "MC " << mc_a->_mcId
                     << " and MC " << mc_b->_mcId
-                    << " remove sameGGrid demand " << it->second << " on layer " << it->first.layNum << "\n";
+                    << " generate sameGGrid demand " << -(int)(it->second) << " on grid (" << grid->getPos().first << "," << grid->getPos().second << ")\n";
                 #endif
             }
         }
@@ -815,7 +829,7 @@ RouteMgr::removeNeighborDemand(MC* mc_a, MC* mc_b, Ggrid* grid, bool type){
                 #ifdef DEBUG
                 cout << "MC " << mc_a->_mcId
                     << " and MC " << mc_b->_mcId
-                    << " generate adjHGrid demand " << it->second << " on layer " << it->first.layNum << "\n";
+                    << " generate adjHGrid demand " << -(int)(it->second) << " on grid (" << grid->getPos().first << "," << grid->getPos().second << ")\n";
                 #endif
             }
         }
