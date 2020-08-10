@@ -316,9 +316,15 @@ RouteMgr::readCircuit(const string& fileName)
             auto ite = _netList[i]->_assoCellInstMap.begin();
             for(unsigned j=0;j<_netList[i]->_assoCellInstMap.size();++j){
                 _instList[ite->first-1]->min_layer_constraint = true;
+                ++ite;
             }
         }
     }
+    #ifdef DEBUG
+    for(unsigned i=0;i<_instList.size();++i){
+        cout << "Cell " << i+1 << " min layer constraint = " << _instList[i]->min_layer_constraint << "\n";
+    }
+    #endif
     myUsage.report(true, true);cout << "\n";
     cout << "initialize net rank\n";
     _netRank = new NetRank;
