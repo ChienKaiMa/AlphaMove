@@ -28,7 +28,7 @@ extern RouteMgr* routeMgr;
 /**************************************/
 /*   Static variables and functions   */
 /**************************************/
-#define FORCE_DIRECTED_RATIO 200 
+#define FORCE_DIRECTED_RATIO 40 
 
 /**************************************************/
 /*   Public member functions about optimization   */
@@ -682,26 +682,34 @@ RouteMgr::layerassign(Net* net)
             if (seg->checkDir() == DIR_Z)
             {
                 if (!(seg->startPos[2] >= unsigned(minLayer) || seg->endPos[2] >= unsigned(minLayer))) {
-                    if (seg->startPos[2] > seg->endPos[2]) {
-                        seg->startPos[2] = seg->endPos[2];
-                        seg->endPos[2] = minLayer;
-                        curLayer = minLayer;
-                    } else {
-                        seg->endPos[2] = minLayer;
-                        curLayer = minLayer;
-                    }
-                } else if (seg->endPos[2] == seg->startPos[2]) {
-                    if (seg->startPos[2] == unsigned(curLayer)) {
-                        //seg->print();
-                        #ifdef DEBUG
-                        cout << " Stupid seg... Delete it!\n";
-                        #endif
-                        //toDel.push_back(seg);
-                        //net->_netSegs.erase(net->_netSegs.begin()+i);
-                        //curLayer = seg->startPos[2];
-                    } else {
-                        seg->startPos[2] = curLayer;
-                    }
+                    unsigned myMin = UINT32_MAX;
+                    unsigned myMax = 0;
+                    myMin = (myMin < seg->startPos[2]) ? myMin : seg->startPos[2];
+                    myMin = (myMin < seg->endPos[2]) ? myMin : seg->endPos[2];
+                    myMin = (myMin < minLayer) ? myMin : minLayer;
+                    myMin = (myMin < curLayer) ? myMin : curLayer;
+                    myMax = (myMax > seg->startPos[2]) ? myMax : seg->startPos[2];
+                    myMax = (myMax > seg->endPos[2]) ? myMax : seg->endPos[2];
+                    myMax = (myMax > minLayer) ? myMax : minLayer;
+                    myMax = (myMax > curLayer) ? myMax : curLayer;
+                    // Finish layer assignment
+                    seg->startPos[2] = myMin;
+                    seg->endPos[2] = myMax;
+                    curLayer = myMin;
+                } else {
+                    // has curlayer no minLayer
+                    unsigned myMin = UINT32_MAX;
+                    unsigned myMax = 0;
+                    myMin = (myMin < seg->startPos[2]) ? myMin : seg->startPos[2];
+                    myMin = (myMin < seg->endPos[2]) ? myMin : seg->endPos[2];
+                    myMin = (myMin < curLayer) ? myMin : curLayer;
+                    myMax = (myMax > seg->startPos[2]) ? myMax : seg->startPos[2];
+                    myMax = (myMax > seg->endPos[2]) ? myMax : seg->endPos[2];
+                    myMax = (myMax > curLayer) ? myMax : curLayer;
+                    // Finish layer assignment
+                    seg->startPos[2] = myMin;
+                    seg->endPos[2] = myMax;
+                    curLayer = myMin;
                 }
                 set<Layer*> newZGrids = seg->newGrid(net, myAlpha);
                 for (auto g : newZGrids) { g->addDemand(1); }
@@ -936,7 +944,7 @@ RouteMgr::layerassign(Net* net)
     assert(myStatus != ROUTE_EXEC_TOT);
     if (myStatus == ROUTE_EXEC_ERROR) {
         return errorOption(myError);
-    } else { return ROUTE_EXEC_DONE; }
+    } else { net->reduceSeg(); return ROUTE_EXEC_DONE; }
 }
 
 void

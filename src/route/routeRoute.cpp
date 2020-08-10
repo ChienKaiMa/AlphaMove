@@ -68,10 +68,10 @@ RouteExecStatus RouteMgr::route2D(Net* n)
     //      dynamically update the congestion 
     // 3.   if can't route, rip-up the pre-exist segments , enlarge the bound, and goto 2.
     // 4.   iteratively untill all net is routed in 2D Grid graph.      
-    cout << "\n2D-Routing...\n";
+    //cout << "\n2D-Routing...\n";
     
     //auto pinSet = n->_pinSet;
-    cout << "Routing N" << n->_netId << endl;
+    //cout << "Routing N" << n->_netId << endl;
     unsigned availale_layer = _laySupply.size() - n->getMinLayCons() + 1;
     double demand = ((double)_laySupply.size() / (double)availale_layer);
     auto pinSet = n->sortPinSet();
@@ -86,6 +86,7 @@ RouteExecStatus RouteMgr::route2D(Net* n)
             << pos1.first << " " << pos1.second << ", " 
             << pos2.first << " " << pos2.second
             << " ) failed!" << endl;
+            return ROUTE_EXEC_ERROR;
         }
     }
     n->shouldReroute(false);
@@ -95,9 +96,15 @@ RouteExecStatus RouteMgr::reroute()
 {
     cout << "\nRerouting...\n";
     RouteExecStatus myStatus = ROUTE_EXEC_DONE;
-    for (auto n : _netList)
+    
+    for (unsigned i=0; i<_netList.size(); ++i)
     {
-        reroute(n);
+        reroute(_netList[i]);
+        if (i % 1000 == 0) { myUsage.report(true, true); }
+        if (i % 10000 == 0) {
+            replaceBest();
+            printRouteSummary();
+        }
     }
     unsigned newWL = evaluateWireLen();// evaluate total wirelength
     if( newWL<_bestTotalWL){
@@ -114,34 +121,40 @@ RouteExecStatus RouteMgr::reroute()
 RouteExecStatus RouteMgr::reroute(Net* n)
 {
     RouteExecStatus myStatus = ROUTE_EXEC_DONE;
-    cout << "Rerouting N" << n->_netId << "\n";
-    vector<Segment*> origSegs = n->_netSegs;
+    //cout << "Rerouting N" << n->_netId << "\n";
     vector<Segment> OOrigSegs;
-    for (auto s : origSegs) { OOrigSegs.push_back(*s); }
+    for (auto s : n->_netSegs) { OOrigSegs.push_back(*s); }
     unsigned origWL = n->getWirelength();
     remove3DDemand(n);
     n->ripUp();
-    route2D(n);
+    if (route2D(n) == ROUTE_EXEC_ERROR) {
+        myStatus = ROUTE_EXEC_ERROR;
+        n->ripUp();
+        for (auto s : OOrigSegs) {
+            Segment* seg = new Segment(s);
+            n->_netSegs.push_back(seg);
+        }
+        add3DDemand(n);
+        return myStatus;
+    }
     if (layerassign(n) == ROUTE_EXEC_ERROR) {
         myStatus = ROUTE_EXEC_ERROR;
         remove3DDemand(n);
         n->ripUp();
         for (auto s : OOrigSegs) {
             Segment* seg = new Segment(s);
-            seg->print();
             n->_netSegs.push_back(seg);
         }
         add3DDemand(n);
         return myStatus;
     }
-    if (checkOverflow())
+    if (n->checkOverflow())
     {
         myStatus = ROUTE_EXEC_ERROR;
         remove3DDemand(n);
         n->ripUp();
         for (auto s : OOrigSegs) {
             Segment* seg = new Segment(s);
-            seg->print();
             n->_netSegs.push_back(seg);
         }
         add3DDemand(n);
@@ -155,16 +168,14 @@ RouteExecStatus RouteMgr::reroute(Net* n)
         n->ripUp();
         for (auto s : OOrigSegs) {
             Segment* seg = new Segment(s);
-            seg->print();
             n->_netSegs.push_back(seg);
         }
         add3DDemand(n);
-        cout << "Net N" << n->_netId << " has no wirelength reduction!\n";
+        //cout << "Net N" << n->_netId << " has no wirelength reduction!\n";
         return myStatus;
     }
     else {
-        cout << "Net N" << n->_netId << " Reduce wirelength by " << (origWL - newWL) << "\n";
-        n->reduceSeg();
+        //cout << "Net N" << n->_netId << " Reduce wirelength by " << (origWL - newWL) << "\n";
     }
     return myStatus;
 }
@@ -274,9 +285,13 @@ bool RouteMgr::route2Pin(Pos p1, Pos p2, Net* net, double demand, unsigned lay1,
     }
     else if(searchState == AStarSearch<MapSearchNode>::SEARCH_STATE_FAILED){
         cout << "Search terminated. Failed to find goal state" << endl;
+        searchSolver.EnsureMemoryFreed();
+        return false;
     }
     else{
         cout << "Unexpected search states!!" << endl;
+        searchSolver.EnsureMemoryFreed();
+        return false;
     }
 
     //cout << "SearchSteps : " << searchSteps << endl;

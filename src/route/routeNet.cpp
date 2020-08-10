@@ -235,6 +235,11 @@ bool Segment::isValid() const
     }
 }
 
+bool Segment::isZero() const
+{
+    return startPos[0] == endPos[0] && startPos[1] == endPos[1] && startPos[2] == endPos[2];
+}
+
 SegDirection
 Segment::checkDir() const
 {
@@ -446,13 +451,21 @@ unsigned Net::getWirelength()
 
 void Net::reduceSeg()
 {
-    for (auto it = _netSegs.begin(); it!=_netSegs.end(); ++it)
+    vector<Segment*> toDel;
+    auto it = _netSegs.begin();
+    while (it != _netSegs.end())
     {
-        if (!(*it)->isValid())
+        if ((*it)->isZero())
         {
-            delete (*it);
-            _netSegs.erase(it);
+            toDel.push_back(*it);
+            it = _netSegs.erase(it);
+        } else {
+            ++it;
         }
+    }
+    for (auto seg : toDel)
+    {
+        delete seg;
     }
 }
 

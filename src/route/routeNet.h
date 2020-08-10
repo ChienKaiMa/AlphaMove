@@ -290,6 +290,7 @@ public:
     unsigned endPos[3];
     SegDirection    checkDir() const;
     bool            isValid() const;
+    bool            isZero() const;
 };
 
 
