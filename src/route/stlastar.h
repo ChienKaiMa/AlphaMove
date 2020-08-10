@@ -36,6 +36,7 @@ given where due.
 #include <set>
 #include <vector>
 #include <cfloat>
+#include <unordered_set>
 
 using namespace std;
 
@@ -230,16 +231,30 @@ public: // methods
 				// set the child pointers in each node (except Goal which has no child)
 				Node *nodeChild = m_Goal;
 				Node *nodeParent = m_Goal->parent;
+				unsigned thres = 0;
 
+				unordered_set<size_t> check;
+				check.insert( (size_t)nodeChild );
+				check.insert( (size_t)nodeParent );
 				do 
 				{
 					nodeParent->child = nodeChild;
-
 					nodeChild = nodeParent;
 					nodeParent = nodeParent->parent;
-				
+
+					// check if cycle occur
+					if( thres>10000 || check.find((size_t)nodeParent)!=check.end() ){
+						cout << (check.find((size_t)nodeParent)==check.end() ) << endl;
+						cout << "Finding cycle in astar!!" << endl;
+						FreeAllNodes();
+						return SEARCH_STATE_FAILED;
+					}
+					else{
+						check.insert( (size_t)nodeParent );
+					}
+				    thres++;
 				} 
-				while( nodeChild != m_Start ); // Start is always the first node by definition
+				while( nodeChild != m_Start); // Start is always the first node by definition
 
 			}
 
