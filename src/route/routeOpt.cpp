@@ -142,15 +142,24 @@ void RouteMgr::netbasedPlace(){
     }
 
     //Find the most congested net
-    moveNet = _netList[0];
-    moveNetCongestion = _netList[0]->_avgCongestion;
-    for(unsigned i=1;i<_netList.size();++i){
-        if(_netList[i]->_avgCongestion < moveNetCongestion){
-            moveNet = _netList[i];
-            moveNetCongestion = _netList[i]->_avgCongestion;
+    vector<pair<unsigned,double>> congestionList; //first: net index; second: avg_congestion
+    for(unsigned i=0;i<_netList.size();++i){
+        if(_netList[i]->_hasmovedbynb == false){
+            congestionList.push_back(pair<unsigned,double>(i+1,_netList[i]->_avgCongestion));
         }
     }
-    //cout << "Net " << moveNet->_netId << " is moved!\n";
+    sort(congestionList.begin(), congestionList.end(), compare);
+    if(congestionList.size() == 1){
+        moveNet = _netList[congestionList[0].first-1];
+        for(unsigned i=0;i<_netList.size();++i){
+            _netList[i]->_hasmovedbynb = false;
+        }
+    }
+    else{
+        moveNet = _netList[congestionList[0].first-1];
+        _netList[congestionList[0].first-1]->_hasmovedbynb = true;
+    }
+    cout << "Net " << moveNet->_netId << " is moved!\n";
 
     //Find NewCenter for the most congested net
     double bestCH = -100;
@@ -162,7 +171,9 @@ void RouteMgr::netbasedPlace(){
                 if(_netList[i]->_avgCongestion > bestCH){
                     bestCH = _netList[i]->_avgCongestion;
                 }
+                #ifdef DEBUG
                 cout << "Net " << moveNet->_netId << " and " << i+1 << " have share value " << Share(moveNet,_netList[i]) << "\n";
+                #endif
             }
         }
     }
@@ -258,6 +269,11 @@ void RouteMgr::forcedirectedPlace (){
         congestionList.push_back(pair<unsigned,double>(i+1,_instList[i]->getGrid()->get2dCongestion()));
     }
     sort(congestionList.begin(), congestionList.end(), compare);
+    #ifdef DEBUG
+    for(unsigned i=0;i<congestionList.size();++i){
+        cout << "CellInst " << congestionList[i].first << " with congestion " << congestionList[i].second << "\n";
+    }
+    #endif
     unsigned i = 0;
     unsigned move_cell_num = ceil((double)_maxMoveCnt/(double)FORCE_DIRECTED_RATIO);
     #ifdef DEBUG
@@ -271,8 +287,9 @@ void RouteMgr::forcedirectedPlace (){
                     _instList[j]->_hasmovedbyfd = false;
                 break;
             }
-            for(unsigned j=0;j<_instList.size();++j)
+            for(unsigned j=0;j<_instList.size();++j){
                 _instList[j]->_hasmovedbyfd = false;
+            }
             break;
         }
         if(_instList[congestionList[i].first-1]->is_movable() && (_instList[congestionList[i].first-1]->_hasmovedbyfd == false) && (_instList[congestionList[i].first-1]->min_layer_constraint == false)){

@@ -361,6 +361,7 @@ private:
     //vector<unsigned>    _assoCellInst; //Represents the pin numbers of the cell instances in the net
     map<unsigned, unsigned> _assoCellInstMap;
     bool                _toRemoveDemand = false;
+    bool                _hasmovedbynb = false;
 };
 
 class NetRank
