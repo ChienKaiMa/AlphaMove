@@ -394,6 +394,96 @@ void RouteMgr::forcedirectedPlace (){
 }
 
 void
+RouteMgr::moveOneCell(unsigned id, Pos newPos, unsigned type){ 
+    //type = 0 : random cell, random pos; type = 1 : random cell, assigned pos; type = 2 : assigned cell, random pos; type : assigned cell, assigned pos
+    int new_row, new_col, cellId;
+    if(type == 0){
+        do{
+            cellId = rnGen(_instList.size()) + 1;
+        }while(_instList[cellId-1]->is_movable() == false);
+        new_row = Ggrid::rBeg + rnGen(Ggrid::rEnd - Ggrid::rBeg);
+        new_col = Ggrid::cBeg + rnGen(Ggrid::cEnd - Ggrid::cBeg);
+    }
+    else if(type == 1){
+        do{
+            cellId = rnGen(_instList.size()) + 1;
+        }while(_instList[cellId-1]->is_movable() == false);
+        new_row = newPos.first;
+        new_col = newPos.second;
+    }
+    else if(type == 2){
+        cellId = id;
+        new_row = Ggrid::rBeg + rnGen(Ggrid::rEnd - Ggrid::rBeg);
+        new_col = Ggrid::cBeg + rnGen(Ggrid::cEnd - Ggrid::cBeg);
+    }
+    else{
+        new_row = newPos.first;
+        new_col = newPos.second;
+        cellId = id;
+    }
+    if(new_row > (int)Ggrid::rEnd)
+        new_row = Ggrid::rEnd;
+    else if(new_row < (int)Ggrid::rBeg)
+        new_row = Ggrid::rBeg;
+    if(new_col > (int)Ggrid::cEnd)
+        new_col = Ggrid::cEnd;
+    else if(new_col < (int)Ggrid::cBeg)
+        new_col = Ggrid::cBeg;
+
+    change_notifier(_instList[cellId-1]);
+    remove2DBlkDemand(_instList[cellId-1]);
+    remove3DBlkDemand(_instList[cellId-1]);
+    //remove from original cellInstList
+    for(unsigned j=0;j<_instList[cellId-1]->getGrid()->cellInstList.size();++j){
+        if(_instList[cellId-1]->getGrid()->cellInstList[j] == _instList[cellId-1]){
+            _instList[cellId-1]->getGrid()->cellInstList.erase(_instList[cellId-1]->getGrid()->cellInstList.begin() + j);
+            break;
+        }
+    }
+    //remove same gGrid demand
+    removeSameGgridDemand(_instList[cellId-1]);
+    //remove adjHGrid demand
+    removeAdjHGgridDemand(_instList[cellId-1]);
+    for(unsigned j=0; j<_instList[cellId-1]->assoNet.size(); ++j)
+        _netList[_instList[cellId-1]->assoNet[j]-1]->_toRemoveDemand = true;
+    
+    // <Koova edited>
+    if (Pos(new_row,new_col) != _instList[cellId-1]->getInitPos()) {
+        _curMovedSet.insert(_instList[cellId-1]);
+    } 
+    else {
+        _curMovedSet.erase(_instList[cellId-1]);
+    }
+    
+    //moveCells[i]->_hasmovedbyfd = true;
+    cout << "CellInst " << _instList[cellId-1]->getId() << " is moved!\n";
+    // </Koova edited>
+
+    cout << "Old position: " << _instList[cellId-1]->getPos().first << " " << _instList[cellId-1]->getPos().second << "\n";
+    _instList[cellId-1]->move(Pos(new_row,new_col));
+    add2DBlkDemand(_instList[cellId-1]);
+    add3DBlkDemand(_instList[cellId-1]);
+    //add same gGrid demand
+    addSameGgridDemand(_instList[cellId-1]);
+    //add adjHGrid demand
+    addAdjHGgridDemand(_instList[cellId-1]);
+    //add to new cellInstList
+    _instList[cellId-1]->getGrid()->cellInstList.push_back(_instList[cellId-1]);
+
+    cout << "New position: " << _instList[cellId-1]->getPos().first << " " << _instList[cellId-1]->getPos().second << "\n";
+    cout << "CurMoveCnt: " << getCurMoveCnt() << "\n";
+
+    for(unsigned i=0;i<_netList.size();++i){
+        if(_netList[i]->_toRemoveDemand == true){
+            remove2DDemand(_netList[i]);
+            _netList[i]->_toReroute = true;
+            //cout << "Net " << i+1 << " need to be rerouted.\n";
+            _netList[i]->_toRemoveDemand = false;
+        }
+    }
+}
+
+void
 RouteMgr::removeSameGgridDemand(CellInst* cell){
     map<unsigned,unsigned> mcMap; //key : id of MC; value : num of MC of the id in the Ggrid
     unsigned moveMcNum = 0;

@@ -116,7 +116,7 @@ RouteReadCmd::help() const
 }
 
 //----------------------------------------------------------------------
-//    Write [(int gateId)][-Output (string txtFile)][-Demand (string File)]
+//    Write [(int gateId)][-Output (string txtFile) | -Demand (string File)]
 //----------------------------------------------------------------------
 CmdExecStatus
 RouteWriteCmd::exec(const string& option)
@@ -176,7 +176,7 @@ RouteWriteCmd::exec(const string& option)
 void
 RouteWriteCmd::usage(ostream& os) const
 {
-   os << "Usage: Write [(int gateId)][-Output (string txtFile)][-Demand (string File)]" << endl;
+   os << "Usage: Write [(int gateId)][-Output (string txtFile) | -Demand (string File)]" << endl;
 }
 
 void
@@ -187,7 +187,7 @@ RouteWriteCmd::help() const
 }
 
 //----------------------------------------------------------------------
-//    Place [ -Default | -Net | -Force | -Check | -Summary ]
+//    Place [ -Default | -Net | -Force | -Check | -Summary | -One (unsigned type)(unsigned cellId)(Pos newPos) ]
 //----------------------------------------------------------------------
 CmdExecStatus
 PlaceCmd::exec(const string& option)
@@ -214,7 +214,11 @@ PlaceCmd::exec(const string& option)
       // TODO
       cout << "TODO\n";
       return CMD_EXEC_DONE;
-   } else 	
+   } 
+   else if (myStrNCmp("-One", token, 2) == 0){
+      cout << "TODO\n";
+   }
+   else 	
       return CmdExec::errorOption(CMD_OPT_ILLEGAL, token);
 
    assert(curCmd != ROUTEINIT);
@@ -227,7 +231,7 @@ void
 PlaceCmd::usage(ostream& os) const
 {
    os << "Usage: Place [ -Default | -Net |"
-      << " -Force | -Check | -Summary ]" << endl;
+      << " -Force | -Check | -Summary | -One (unsigned type)(unsigned cellId)(Pos newPos) ]" << endl;
 }
 
 void

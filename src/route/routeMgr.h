@@ -87,14 +87,15 @@ public:
     
     /**********************************/
     /*        Placement&Routing       */
-    /**********************************/      
+    /**********************************/
+    void     mainPnR();      
     void     place();
     size_t   getCurMoveCnt() const { return _curMovedSet.size(); }
     void     netbasedPlace();
     void     forcedirectedPlace ();
     unsigned Share(Net*,Net*);
     pair<double,double> Move(Net*,Net*,double);
-    void     mainPnR();
+    void     moveOneCell(unsigned,Pos,unsigned);
 
     RouteExecStatus    errorOption(RouteExecError);
     RouteExecStatus    route2D(Net*);
