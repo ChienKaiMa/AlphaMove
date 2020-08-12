@@ -400,26 +400,50 @@ RouteMgr::moveOneCell(unsigned id, Pos newPos, unsigned type){
     if(type == 0){
         do{
             cellId = rnGen(_instList.size()) + 1;
-        }while(_instList[cellId-1]->is_movable() == false);
+        }while(_instList[cellId-1]->is_movable() == false || _instList[cellId-1]->min_layer_constraint == true);
         new_row = Ggrid::rBeg + rnGen(Ggrid::rEnd - Ggrid::rBeg);
         new_col = Ggrid::cBeg + rnGen(Ggrid::cEnd - Ggrid::cBeg);
     }
     else if(type == 1){
         do{
             cellId = rnGen(_instList.size()) + 1;
-        }while(_instList[cellId-1]->is_movable() == false);
+        }while(_instList[cellId-1]->is_movable() == false || _instList[cellId-1]->min_layer_constraint == true);
         new_row = newPos.first;
         new_col = newPos.second;
     }
     else if(type == 2){
-        cellId = id;
+        if(id > _instList.size() || id <= 0){
+            cout << "Cell " << id << " doesn't exist!\n";
+            return;
+        }
+        if(_instList[id-1]->is_movable() == false){
+            cout << "Cell " << id << " is fixed!\n";
+            return;
+        }
+        else if(_instList[id-1]->min_layer_constraint == true){
+            cout << "Cell " << id << " has min_layer_constraint!\n";
+            return;
+        }
+        else cellId = id;
         new_row = Ggrid::rBeg + rnGen(Ggrid::rEnd - Ggrid::rBeg);
         new_col = Ggrid::cBeg + rnGen(Ggrid::cEnd - Ggrid::cBeg);
     }
     else{
+        if(id > _instList.size() || id <= 0){
+            cout << "Cell " << id << " doesn't exist!\n";
+            return;
+        }
+        if(_instList[id-1]->is_movable() == false){
+            cout << "Cell " << id << " is fixed!\n";
+            return;
+        }
+        else if(_instList[id-1]->min_layer_constraint == true){
+            cout << "Cell " << id << " has min_layer_constraint!\n";
+            return;
+        }
+        else cellId = id;
         new_row = newPos.first;
         new_col = newPos.second;
-        cellId = id;
     }
     if(new_row > (int)Ggrid::rEnd)
         new_row = Ggrid::rEnd;
