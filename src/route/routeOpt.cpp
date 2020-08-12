@@ -279,7 +279,7 @@ void RouteMgr::forcedirectedPlace (){
     unsigned i = 0;
     //unsigned move_cell_num = ceil((double)_maxMoveCnt/(double)FORCE_DIRECTED_BASE_RATIO);
     unsigned move_cell_num = moveCellNum();
-    #ifndef DEBUG
+    #ifdef DEBUG
     cout << "move_cell_num = " << move_cell_num << "\n";
     #endif
     while(moveCells.size() < move_cell_num){
