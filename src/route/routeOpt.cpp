@@ -279,7 +279,7 @@ void RouteMgr::forcedirectedPlace (){
     unsigned i = 0;
     //unsigned move_cell_num = ceil((double)_maxMoveCnt/(double)FORCE_DIRECTED_BASE_RATIO);
     unsigned move_cell_num = moveCellNum();
-    #ifdef DEBUG
+    #ifndef DEBUG
     cout << "move_cell_num = " << move_cell_num << "\n";
     #endif
     while(moveCells.size() < move_cell_num){
@@ -400,13 +400,13 @@ unsigned
 RouteMgr::moveCellNum() {
     unsigned moveCellNum = 0;
     int count = floor(log10(_maxMoveCnt)) - 1;
-    if(count < 0) count = 0;
     if(count > 0){
         for(unsigned i=0;i<count;++i){
-            moveCellNum += ceil((pow(10,i+1)-pow(10,i))/(FORCE_DIRECTED_BASE_RATIO * pow(FORCE_DIRECTED_INCREASE_RATIO,i)));
+            moveCellNum += ceil(10*(pow(10,i+1)-pow(10,i))/(FORCE_DIRECTED_BASE_RATIO * pow(FORCE_DIRECTED_INCREASE_RATIO,i)));
         }
     }
-    moveCellNum += ceil((double)(_maxMoveCnt-pow(10,count))/(double)(FORCE_DIRECTED_BASE_RATIO * pow(FORCE_DIRECTED_INCREASE_RATIO,count)));
+    moveCellNum += ceil((double)(_maxMoveCnt-pow(10,count+1))/(double)(FORCE_DIRECTED_BASE_RATIO * pow(FORCE_DIRECTED_INCREASE_RATIO,count)));
+    if(_maxMoveCnt == 1) moveCellNum = 1;
     return moveCellNum;
 }
 
