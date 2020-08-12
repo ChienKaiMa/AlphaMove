@@ -116,7 +116,7 @@ RouteReadCmd::help() const
 }
 
 //----------------------------------------------------------------------
-//    Write [(int gateId)][-Output (string txtFile)][-Demand (string File)]
+//    Write [(int gateId)][-Output (string txtFile) | -Demand (string File)]
 //----------------------------------------------------------------------
 CmdExecStatus
 RouteWriteCmd::exec(const string& option)
@@ -176,7 +176,7 @@ RouteWriteCmd::exec(const string& option)
 void
 RouteWriteCmd::usage(ostream& os) const
 {
-   os << "Usage: Write [(int gateId)][-Output (string txtFile)][-Demand (string File)]" << endl;
+   os << "Usage: Write [(int gateId)][-Output (string txtFile) | -Demand (string File)]" << endl;
 }
 
 void
@@ -187,7 +187,7 @@ RouteWriteCmd::help() const
 }
 
 //----------------------------------------------------------------------
-//    Place [ -Default | -Net | -Force | -Check | -Summary ]
+//    Place [ -Default | -Net | -Force | -Check | -Summary | -One <(unsigned type)>[(unsigned cellId)][(unsigned newPos.row) (unsigned newPos.col)] ]
 //----------------------------------------------------------------------
 CmdExecStatus
 PlaceCmd::exec(const string& option)
@@ -196,26 +196,73 @@ PlaceCmd::exec(const string& option)
       cerr << "Error: circuit is not yet constructed!!" << endl;
       return CMD_EXEC_ERROR;
    }
-
-   string token;
-   if (!CmdExec::lexSingleOption(option, token))	
+   
+   vector<string> tokens;
+   if (!CmdExec::lexOptions(option, tokens))
       return CMD_EXEC_ERROR;
-
-   if (token.empty() || myStrNCmp("-Default", token, 2) == 0)	
+   
+   if (tokens.empty())
       routeMgr->place();
-   else if (myStrNCmp("-Net", token, 2) == 0)	
-      routeMgr->netbasedPlace();
-   else if (myStrNCmp("-Force", token, 2) == 0)	
-      routeMgr->forcedirectedPlace();
-   else if (myStrNCmp("-Check", token, 2) == 0)
-      // TODO
-      cout << "TODO\n";
-   else if (myStrNCmp("-Summary", token, 2) == 0) {
-      // TODO
-      cout << "TODO\n";
-      return CMD_EXEC_DONE;
-   } else 	
-      return CmdExec::errorOption(CMD_OPT_ILLEGAL, token);
+   else if (tokens.size() == 1) {
+      if (myStrNCmp("-Default", tokens[0], 2) == 0)	
+         routeMgr->place();
+      else if (myStrNCmp("-Net", tokens[0], 2) == 0)	
+         routeMgr->netbasedPlace();
+      else if (myStrNCmp("-Force", tokens[0], 2) == 0)	
+         routeMgr->forcedirectedPlace();
+      else if (myStrNCmp("-Check", tokens[0], 2) == 0)
+         // TODO
+         cout << "TODO\n";
+      else if (myStrNCmp("-Summary", tokens[0], 2) == 0)
+         // TODO
+         cout << "TODO\n";
+      else if (myStrNCmp("-One", tokens[0], 2) == 0)
+         return CmdExec::errorOption(CMD_OPT_MISSING,"");
+      else return CmdExec::errorOption(CMD_OPT_ILLEGAL, tokens[0]);
+   }
+   else {
+      if (myStrNCmp("-One", tokens[0], 2) == 0) {
+         int type;
+         if (!myStr2Int(tokens[1], type)) {
+            return CmdExec::errorOption(CMD_OPT_ILLEGAL, tokens[1]);
+         }
+         else{
+            if (type == 0){cout << "Type 0\n";
+               routeMgr->moveOneCell(0,Pos(0,0),0); 
+            }
+            else if (type == 1){cout << "Type 1\n";
+               if(tokens.size() == 4){
+                  int row, col;
+                  if(!myStr2Int(tokens[2],row)||!myStr2Int(tokens[3],col))
+                     return CmdExec::errorOption(CMD_OPT_ILLEGAL, tokens[2]);
+                  routeMgr->moveOneCell(0,Pos(row,col),1);
+               }
+               else return CmdExec::errorOption(CMD_OPT_MISSING,"");
+            }
+            else if (type == 2){cout << "Type 2\n";
+               if(tokens.size() == 3){
+                  int id;
+                  if(!myStr2Int(tokens[2],id))
+                     return CmdExec::errorOption(CMD_OPT_ILLEGAL, tokens[2]);
+                  routeMgr->moveOneCell(id,Pos(0,0),2);
+               }
+               else return CmdExec::errorOption(CMD_OPT_MISSING,"");
+            }
+            else if (type == 3){cout << "Type 3\n";
+               if(tokens.size() == 5){
+                  int id, row, col;
+                  if(!myStr2Int(tokens[2],id)||!myStr2Int(tokens[3],row)||!myStr2Int(tokens[4],col))
+                     return CmdExec::errorOption(CMD_OPT_ILLEGAL, tokens[2]);
+                  routeMgr->moveOneCell(id,Pos(row,col),3);
+               }
+               else return CmdExec::errorOption(CMD_OPT_MISSING,"");
+            }
+            else return CmdExec::errorOption(CMD_OPT_ILLEGAL, tokens[1]);
+         }
+      }
+      else
+         return CMD_EXEC_ERROR;
+   }
 
    assert(curCmd != ROUTEINIT);
    curCmd = PLACE;
@@ -227,7 +274,8 @@ void
 PlaceCmd::usage(ostream& os) const
 {
    os << "Usage: Place [ -Default | -Net |"
-      << " -Force | -Check | -Summary ]" << endl;
+      << " -Force | -Check | -Summary | -One <(unsigned type)>[(unsigned newPos.row)][(unsigned newPos.col)] ]\n" 
+      << "       type = 0 : random cell, random pos; type = 1 : random cell, assigned pos; type = 2 : assigned cell, random pos; type : assigned cell, assigned pos" << endl;
 }
 
 void
