@@ -897,6 +897,7 @@ RouteMgr::reduceOverflow()
     for (auto net : _netList) {
         if (net->checkOverflow()) {
             if (net->getPinSet().size() <= 2) {
+                cout << "Reroute Net " << net->_netId << "\n";
                 remove3DDemand(net);
                 net->ripUp();
                 route2D(net);

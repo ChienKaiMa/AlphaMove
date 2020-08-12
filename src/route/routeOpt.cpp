@@ -51,6 +51,7 @@ void RouteMgr::mainPnR()
         }
         
         RouteExecStatus canRoute = this->route();
+        cout << "End of Routing...\n";
         if (checkOverflow() && getCurMoveCnt() > reRouteCnt * 2) {
             reduceOverflow();
             ++reRouteCnt;

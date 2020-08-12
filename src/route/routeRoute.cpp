@@ -45,9 +45,12 @@ RouteMgr::route()
         }
     }
     for (auto n : targetNet) {
-        route2D(n);
-        if (layerassign(n) == ROUTE_EXEC_ERROR) {
+        if (route2D(n) == ROUTE_EXEC_ERROR) {
             myStatus = ROUTE_EXEC_ERROR;
+        } else {
+            if (layerassign(n) == ROUTE_EXEC_ERROR) {
+                myStatus = ROUTE_EXEC_ERROR;
+            }
         }
     }
     // sorted by #pins
@@ -86,6 +89,7 @@ RouteExecStatus RouteMgr::route2D(Net* n)
             << pos1.first << " " << pos1.second << ", " 
             << pos2.first << " " << pos2.second
             << " ) failed!" << endl;
+            n->shouldReroute(true);
             return ROUTE_EXEC_ERROR;
         }
     }
@@ -102,15 +106,13 @@ RouteExecStatus RouteMgr::reroute()
         reroute(_netList[i]);
         if (i % 1000 == 0) { myUsage.report(true, true); }
         if (i % 10000 == 0) {
+            cout << i << "\n";
             replaceBest();
             printRouteSummary();
         }
     }
-    unsigned newWL = evaluateWireLen();// evaluate total wirelength
-    if( newWL<_bestTotalWL){
-        _bestTotalWL = newWL;
-        storeBestResult();
-    }
+    cout << "\nReroute done!\n";
+    replaceBest();
     _netRank->update();
     _netRank->showTopTen();
     routeMgr->printRouteSummary();
@@ -127,7 +129,9 @@ RouteExecStatus RouteMgr::reroute(Net* n)
     unsigned origWL = n->getWirelength();
     remove3DDemand(n);
     n->ripUp();
+    n->shouldReroute(false);
     if (route2D(n) == ROUTE_EXEC_ERROR) {
+        n->shouldReroute(false);
         myStatus = ROUTE_EXEC_ERROR;
         n->ripUp();
         for (auto s : OOrigSegs) {

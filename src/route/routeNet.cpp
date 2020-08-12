@@ -220,8 +220,8 @@ bool Segment::isValid() const
 {
     if (startPos[0] < Ggrid::rBeg || startPos[0] > Ggrid::rEnd || endPos[0] < Ggrid::rBeg || endPos[0] > Ggrid::rEnd || startPos[1] < Ggrid::cBeg || startPos[1] > Ggrid::cEnd || endPos[1] < Ggrid::cBeg || endPos[1] > Ggrid::cEnd || startPos[2] < 1 || startPos[2] > routeMgr->getLayerCnt() || endPos[2] < 1 || endPos[2] > routeMgr->getLayerCnt())
     {
-        print();
-        cout << " is not valid!\n";
+        //print();
+        //cout << " is not valid!\n";
         return false;
     }
     else if (startPos[0] == endPos[0] && startPos[1] == endPos[1] && startPos[2] == endPos[2])
@@ -455,7 +455,7 @@ void Net::reduceSeg()
     auto it = _netSegs.begin();
     while (it != _netSegs.end())
     {
-        if ((*it)->isZero())
+        if ((*it)->isZero() || !(*it)->isValid())
         {
             toDel.push_back(*it);
             it = _netSegs.erase(it);
