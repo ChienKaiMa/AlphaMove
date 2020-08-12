@@ -187,7 +187,7 @@ RouteWriteCmd::help() const
 }
 
 //----------------------------------------------------------------------
-//    Place [ -Default | -Net | -Force | -Check | -Summary | -One <(unsigned type)>[(unsigned cellId)][(unsigned newPos.row) (unsigned newPos.col)] ]
+//    Place [ -Default | -Net | -Force | -Check | -Summary | -One <(unsigned type)>[(unsigned cellId)][(unsigned newPos.row)][(unsigned newPos.col)] ]
 //----------------------------------------------------------------------
 CmdExecStatus
 PlaceCmd::exec(const string& option)
