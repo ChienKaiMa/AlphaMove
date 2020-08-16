@@ -7,7 +7,7 @@
 
 #ifndef ROUTE_NET_H
 #define ROUTE_NET_H
-#define CONGESTION_PARAMETER 1.0
+#define CONGESTION_PARAMETER 0.7
 
 #include <string>
 #include <vector>
@@ -217,7 +217,7 @@ public:
         #ifdef DEBUG
         cout << "Grid (" << _pos.first << "," << _pos.second << ") delta demand " << deltaDemand << "\n"; 
         #endif
-        _2dCongestion = ((double)(_2dSupply) - (double)(_2dDemand)  - koovaCongParam() /** CONGESTION_PARAMETER*/) / (double)(_2dSupply); 
+        _2dCongestion = ((double)(_2dSupply) - (double)(_2dDemand)  * CONGESTION_PARAMETER) / (double)(_2dSupply); 
     }
     unsigned getOverflowCount() const;
     double koovaCongParam() {

@@ -877,8 +877,10 @@ RouteMgr::checkOverflow()
         for (unsigned i=1; i<=Ggrid::rEnd; ++i) {
             for (unsigned j=1; j<=Ggrid::cEnd; ++j) {
                 if (this->check3dOverflow(i, j, k) == GRID_OVERFLOW) {
+                    #ifdef DEBUG
                     cerr << "(" << i << ", " << j << ", "
                         << k << ") ";
+                    #endif
                     _overflowGgrids.push_back(this->_gridList[i-1][j-1]);
                     _overflowLayers.push_back((*(this->_gridList[i-1][j-1]))[k]);
                     ++OVCNT;

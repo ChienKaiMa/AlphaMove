@@ -161,6 +161,7 @@ void CellInst::printPos(ostream &outfile) const
 
 void CellInst::printPos() const
 {
+    cout << "Orig Pos: (" << _initGrid->getPos().first << "," << _initGrid->getPos().second << ")\n";
     cout << "Position: (" << getPos().first << "," << getPos().second << ")\n";
 }
 

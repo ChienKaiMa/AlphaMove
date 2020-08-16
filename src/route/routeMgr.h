@@ -132,6 +132,7 @@ public:
 
     void    initNeighborDemand();
     GridStatus    check3dOverflow(unsigned, unsigned, unsigned);
+    void    checkAllGrids();
     bool    checkOverflow();
     bool    reduceOverflow();
     void    initCellInstList();

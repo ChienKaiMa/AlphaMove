@@ -104,7 +104,6 @@ RouteExecStatus RouteMgr::reroute()
     for (unsigned i=0; i<_netList.size(); ++i)
     {
         reroute(_netList[i]);
-        if (i % 1000 == 0) { myUsage.report(true, true); }
         if (i % 10000 == 0) {
             cout << i << "\n";
             replaceBest();
