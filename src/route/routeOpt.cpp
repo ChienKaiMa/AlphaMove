@@ -28,7 +28,8 @@ extern RouteMgr* routeMgr;
 /**************************************/
 /*   Static variables and functions   */
 /**************************************/
-#define FORCE_DIRECTED_RATIO 40 
+#define FORCE_DIRECTED_BASE_RATIO 20.0
+#define FORCE_DIRECTED_INCREASE_RATIO 2.0 //force directed ratio increase per 10x max_move_count
 
 /**************************************************/
 /*   Public member functions about optimization   */
@@ -276,7 +277,8 @@ void RouteMgr::forcedirectedPlace (){
     }
     #endif
     unsigned i = 0;
-    unsigned move_cell_num = ceil((double)_maxMoveCnt/(double)FORCE_DIRECTED_RATIO);
+    //unsigned move_cell_num = ceil((double)_maxMoveCnt/(double)FORCE_DIRECTED_BASE_RATIO);
+    unsigned move_cell_num = moveCellNum();
     #ifdef DEBUG
     cout << "move_cell_num = " << move_cell_num << "\n";
     #endif
@@ -392,6 +394,20 @@ void RouteMgr::forcedirectedPlace (){
             _netList[i]->_toRemoveDemand = false;
         }
     }
+}
+
+unsigned
+RouteMgr::moveCellNum() {
+    unsigned moveCellNum = 0;
+    int count = floor(log10(_maxMoveCnt)) - 1;
+    if(count > 0){
+        for(unsigned i=0;i<count;++i){
+            moveCellNum += ceil(10*(pow(10,i+1)-pow(10,i))/(FORCE_DIRECTED_BASE_RATIO * pow(FORCE_DIRECTED_INCREASE_RATIO,i)));
+        }
+    }
+    moveCellNum += ceil((double)(_maxMoveCnt-pow(10,count+1))/(double)(FORCE_DIRECTED_BASE_RATIO * pow(FORCE_DIRECTED_INCREASE_RATIO,count)));
+    if(_maxMoveCnt == 1) moveCellNum = 1;
+    return moveCellNum;
 }
 
 void

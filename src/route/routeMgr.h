@@ -178,6 +178,7 @@ private:
 
     //Placement Helper Function
     static bool compare(pair<unsigned,double> a, pair<unsigned,double> b) { return a.second < b.second; }
+    unsigned moveCellNum();
 
     //Routing Helper function
     bool route2Pin(Pos p1, Pos p2, Net* net, double demand, unsigned lay1, unsigned lay2);
