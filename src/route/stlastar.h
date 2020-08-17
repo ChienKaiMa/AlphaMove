@@ -167,7 +167,7 @@ public: // methods
 
 		m_Start->g = 0; 
 		m_Start->h = m_Start->m_UserState.GoalDistanceEstimate( m_Goal->m_UserState );
-		m_Start->f = m_Start->g + m_Start->h;
+		m_Start->f = m_Start->g + 10 * m_Start->h;
 		m_Start->parent = 0;
 
 		// Push the start node on the Open list
@@ -366,7 +366,7 @@ public: // methods
 				(*successor)->parent = n;
 				(*successor)->g = newg;
 				(*successor)->h = (*successor)->m_UserState.GoalDistanceEstimate( m_Goal->m_UserState );
-				(*successor)->f = (*successor)->g + (*successor)->h;
+				(*successor)->f = (*successor)->g + 10 * (*successor)->h;
 
 				// Successor in closed list
 				// 1 - Update old version of this node in closed list

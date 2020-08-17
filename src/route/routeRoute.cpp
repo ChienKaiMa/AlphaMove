@@ -103,7 +103,12 @@ RouteExecStatus RouteMgr::reroute()
     
     for (unsigned i=0; i<_netList.size(); ++i)
     {
-        reroute(_netList[i]);
+        if (reroute(_netList[i]) == ROUTE_EXEC_ERROR) {
+            _netList[i]->_hasmovedbynb = true;
+            for (auto cellPair : _netList[i]->_assoCellInstMap) {
+                routeMgr->_instList[cellPair.first-1]->_hasmovedbyfd = true;
+            }
+        }
         if (i % 10000 == 0) {
             cout << i << "\n";
             replaceBest();
@@ -166,7 +171,7 @@ RouteExecStatus RouteMgr::reroute(Net* n)
     unsigned newWL = n->getWirelength();
     if (newWL > origWL)
     {
-        myStatus = ROUTE_EXEC_ERROR;
+        //myStatus = ROUTE_EXEC_ERROR;
         remove3DDemand(n);
         n->ripUp();
         for (auto s : OOrigSegs) {
