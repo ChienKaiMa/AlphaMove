@@ -52,6 +52,7 @@ void RouteMgr::mainPnR()
         }
         
         RouteExecStatus canRoute = this->route();
+        //RouteExecStatus canRoute = this->reroute();
         cout << "End of Routing...\n";
         if (checkOverflow() && getCurMoveCnt() > reRouteCnt * 2) {
             reduceOverflow();
@@ -92,7 +93,7 @@ void RouteMgr::netbasedPlace(){
     cout << "Net-based placement...\n";
 
     Net* moveNet;
-    double moveNetCongestion;
+    //double moveNetCongestion;
     unsigned minRow = Ggrid::rEnd;
     unsigned minCol = Ggrid::cEnd;
     unsigned maxRow = Ggrid::rBeg;
@@ -146,8 +147,22 @@ void RouteMgr::netbasedPlace(){
     //Find the most congested net
     vector<pair<unsigned,double>> congestionList; //first: net index; second: avg_congestion
     for(unsigned i=0;i<_netList.size();++i){
-        if(_netList[i]->_hasmovedbynb == false){
-            congestionList.push_back(pair<unsigned,double>(i+1,_netList[i]->_avgCongestion));
+        if(_netList[i]->_hasmovedbynb == false && _netList[i]->_routable == true){
+            auto ite = _netList[i]->_assoCellInstMap.begin();
+            bool routable = true;
+            for(unsigned j=0;j<_netList[i]->_assoCellInstMap.size();++j){
+                for(unsigned k=0;k<_instList[ite->first-1]->assoNet.size();++k){
+                    if(_netList[_instList[ite->first-1]->assoNet[k]-1]->_routable == false){
+                        routable = false;
+                        break;
+                    }
+                }
+                if(routable == false)
+                    break;
+                ++ite;
+            }
+            if(routable == true)
+                congestionList.push_back(pair<unsigned,double>(i+1,_netList[i]->_avgCongestion));
         }
     }
     sort(congestionList.begin(), congestionList.end(), compare);
@@ -278,7 +293,7 @@ void RouteMgr::forcedirectedPlace (){
     #endif
     unsigned i = 0;
     //unsigned move_cell_num = ceil((double)_maxMoveCnt/(double)FORCE_DIRECTED_BASE_RATIO);
-    unsigned move_cell_num = moveCellNum();
+    unsigned move_cell_num = 1/*moveCellNum()*/;
     #ifdef DEBUG
     cout << "move_cell_num = " << move_cell_num << "\n";
     #endif
@@ -286,6 +301,12 @@ void RouteMgr::forcedirectedPlace (){
         if(i == _instList.size()-1){
             if(_instList[congestionList[i].first-1]->is_movable() && (_instList[congestionList[i].first-1]->_hasmovedbyfd == false) && (_instList[congestionList[i].first-1]->min_layer_constraint == false)){
                 moveCells.push_back(_instList[congestionList[i].first-1]);
+                for(unsigned j=0;j<_instList[congestionList[i].first-1]->assoNet.size();++j){
+                    if(_netList[_instList[congestionList[i].first-1]->assoNet[j]-1]->_routable == false){
+                        moveCells.pop_back();
+                        break;
+                    }
+                }
                 for(unsigned j=0;j<_instList.size();++j)
                     _instList[j]->_hasmovedbyfd = false;
                 break;
@@ -297,6 +318,12 @@ void RouteMgr::forcedirectedPlace (){
         }
         if(_instList[congestionList[i].first-1]->is_movable() && (_instList[congestionList[i].first-1]->_hasmovedbyfd == false) && (_instList[congestionList[i].first-1]->min_layer_constraint == false)){
             moveCells.push_back(_instList[congestionList[i].first-1]);
+            for(unsigned j=0;j<_instList[congestionList[i].first-1]->assoNet.size();++j){
+                if(_netList[_instList[congestionList[i].first-1]->assoNet[j]-1]->_routable == false){
+                    moveCells.pop_back();
+                    break;
+                }
+            }
         }
         ++i;
     }
@@ -401,7 +428,7 @@ RouteMgr::moveCellNum() {
     unsigned moveCellNum = 0;
     int count = floor(log10(_maxMoveCnt)) - 1;
     if(count > 0){
-        for(unsigned i=0;i<count;++i){
+        for(int i=0;i<count;++i){
             moveCellNum += ceil(10*(pow(10,i+1)-pow(10,i))/(FORCE_DIRECTED_BASE_RATIO * pow(FORCE_DIRECTED_INCREASE_RATIO,i)));
         }
     }

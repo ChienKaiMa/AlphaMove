@@ -62,6 +62,10 @@ main(int argc, char** argv)
          myexit();
       }
       */
+      #ifdef DEBUG
+      std::time_t time = std::time(0);
+      cout << "time: " << std::ctime(&time);
+      #endif
       
       outfile.open(argv[2], ios::out);
       if (!outfile) {
@@ -89,6 +93,11 @@ main(int argc, char** argv)
       routeMgr->mainPnR();
       routeMgr->writeCircuit(outfile);
       
+      #ifdef DEBUG
+      std::time_t time_2 = std::time(0);
+      cout << "time: " << std::ctime(&time_2);
+      #endif
+
       myUsage.report(true, true);
       return 0;
    }

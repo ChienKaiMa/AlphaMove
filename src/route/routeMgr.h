@@ -166,6 +166,11 @@ private:
     clock_t           _startTime;
     unsigned          _initTotalWL;
     InstSet           _curMovedSet;
+    unsigned          _numOverflowNet1 = 0;
+    unsigned          _numOverflowNet2 = 0;
+    unsigned          _numOverflowNet3 = 0;
+    unsigned          _numValidNet1 = 0;
+    unsigned          _numValidNet2 = 0;
 
     // Results
     vector<OutputCell>_bestMovedCells;

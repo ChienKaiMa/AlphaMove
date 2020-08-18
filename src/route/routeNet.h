@@ -350,6 +350,7 @@ private:
     vector<Segment*>    _netSegs; //TODO pointer?
     // unordered_map< unsigned, Pos > _pinPos; // a map from instance id->Pos(current placement);
     bool                _toReroute = false; // TODO: decide whether true or false
+    bool                _routable = true;
 
     //bounding box
     unsigned            _centerRow;

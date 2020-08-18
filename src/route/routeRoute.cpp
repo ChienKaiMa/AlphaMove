@@ -46,11 +46,14 @@ RouteMgr::route()
     }
     for (auto n : targetNet) {
         if (route2D(n) == ROUTE_EXEC_ERROR) {
+            n->_routable = false;
             myStatus = ROUTE_EXEC_ERROR;
         } else {
             if (layerassign(n) == ROUTE_EXEC_ERROR) {
+                n->_routable = false;
                 myStatus = ROUTE_EXEC_ERROR;
             }
+            n->_routable = true;
         }
     }
     // sorted by #pins
@@ -116,6 +119,14 @@ RouteExecStatus RouteMgr::reroute()
     _netRank->showTopTen();
     routeMgr->printRouteSummary();
     myUsage.report(true, false);
+    #ifndef DEBUG
+    cout << "\nNet type:\n"
+         << "Cannot route:       " << _numOverflowNet1 << "\n" 
+         << "Cannot layerassign: " << _numOverflowNet2 << "\n"
+         << "Overflow:           " << _numOverflowNet3 << "\n"
+         << "Valid but longer:   " << _numValidNet1 << "\n"
+         << "Valid and shorter:  " << _numValidNet2 << "\n";
+    #endif
     return myStatus;
 }
 
@@ -130,6 +141,7 @@ RouteExecStatus RouteMgr::reroute(Net* n)
     n->ripUp();
     n->shouldReroute(false);
     if (route2D(n) == ROUTE_EXEC_ERROR) {
+        ++_numOverflowNet1;
         n->shouldReroute(false);
         myStatus = ROUTE_EXEC_ERROR;
         n->ripUp();
@@ -138,9 +150,11 @@ RouteExecStatus RouteMgr::reroute(Net* n)
             n->_netSegs.push_back(seg);
         }
         add3DDemand(n);
+        n->_routable = false;
         return myStatus;
     }
     if (layerassign(n) == ROUTE_EXEC_ERROR) {
+        ++_numOverflowNet2;
         myStatus = ROUTE_EXEC_ERROR;
         remove3DDemand(n);
         n->ripUp();
@@ -149,10 +163,12 @@ RouteExecStatus RouteMgr::reroute(Net* n)
             n->_netSegs.push_back(seg);
         }
         add3DDemand(n);
+        n->_routable = false;
         return myStatus;
     }
     if (n->checkOverflow())
     {
+        ++_numOverflowNet3;
         myStatus = ROUTE_EXEC_ERROR;
         remove3DDemand(n);
         n->ripUp();
@@ -161,11 +177,13 @@ RouteExecStatus RouteMgr::reroute(Net* n)
             n->_netSegs.push_back(seg);
         }
         add3DDemand(n);
+        n->_routable = false;
         return myStatus;
     }
     unsigned newWL = n->getWirelength();
     if (newWL > origWL)
     {
+        ++_numValidNet1;
         myStatus = ROUTE_EXEC_ERROR;
         remove3DDemand(n);
         n->ripUp();
@@ -178,6 +196,7 @@ RouteExecStatus RouteMgr::reroute(Net* n)
         return myStatus;
     }
     else {
+        ++_numValidNet2;
         //cout << "Net N" << n->_netId << " Reduce wirelength by " << (origWL - newWL) << "\n";
     }
     return myStatus;
