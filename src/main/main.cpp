@@ -91,7 +91,8 @@ main(int argc, char** argv)
       
       routeMgr->reroute();
       routeMgr->reroute();
-      routeMgr->mainPnR();
+      routeMgr->precisePnR();
+      //routeMgr->mainPnR();
       routeMgr->writeCircuit(outfile);
       
       #ifdef DEBUG

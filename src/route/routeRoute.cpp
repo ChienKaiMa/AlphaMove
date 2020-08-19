@@ -53,7 +53,7 @@ RouteMgr::route()
                 n->_routable = false;
                 myStatus = ROUTE_EXEC_ERROR;
             }
-            n->_routable = true;
+            else n->_routable = true;
         }
     }
     // sorted by #pins
@@ -104,6 +104,8 @@ RouteExecStatus RouteMgr::reroute()
     cout << "\nRerouting...\n";
     RouteExecStatus myStatus = ROUTE_EXEC_DONE;
     _numOverflowNet1 = _numOverflowNet2 = _numOverflowNet3 = _numValidNet1 = _numValidNet2 = 0;
+    _targetNetList.clear();
+    _targetNetList.resize(0);
     for (unsigned i=0; i<_netList.size(); ++i)
     {
         if (reroute(_netList[i]) == ROUTE_EXEC_ERROR) {
@@ -125,11 +127,11 @@ RouteExecStatus RouteMgr::reroute()
     myUsage.report(true, false);
     #ifndef DEBUG
     cout << "\nNet type:\n"
-         << "Cannot route:       " << _numOverflowNet1 << "\n" 
-         << "Cannot layerassign: " << _numOverflowNet2 << "\n"
-         << "Overflow:           " << _numOverflowNet3 << "\n"
-         << "Valid but longer:   " << _numValidNet1 << "\n"
-         << "Valid and shorter:  " << _numValidNet2 << "\n";
+         << "Cannot route       : " << _numOverflowNet1 << "\n" 
+         << "Cannot layerassign : " << _numOverflowNet2 << "\n"
+         << "Overflow           : " << _numOverflowNet3 << "\n"
+         << "Valid but longer   : " << _numValidNet1 << "\n"
+         << "Valid and shorter  : " << _numValidNet2 << "\n\n";
     #endif
     return myStatus;
 }
@@ -197,6 +199,7 @@ RouteExecStatus RouteMgr::reroute(Net* n)
         }
         add3DDemand(n);
         //cout << "Net N" << n->_netId << " has no wirelength reduction!\n";
+        _targetNetList.push_back(n);
         return myStatus;
     }
     else {

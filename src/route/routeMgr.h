@@ -88,7 +88,8 @@ public:
     /**********************************/
     /*        Placement&Routing       */
     /**********************************/
-    void     mainPnR();      
+    void     mainPnR();
+    void     precisePnR();      
     void     place();
     size_t   getCurMoveCnt() const { return _curMovedSet.size(); }
     void     netbasedPlace();
@@ -166,6 +167,7 @@ private:
     clock_t           _startTime;
     unsigned          _initTotalWL;
     InstSet           _curMovedSet;
+    NetList           _targetNetList;
     unsigned          _numOverflowNet1 = 0;
     unsigned          _numOverflowNet2 = 0;
     unsigned          _numOverflowNet3 = 0;
