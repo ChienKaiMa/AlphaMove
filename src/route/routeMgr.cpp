@@ -867,6 +867,50 @@ RouteMgr::check3dOverflow(unsigned i, unsigned j, unsigned k) {
     return myStatus;
 }
 
+void RouteMgr::checkAllGrids()
+{
+    /*
+    int healthyCnt = 0;
+    int riskyCnt = 0;
+    int fullCnt = 0;
+    int OVCNT = 0;
+    */
+    for (unsigned k=1; k<=routeMgr->getLayerCnt(); ++k) {
+        int healthyCnt = 0;
+        int riskyCnt = 0;
+        int fullCnt = 0;
+        int OVCNT = 0;
+        for (unsigned i=1; i<=Ggrid::rEnd; ++i) {
+            for (unsigned j=1; j<=Ggrid::cEnd; ++j) {
+                auto myStatus = this->check3dOverflow(i, j, k);
+                switch (myStatus)
+                {
+                case GRID_HEALTHY:
+                    ++healthyCnt;
+                    break;
+                case GRID_RISKY:
+                    ++riskyCnt;
+                    break;
+                case GRID_FULL_CAP:
+                    ++fullCnt;
+                    break;
+                case GRID_OVERFLOW:
+                    ++OVCNT;
+                    break;
+                default:
+                    break;
+                }
+            }
+        }
+        cout << "\nLayer " << k << "\n";
+        cout << healthyCnt << " grids are healthy\n";
+        cout << riskyCnt << " grids are risky\n";
+        cout << fullCnt << " grids are full!\n";
+        cout << OVCNT << " grids overflow!\n";
+    }
+    
+}
+
 bool
 RouteMgr::checkOverflow()
 {
@@ -924,7 +968,7 @@ RouteMgr::evaluateWireLen() const{
         newWL += alpha.size();
     }
     // newWL+=_netList.size();
-    cout << "Wire length : " << newWL << endl;
+    cout << "New wirelength : " << newWL << endl;
     return newWL;
 }
 
@@ -937,11 +981,9 @@ RouteMgr::evaluateWireLen(Net* n) const{
 
 void 
 RouteMgr::replaceBest(){
-    cout << "Evaluating WL ..." << endl;
+    //cout << "Evaluating WL ..." << endl;
     unsigned newWL = evaluateWireLen();
     if(newWL < _bestTotalWL){
-    //if (true) {
-        //cout << "CHeating myself...\n";
         storeBestResult();
         _bestTotalWL = newWL;
         cout << _bestTotalWL << " is a Better Solution!!\n";

@@ -90,6 +90,7 @@ main(int argc, char** argv)
       routeMgr->printInputSummary();
       
       routeMgr->reroute();
+      routeMgr->reroute();
       routeMgr->mainPnR();
       routeMgr->writeCircuit(outfile);
       

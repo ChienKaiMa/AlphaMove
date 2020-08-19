@@ -356,7 +356,7 @@ OptimizeCmd::exec(const string& option)
    } else if (myStrNCmp("-REroute", token, 3) == 0) {
       routeMgr->reroute();
    } else if (myStrNCmp("-Overflow", token, 2) == 0) {
-      routeMgr->checkOverflow();
+      routeMgr->checkAllGrids();
    } else if (myStrNCmp("-2PinReroute", token, 2) == 0) {
       routeMgr->reduceOverflow();
    }

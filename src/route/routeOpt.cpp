@@ -54,20 +54,18 @@ void RouteMgr::mainPnR()
         RouteExecStatus canRoute = this->route();
         //RouteExecStatus canRoute = this->reroute();
         cout << "End of Routing...\n";
+        /*
         if (checkOverflow() && getCurMoveCnt() > reRouteCnt * 2) {
             reduceOverflow();
             ++reRouteCnt;
             cout << "Rerouting... " << reRouteCnt << "\n";
         }
+        */
         _netRank->update();
         _netRank->showTopTen();
         cout << "End of Routing..." << endl;
         if(canRoute == ROUTE_EXEC_DONE){
-            unsigned newWL = evaluateWireLen();// evaluate total wirelength
-            if( newWL<_bestTotalWL){
-                _bestTotalWL = newWL;
-                storeBestResult();
-            }
+            replaceBest();
         }
         
         this->_placeStrategy = (canRoute == ROUTE_EXEC_DONE) ? FORCE_DIRECTED : CONGESTION_BASED;
@@ -811,8 +809,8 @@ RouteMgr::errorOption(RouteExecError rError)
 {
     switch (rError) {
         case ROUTE_OVERFLOW:
-            cerr << "Overflow is inevitable!\n";
-            cerr << "Try net-based placement!\n";
+            //cerr << "Overflow is inevitable!\n";
+            //cerr << "Try net-based placement!\n";
             return ROUTE_EXEC_ERROR;
         case ROUTE_DIR_ILLEGAL:
             cerr << "Wrong direction segment is inevitable!\n";

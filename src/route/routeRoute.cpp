@@ -103,7 +103,7 @@ RouteExecStatus RouteMgr::reroute()
 {
     cout << "\nRerouting...\n";
     RouteExecStatus myStatus = ROUTE_EXEC_DONE;
-    
+    _numOverflowNet1 = _numOverflowNet2 = _numOverflowNet3 = _numValidNet1 = _numValidNet2 = 0;
     for (unsigned i=0; i<_netList.size(); ++i)
     {
         if (reroute(_netList[i]) == ROUTE_EXEC_ERROR) {
@@ -115,7 +115,6 @@ RouteExecStatus RouteMgr::reroute()
         if (i % 10000 == 0) {
             cout << i << "\n";
             replaceBest();
-            printRouteSummary();
         }
     }
     cout << "\nReroute done!\n";
