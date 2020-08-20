@@ -583,7 +583,7 @@ bool Net::checkOverflow()
     {
         if (grid->checkOverflow() == GRID_OVERFLOW)
         {
-#ifdef DEBUG
+#ifndef DEBUG
             cout << "Net " << _netId << " causes overflow!\n";
 #endif
             isOV = true;
