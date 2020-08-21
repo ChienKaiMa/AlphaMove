@@ -106,24 +106,12 @@ RouteMgr::precisePnR(){
             #ifndef DEBUG
             cout << "Start with ";
             checkOverflow();
+            /*if(moveCell->getId() == 2192){
+                ofstream outfile1;
+                outfile1.open("dmd1.out");
+                writeDemand(outfile1);
+            }*/
             #endif
-            if(moveCell->getId() == 2254){
-                moveOneCell(moveCellList[j].first, Pos(cell_row,cell_col), 3);
-                for(unsigned k=0;k<moveCell->assoNet.size();++k){
-                    Net* n = _netList[moveCell->assoNet[k]-1];
-                    remove3DDemand(n);
-                    n->ripUp();
-                    n->shouldReroute(false);
-                    for (auto s : OOrigSegs[k]) {
-                        Segment* seg = new Segment(s);
-                        n->_netSegs.push_back(seg);
-                    }
-                    add3DDemand(n);
-                    cout << "Check net " << n->_netId << ": ";
-                    n->checkOverflow();
-                    cout << "\n";
-                }
-            }
 
             curPos = pair<unsigned,unsigned>(min(cell_row+1,(int)Ggrid::rEnd),cell_col);
             moveOneCell(moveCellList[j].first, curPos, 3);
@@ -148,11 +136,25 @@ RouteMgr::precisePnR(){
                     cout << _bestTotalWL << " is a Better Solution!!\n";
                 }
             }
-            if(moveCell->getId() == 2254){
+            moveOneCell(moveCellList[j].first, Pos(cell_row,cell_col), 3);
+            for(unsigned k=0;k<moveCell->assoNet.size();++k){
+                Net* n = _netList[moveCell->assoNet[k]-1];
+                n->ripUp();
+                n->shouldReroute(false);
+                for (auto s : OOrigSegs[k]) {
+                    Segment* seg = new Segment(s);
+                    n->_netSegs.push_back(seg);
+                }
+                add3DDemand(n);
+                cout << "Check net " << n->_netId << ": ";
+                n->checkOverflow();
+                cout << "\n";
+            }
+            /*if(moveCell->getId() == 2192){
                 moveOneCell(moveCellList[j].first, Pos(cell_row,cell_col), 3);
                 for(unsigned k=0;k<moveCell->assoNet.size();++k){
                     Net* n = _netList[moveCell->assoNet[k]-1];
-                    remove3DDemand(n);
+                    //remove3DDemand(n);
                     n->ripUp();
                     n->shouldReroute(false);
                     for (auto s : OOrigSegs[k]) {
@@ -164,8 +166,12 @@ RouteMgr::precisePnR(){
                     n->checkOverflow();
                     cout << "\n";
                 }
-            }
 
+                ofstream outfile2;
+                outfile2.open("dmd2.out");
+                writeDemand(outfile2);
+            }*/
+            
             curPos = pair<unsigned,unsigned>(max(cell_row-1,(int)Ggrid::rBeg),cell_col);
             moveOneCell(moveCellList[j].first, curPos, 3);
             canRoute = this->route();
@@ -189,22 +195,19 @@ RouteMgr::precisePnR(){
                     cout << _bestTotalWL << " is a Better Solution!!\n";
                 }
             }
-            if(moveCell->getId() == 2254){
-                moveOneCell(moveCellList[j].first, Pos(cell_row,cell_col), 3);
-                for(unsigned k=0;k<moveCell->assoNet.size();++k){
-                    Net* n = _netList[moveCell->assoNet[k]-1];
-                    remove3DDemand(n);
-                    n->ripUp();
-                    n->shouldReroute(false);
-                    for (auto s : OOrigSegs[k]) {
-                        Segment* seg = new Segment(s);
-                        n->_netSegs.push_back(seg);
-                    }
-                    add3DDemand(n);
-                    cout << "Check net " << n->_netId << ": ";
-                    n->checkOverflow();
-                    cout << "\n";
+            moveOneCell(moveCellList[j].first, Pos(cell_row,cell_col), 3);
+            for(unsigned k=0;k<moveCell->assoNet.size();++k){
+                Net* n = _netList[moveCell->assoNet[k]-1];
+                n->ripUp();
+                n->shouldReroute(false);
+                for (auto s : OOrigSegs[k]) {
+                    Segment* seg = new Segment(s);
+                    n->_netSegs.push_back(seg);
                 }
+                add3DDemand(n);
+                cout << "Check net " << n->_netId << ": ";
+                n->checkOverflow();
+                cout << "\n";
             }
 
             curPos = pair<unsigned,unsigned>(cell_row,min(cell_col+1,(int)Ggrid::cEnd));
@@ -230,23 +233,21 @@ RouteMgr::precisePnR(){
                     cout << _bestTotalWL << " is a Better Solution!!\n";
                 }
             }
-            if(moveCell->getId() == 2254){
-                moveOneCell(moveCellList[j].first, Pos(cell_row,cell_col), 3);
-                for(unsigned k=0;k<moveCell->assoNet.size();++k){
-                    Net* n = _netList[moveCell->assoNet[k]-1];
-                    remove3DDemand(n);
-                    n->ripUp();
-                    n->shouldReroute(false);
-                    for (auto s : OOrigSegs[k]) {
-                        Segment* seg = new Segment(s);
-                        n->_netSegs.push_back(seg);
-                    }
-                    add3DDemand(n);
-                    cout << "Check net " << n->_netId << ": ";
-                    n->checkOverflow();
-                    cout << "\n";
+            moveOneCell(moveCellList[j].first, Pos(cell_row,cell_col), 3);
+            for(unsigned k=0;k<moveCell->assoNet.size();++k){
+                Net* n = _netList[moveCell->assoNet[k]-1];
+                n->ripUp();
+                n->shouldReroute(false);
+                for (auto s : OOrigSegs[k]) {
+                    Segment* seg = new Segment(s);
+                    n->_netSegs.push_back(seg);
                 }
+                add3DDemand(n);
+                cout << "Check net " << n->_netId << ": ";
+                n->checkOverflow();
+                cout << "\n";
             }
+
             curPos = pair<unsigned,unsigned>(cell_row,max(cell_col-1,(int)Ggrid::cBeg));
             moveOneCell(moveCellList[j].first, curPos, 3);
             canRoute = this->route();
@@ -270,29 +271,26 @@ RouteMgr::precisePnR(){
                     cout << _bestTotalWL << " is a Better Solution!!\n";
                 }
             }
-            if(moveCell->getId() == 2254){
-                moveOneCell(moveCellList[j].first, Pos(cell_row,cell_col), 3);
-                for(unsigned k=0;k<moveCell->assoNet.size();++k){
-                    Net* n = _netList[moveCell->assoNet[k]-1];
-                    remove3DDemand(n);
-                    n->ripUp();
-                    n->shouldReroute(false);
-                    for (auto s : OOrigSegs[k]) {
-                        Segment* seg = new Segment(s);
-                        n->_netSegs.push_back(seg);
-                    }
-                    add3DDemand(n);
-                    cout << "Check net " << n->_netId << ": ";
-                    n->checkOverflow();
-                    cout << "\n";
+            moveOneCell(moveCellList[j].first, Pos(cell_row,cell_col), 3);
+            for(unsigned k=0;k<moveCell->assoNet.size();++k){
+                Net* n = _netList[moveCell->assoNet[k]-1];
+                n->ripUp();
+                n->shouldReroute(false);
+                for (auto s : OOrigSegs[k]) {
+                    Segment* seg = new Segment(s);
+                    n->_netSegs.push_back(seg);
                 }
+                add3DDemand(n);
+                cout << "Check net " << n->_netId << ": ";
+                n->checkOverflow();
+                cout << "\n";
             }
             
             if(recover == true) {
                 moveOneCell(moveCellList[j].first, Pos(cell_row,cell_col), 3);
                 for(unsigned k=0;k<moveCell->assoNet.size();++k){
                     Net* n = _netList[moveCell->assoNet[k]-1];
-                    remove3DDemand(n);
+                    //remove3DDemand(n);
                     n->ripUp();
                     n->shouldReroute(false);
                     for (auto s : OOrigSegs[k]) {
@@ -300,17 +298,13 @@ RouteMgr::precisePnR(){
                         n->_netSegs.push_back(seg);
                     }
                     add3DDemand(n);
-                    if(moveCell->getId() == 2254){
-                        cout << "Check: ";
-                        n->checkOverflow();
-                    }
                 }
             }
             else {
                 moveOneCell(moveCellList[j].first, bestPos, 3);
                 for(unsigned k=0;k<moveCell->assoNet.size();++k){
                     Net* n = _netList[moveCell->assoNet[k]-1];
-                    remove3DDemand(n);
+                    //remove3DDemand(n);
                     n->ripUp();
                     n->shouldReroute(false);
                     for (auto s : BestSegs[k]) {
@@ -763,7 +757,16 @@ RouteMgr::moveOneCell(unsigned id, Pos newPos, unsigned type){
     removeAdjHGgridDemand(_instList[cellId-1]);
     for(unsigned j=0; j<_instList[cellId-1]->assoNet.size(); ++j)
         _netList[_instList[cellId-1]->assoNet[j]-1]->_toRemoveDemand = true;
-    
+    for(unsigned i=0;i<_netList.size();++i){
+        if(_netList[i]->_toRemoveDemand == true){
+            remove2DDemand(_netList[i]);
+            remove3DDemand(_netList[i]);
+            _netList[i]->_toReroute = true;
+            //cout << "Net " << i+1 << " need to be rerouted.\n";
+            _netList[i]->_toRemoveDemand = false;
+        }
+    }
+
     // <Koova edited>
     if (Pos(new_row,new_col) != _instList[cellId-1]->getInitPos()) {
         _curMovedSet.insert(_instList[cellId-1]);
@@ -789,15 +792,6 @@ RouteMgr::moveOneCell(unsigned id, Pos newPos, unsigned type){
 
     cout << "New position: " << _instList[cellId-1]->getPos().first << " " << _instList[cellId-1]->getPos().second << "\n";
     cout << "CurMoveCnt: " << getCurMoveCnt() << "\n";
-
-    for(unsigned i=0;i<_netList.size();++i){
-        if(_netList[i]->_toRemoveDemand == true){
-            remove2DDemand(_netList[i]);
-            _netList[i]->_toReroute = true;
-            //cout << "Net " << i+1 << " need to be rerouted.\n";
-            _netList[i]->_toRemoveDemand = false;
-        }
-    }
 }
 
 void
@@ -1020,7 +1014,8 @@ RouteMgr::addAdjHGgridDemand(CellInst* cell){
     }
 }
 
-unsigned RouteMgr::Share(Net* a, Net* b){
+unsigned 
+RouteMgr::Share(Net* a, Net* b){
     unsigned numShareCell = 0;
     std::map<unsigned,unsigned>::iterator ite_a = a->_assoCellInstMap.begin();
     std::map<unsigned,unsigned>::iterator ite_b = b->_assoCellInstMap.begin();
@@ -1045,7 +1040,8 @@ unsigned RouteMgr::Share(Net* a, Net* b){
     return numShareCell;
 }
 
-pair<double,double> RouteMgr::Move(Net* a, Net* b, double BestCH){
+pair<double,double> 
+RouteMgr::Move(Net* a, Net* b, double BestCH){
     //cout << "associated net : " << b->_netId << " ";
     //cout << b->_centerRow << " " << a->_centerRow << " " << b->_avgCongestion << " " << a->_avgCongestion << " " << BestCH << " " << a->_pinSet.size() << " " << Share(a,b) << " ";
     double offsetRow = ((double)b->_centerRow - (double)a->_centerRow) * ((b->_avgCongestion - a->_avgCongestion)/(BestCH - a->_avgCongestion)) * ((double)Share(a,b)/(double)a->_pinSet.size());

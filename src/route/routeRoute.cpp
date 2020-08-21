@@ -39,7 +39,7 @@ RouteMgr::route()
         Net* m = _netList[nPair.first-1];
         if (m->shouldReroute()){
             targetNet.push_back(m);
-            remove3DDemand(m);
+            //remove3DDemand(m);
             m->ripUp();
             // cout << m->_netSegs.size() << " " << m->_netSegs.capacity() << endl;
         }

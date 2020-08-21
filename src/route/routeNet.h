@@ -329,6 +329,7 @@ public:
     //Accessing functions
     unsigned getMinLayCons() { return _minLayCons; }
     set<PinPair> getPinSet() { return _pinSet; }
+    unsigned getId() { return _netId; }
     bool shouldReroute() { return _toReroute; }
     bool findVCand(vector<int>&);
     bool findHCand(vector<int>&);

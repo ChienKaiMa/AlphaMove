@@ -288,8 +288,9 @@ void Segment::passGrid(Net *net, set<Layer *> &alpha) const
             j0 = j1;
             j1 = tmp;
         }
-        for (unsigned x = j0; x <= j1; ++x)
+        for (unsigned x = j0; x <= j1; ++x){
             alpha.insert((*(routeMgr->_gridList[i0 - 1][x - 1]))[k0]);
+        }
     }
     else if (checkDir() == DIR_V)
     {
@@ -299,8 +300,9 @@ void Segment::passGrid(Net *net, set<Layer *> &alpha) const
             i0 = i1;
             i1 = tmp;
         }
-        for (unsigned x = i0; x <= i1; ++x)
+        for (unsigned x = i0; x <= i1; ++x){
             alpha.insert((*(routeMgr->_gridList[x - 1][j0 - 1]))[k0]);
+        }
     }
     else
     {
