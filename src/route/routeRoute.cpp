@@ -39,7 +39,8 @@ RouteMgr::route()
         Net* m = _netList[nPair.first-1];
         if (m->shouldReroute()){
             targetNet.push_back(m);
-            //remove3DDemand(m);
+            if(!m->_netSegs.empty())
+                remove3DDemand(m);
             m->ripUp();
             // cout << m->_netSegs.size() << " " << m->_netSegs.capacity() << endl;
         }
@@ -108,12 +109,13 @@ RouteExecStatus RouteMgr::reroute()
     _targetNetList.resize(0);
     for (unsigned i=0; i<_netList.size(); ++i)
     {
-        if (reroute(_netList[i]) == ROUTE_EXEC_ERROR) {
+        /*if (reroute(_netList[i]) == ROUTE_EXEC_ERROR) {
             _netList[i]->_hasmovedbynb = true;
             for (auto cellPair : _netList[i]->_assoCellInstMap) {
                 routeMgr->_instList[cellPair.first-1]->_hasmovedbyfd = true;
             }
-        }
+        }*/
+        reroute(_netList[i]);
         if (i % 10000 == 0) {
             cout << i << "\n";
             replaceBest();

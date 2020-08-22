@@ -78,8 +78,11 @@ RouteMgr::mainPnR()
 void 
 RouteMgr::precisePnR(){
     cout << "Initial WL : " << _bestTotalWL << endl;
+    //Try to move cells of target nets one by one
     for(unsigned i=0;i<_targetNetList.size();++i){
         cout << "PnR on net " << _targetNetList[i]->_netId << "...\n";
+
+        //Add cells of the net and their 2d congestion to moveCellList, and sort by their congestion
         vector<pair<unsigned,double>> moveCellList; //first: cell index; second: cell grid congestion
         auto ite = _targetNetList[i]->_assoCellInstMap.begin();
         for(unsigned j=0;j<_targetNetList[i]->_assoCellInstMap.size();++j){
@@ -89,34 +92,31 @@ RouteMgr::precisePnR(){
         }
         sort(moveCellList.begin(),moveCellList.end(),compare);
         
-        for(unsigned j=0;j<moveCellList.size();++j){//cell 2254
+        //Try to move and route the cells one by one
+        for(unsigned j=0;j<moveCellList.size();++j){
             CellInst* moveCell = _instList[moveCellList[j].first-1];
             cout << "Move cell " << moveCell->getId() << "\n";
             vector< vector<Segment> > OOrigSegs, BestSegs;
+
+            //store the original segments and position(x,y)
             for(unsigned k=0;k<moveCell->assoNet.size();++k){
                 vector<Segment> Segs;
                 for (auto s : _netList[moveCell->assoNet[k]-1]->_netSegs) { Segs.push_back(*s); }
                 OOrigSegs.push_back(Segs);
             }
             bool recover = true;
-
             int cell_row = moveCell->getPos().first;
             int cell_col = moveCell->getPos().second;
             Pos curPos, bestPos;
             #ifndef DEBUG
             cout << "Start with ";
             checkOverflow();
-            /*if(moveCell->getId() == 2192){
-                ofstream outfile1;
-                outfile1.open("dmd1.out");
-                writeDemand(outfile1);
-            }*/
             #endif
 
+            //move cell to (x+1,y) and route
             curPos = pair<unsigned,unsigned>(min(cell_row+1,(int)Ggrid::rEnd),cell_col);
             moveOneCell(moveCellList[j].first, curPos, 3);
             RouteExecStatus canRoute = this->route();
-            //_netRank->update();
             if(canRoute == ROUTE_EXEC_DONE){
                 unsigned newWL = evaluateWireLen();
                 _netRank->update();
@@ -136,46 +136,11 @@ RouteMgr::precisePnR(){
                     cout << _bestTotalWL << " is a Better Solution!!\n";
                 }
             }
-            moveOneCell(moveCellList[j].first, Pos(cell_row,cell_col), 3);
-            for(unsigned k=0;k<moveCell->assoNet.size();++k){
-                Net* n = _netList[moveCell->assoNet[k]-1];
-                n->ripUp();
-                n->shouldReroute(false);
-                for (auto s : OOrigSegs[k]) {
-                    Segment* seg = new Segment(s);
-                    n->_netSegs.push_back(seg);
-                }
-                add3DDemand(n);
-                cout << "Check net " << n->_netId << ": ";
-                n->checkOverflow();
-                cout << "\n";
-            }
-            /*if(moveCell->getId() == 2192){
-                moveOneCell(moveCellList[j].first, Pos(cell_row,cell_col), 3);
-                for(unsigned k=0;k<moveCell->assoNet.size();++k){
-                    Net* n = _netList[moveCell->assoNet[k]-1];
-                    //remove3DDemand(n);
-                    n->ripUp();
-                    n->shouldReroute(false);
-                    for (auto s : OOrigSegs[k]) {
-                        Segment* seg = new Segment(s);
-                        n->_netSegs.push_back(seg);
-                    }
-                    add3DDemand(n);
-                    cout << "Check net " << n->_netId << ": ";
-                    n->checkOverflow();
-                    cout << "\n";
-                }
-
-                ofstream outfile2;
-                outfile2.open("dmd2.out");
-                writeDemand(outfile2);
-            }*/
             
+            //move cell to (x-1,y) and route
             curPos = pair<unsigned,unsigned>(max(cell_row-1,(int)Ggrid::rBeg),cell_col);
             moveOneCell(moveCellList[j].first, curPos, 3);
             canRoute = this->route();
-            //_netRank->update();
             if(canRoute == ROUTE_EXEC_DONE){
                 unsigned newWL = evaluateWireLen();
                 _netRank->update();
@@ -195,25 +160,11 @@ RouteMgr::precisePnR(){
                     cout << _bestTotalWL << " is a Better Solution!!\n";
                 }
             }
-            moveOneCell(moveCellList[j].first, Pos(cell_row,cell_col), 3);
-            for(unsigned k=0;k<moveCell->assoNet.size();++k){
-                Net* n = _netList[moveCell->assoNet[k]-1];
-                n->ripUp();
-                n->shouldReroute(false);
-                for (auto s : OOrigSegs[k]) {
-                    Segment* seg = new Segment(s);
-                    n->_netSegs.push_back(seg);
-                }
-                add3DDemand(n);
-                cout << "Check net " << n->_netId << ": ";
-                n->checkOverflow();
-                cout << "\n";
-            }
 
+            //move cell to (x,y+1) and route
             curPos = pair<unsigned,unsigned>(cell_row,min(cell_col+1,(int)Ggrid::cEnd));
             moveOneCell(moveCellList[j].first, curPos, 3);
             canRoute = this->route();
-            //_netRank->update();
             if(canRoute == ROUTE_EXEC_DONE){
                 unsigned newWL = evaluateWireLen();
                 _netRank->update();
@@ -233,25 +184,11 @@ RouteMgr::precisePnR(){
                     cout << _bestTotalWL << " is a Better Solution!!\n";
                 }
             }
-            moveOneCell(moveCellList[j].first, Pos(cell_row,cell_col), 3);
-            for(unsigned k=0;k<moveCell->assoNet.size();++k){
-                Net* n = _netList[moveCell->assoNet[k]-1];
-                n->ripUp();
-                n->shouldReroute(false);
-                for (auto s : OOrigSegs[k]) {
-                    Segment* seg = new Segment(s);
-                    n->_netSegs.push_back(seg);
-                }
-                add3DDemand(n);
-                cout << "Check net " << n->_netId << ": ";
-                n->checkOverflow();
-                cout << "\n";
-            }
 
+            //move cell to (x,y-1) and route
             curPos = pair<unsigned,unsigned>(cell_row,max(cell_col-1,(int)Ggrid::cBeg));
             moveOneCell(moveCellList[j].first, curPos, 3);
             canRoute = this->route();
-            //_netRank->update();
             if(canRoute == ROUTE_EXEC_DONE){
                 unsigned newWL = evaluateWireLen();
                 _netRank->update();
@@ -271,26 +208,14 @@ RouteMgr::precisePnR(){
                     cout << _bestTotalWL << " is a Better Solution!!\n";
                 }
             }
-            moveOneCell(moveCellList[j].first, Pos(cell_row,cell_col), 3);
-            for(unsigned k=0;k<moveCell->assoNet.size();++k){
-                Net* n = _netList[moveCell->assoNet[k]-1];
-                n->ripUp();
-                n->shouldReroute(false);
-                for (auto s : OOrigSegs[k]) {
-                    Segment* seg = new Segment(s);
-                    n->_netSegs.push_back(seg);
-                }
-                add3DDemand(n);
-                cout << "Check net " << n->_netId << ": ";
-                n->checkOverflow();
-                cout << "\n";
-            }
             
+            //If some of the move and route above improve the wirelength, replace with the better routing result; otherwise, restore the original routing segments
             if(recover == true) {
                 moveOneCell(moveCellList[j].first, Pos(cell_row,cell_col), 3);
                 for(unsigned k=0;k<moveCell->assoNet.size();++k){
                     Net* n = _netList[moveCell->assoNet[k]-1];
-                    //remove3DDemand(n);
+                    if(!n->_netSegs.empty())
+                        remove3DDemand(n);
                     n->ripUp();
                     n->shouldReroute(false);
                     for (auto s : OOrigSegs[k]) {
@@ -304,7 +229,8 @@ RouteMgr::precisePnR(){
                 moveOneCell(moveCellList[j].first, bestPos, 3);
                 for(unsigned k=0;k<moveCell->assoNet.size();++k){
                     Net* n = _netList[moveCell->assoNet[k]-1];
-                    //remove3DDemand(n);
+                    if(!n->_netSegs.empty())
+                        remove3DDemand(n);
                     n->ripUp();
                     n->shouldReroute(false);
                     for (auto s : BestSegs[k]) {
@@ -760,7 +686,8 @@ RouteMgr::moveOneCell(unsigned id, Pos newPos, unsigned type){
     for(unsigned i=0;i<_netList.size();++i){
         if(_netList[i]->_toRemoveDemand == true){
             remove2DDemand(_netList[i]);
-            remove3DDemand(_netList[i]);
+            if(_netList[i]->_netSegs.empty())
+                remove3DDemand(_netList[i]);
             _netList[i]->_toReroute = true;
             //cout << "Net " << i+1 << " need to be rerouted.\n";
             _netList[i]->_toRemoveDemand = false;
