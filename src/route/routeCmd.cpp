@@ -274,7 +274,7 @@ void
 PlaceCmd::usage(ostream& os) const
 {
    os << "Usage: Place [ -Default | -Net |"
-      << " -Force | -Check | -Summary | -One <(unsigned type)>[(unsigned newPos.row)][(unsigned newPos.col)] ]\n" 
+      << " -Force | -Check | -Summary | -One <(unsigned type)>[(unsigned cellId)][(unsigned newPos.row)][(unsigned newPos.col)] ]\n" 
       << "       type = 0 : random cell, random pos; type = 1 : random cell, assigned pos; type = 2 : assigned cell, random pos; type : assigned cell, assigned pos" << endl;
 }
 

@@ -108,7 +108,7 @@ RouteMgr::precisePnR(){
             int cell_row = moveCell->getPos().first;
             int cell_col = moveCell->getPos().second;
             Pos curPos, bestPos;
-            #ifndef DEBUG
+            #ifdef DEBUG
             cout << "Start with ";
             checkOverflow();
             #endif
@@ -126,13 +126,13 @@ RouteMgr::precisePnR(){
                     recover = false;
                     bestPos = curPos;
 
-                    vector< vector<Segment> > CurSegs;
+                    //vector< vector<Segment> > CurSegs;
                     for(unsigned k=0;k<moveCell->assoNet.size();++k){
                         vector<Segment> Segs;
                         for (auto s : _netList[moveCell->assoNet[k]-1]->_netSegs) { Segs.push_back(*s); }
-                        CurSegs.push_back(Segs);
+                        BestSegs.push_back(Segs);
                     }
-                    BestSegs = CurSegs;
+                    //BestSegs = CurSegs;
                     cout << _bestTotalWL << " is a Better Solution!!\n";
                 }
             }
@@ -150,13 +150,14 @@ RouteMgr::precisePnR(){
                     recover = false;
                     bestPos = curPos;
 
-                    vector< vector<Segment> > CurSegs;
+                    //vector< vector<Segment> > CurSegs;
+                    BestSegs.resize(0);
                     for(unsigned k=0;k<moveCell->assoNet.size();++k){
                         vector<Segment> Segs;
                         for (auto s : _netList[moveCell->assoNet[k]-1]->_netSegs) { Segs.push_back(*s); }
-                        CurSegs.push_back(Segs);
+                        BestSegs.push_back(Segs);
                     }
-                    BestSegs = CurSegs;
+                    //BestSegs = CurSegs;
                     cout << _bestTotalWL << " is a Better Solution!!\n";
                 }
             }
@@ -174,13 +175,14 @@ RouteMgr::precisePnR(){
                     recover = false;
                     bestPos = curPos;
 
-                    vector< vector<Segment> > CurSegs;
+                    //vector< vector<Segment> > CurSegs;
+                    BestSegs.resize(0);
                     for(unsigned k=0;k<moveCell->assoNet.size();++k){
                         vector<Segment> Segs;
                         for (auto s : _netList[moveCell->assoNet[k]-1]->_netSegs) { Segs.push_back(*s); }
-                        CurSegs.push_back(Segs);
+                        BestSegs.push_back(Segs);
                     }
-                    BestSegs = CurSegs;
+                    //BestSegs = CurSegs;
                     cout << _bestTotalWL << " is a Better Solution!!\n";
                 }
             }
@@ -198,13 +200,14 @@ RouteMgr::precisePnR(){
                     recover = false;
                     bestPos = curPos;
 
-                    vector< vector<Segment> > CurSegs;
+                    //vector< vector<Segment> > CurSegs;
+                    BestSegs.resize(0);
                     for(unsigned k=0;k<moveCell->assoNet.size();++k){
                         vector<Segment> Segs;
                         for (auto s : _netList[moveCell->assoNet[k]-1]->_netSegs) { Segs.push_back(*s); }
-                        CurSegs.push_back(Segs);
+                        BestSegs.push_back(Segs);
                     }
-                    BestSegs = CurSegs;
+                    //BestSegs = CurSegs;
                     cout << _bestTotalWL << " is a Better Solution!!\n";
                 }
             }
@@ -226,18 +229,20 @@ RouteMgr::precisePnR(){
                 }
             }
             else {
-                moveOneCell(moveCellList[j].first, bestPos, 3);
-                for(unsigned k=0;k<moveCell->assoNet.size();++k){
-                    Net* n = _netList[moveCell->assoNet[k]-1];
-                    if(!n->_netSegs.empty())
-                        remove3DDemand(n);
-                    n->ripUp();
-                    n->shouldReroute(false);
-                    for (auto s : BestSegs[k]) {
-                        Segment* seg = new Segment(s);
-                        n->_netSegs.push_back(seg);
+                if(bestPos != curPos){
+                    moveOneCell(moveCellList[j].first, bestPos, 3);
+                    for(unsigned k=0;k<moveCell->assoNet.size();++k){
+                        Net* n = _netList[moveCell->assoNet[k]-1];
+                        if(!n->_netSegs.empty())
+                            remove3DDemand(n);
+                        n->ripUp();
+                        n->shouldReroute(false);
+                        for (auto s : BestSegs[k]) {
+                            Segment* seg = new Segment(s);
+                            n->_netSegs.push_back(seg);
+                        }
+                        add3DDemand(n);
                     }
-                    add3DDemand(n);
                 }
             }
         }
@@ -733,12 +738,12 @@ RouteMgr::removeSameGgridDemand(CellInst* cell){
         if(cell->getGrid()->cellInstList[k]->getMC() == cell->getMC())
             ++moveMcNum;
     }
-    std::map<unsigned,unsigned>::iterator move_ite = mcMap.find(cell->getMC()->_mcId);
+    //std::map<unsigned,unsigned>::iterator move_ite = mcMap.find(cell->getMC()->_mcId);
     std::map<unsigned,unsigned>::iterator cur_ite = mcMap.begin();
     for(unsigned i=0;i<mcMap.size();++i){
-        if(move_ite != cur_ite){
+        if(cell->getMC()->_mcId != cur_ite->first){
             if(moveMcNum < cur_ite->second){
-                removeNeighborDemand(_mcList[move_ite->first-1],_mcList[cur_ite->first-1],cell->getGrid(),0);
+                removeNeighborDemand(cell->getMC(),_mcList[cur_ite->first-1],cell->getGrid(),0);
             }
         }
         ++cur_ite;
@@ -843,12 +848,12 @@ RouteMgr::addSameGgridDemand(CellInst* cell){
         if(cell->getGrid()->cellInstList[k]->getMC() == cell->getMC())
             ++moveMcNum;
     }
-    std::map<unsigned,unsigned>::iterator move_ite = mcMap.find(cell->getMC()->_mcId);
+    //std::map<unsigned,unsigned>::iterator move_ite = mcMap.find(cell->getMC()->_mcId);
     std::map<unsigned,unsigned>::iterator cur_ite = mcMap.begin();
     for(unsigned i=0;i<mcMap.size();++i){
-        if(move_ite != cur_ite){
+        if(cell->getMC()->_mcId != cur_ite->first){
             if(moveMcNum < cur_ite->second){
-                addNeighborDemand(_mcList[move_ite->first-1],_mcList[cur_ite->first-1],cell->getGrid(),0);
+                addNeighborDemand(cell->getMC(),_mcList[cur_ite->first-1],cell->getGrid(),0);
             }
         }
         ++cur_ite;
