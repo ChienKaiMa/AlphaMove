@@ -31,6 +31,7 @@ static void signal_handler(int signum){
    //cout << "Time limit exceeded!!" << endl;
    cout << "\nOutput file ... \n";
    routeMgr->writeCircuit(outfile);
+   myUsage.report(true, true);
    exit(0);
 }
 

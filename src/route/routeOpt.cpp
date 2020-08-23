@@ -95,7 +95,9 @@ RouteMgr::precisePnR(){
         //Try to move and route the cells one by one
         for(unsigned j=0;j<moveCellList.size();++j){
             CellInst* moveCell = _instList[moveCellList[j].first-1];
+            #ifdef DEBUG
             cout << "Move cell " << moveCell->getId() << "\n";
+            #endif
             moveCell->_hasmovedbyprecise = true;
             vector< vector<Segment> > OOrigSegs, BestSegs;
 
@@ -1300,6 +1302,10 @@ RouteMgr::layerassign(Net* net)
             #endif
         }
 
+        if (net->_netSegs.empty()) {
+            cout << net->_netId << "\n";
+            add3DDemand(net);
+        }
         // Final check for the net
         if (net->checkOverflow()) {
             myStatus = ROUTE_EXEC_ERROR;
