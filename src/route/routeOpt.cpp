@@ -86,7 +86,7 @@ RouteMgr::precisePnR(){
         vector<pair<unsigned,double>> moveCellList; //first: cell index; second: cell grid congestion
         auto ite = _targetNetList[i]->_assoCellInstMap.begin();
         for(unsigned j=0;j<_targetNetList[i]->_assoCellInstMap.size();++j){
-            if(_instList[ite->first-1]->is_movable() && _instList[ite->first-1]->min_layer_constraint == false)
+            if(_instList[ite->first-1]->is_movable() && _instList[ite->first-1]->min_layer_constraint == false && _instList[ite->first-1]->_hasmovedbyprecise == false)
                 moveCellList.push_back(pair<unsigned,double>(ite->first,_instList[ite->first-1]->getGrid()->get2dCongestion()));
             ++ite;
         }
@@ -96,6 +96,7 @@ RouteMgr::precisePnR(){
         for(unsigned j=0;j<moveCellList.size();++j){
             CellInst* moveCell = _instList[moveCellList[j].first-1];
             cout << "Move cell " << moveCell->getId() << "\n";
+            moveCell->_hasmovedbyprecise = true;
             vector< vector<Segment> > OOrigSegs, BestSegs;
 
             //store the original segments and position(x,y)
@@ -115,100 +116,108 @@ RouteMgr::precisePnR(){
 
             //move cell to (x+1,y) and route
             curPos = pair<unsigned,unsigned>(min(cell_row+1,(int)Ggrid::rEnd),cell_col);
-            moveOneCell(moveCellList[j].first, curPos, 3);
-            RouteExecStatus canRoute = this->route();
-            if(canRoute == ROUTE_EXEC_DONE){
-                unsigned newWL = evaluateWireLen();
-                _netRank->update();
-                if(newWL < _bestTotalWL){
-                    storeBestResult();
-                    _bestTotalWL = newWL;
-                    recover = false;
-                    bestPos = curPos;
+            if(_gridList[curPos.first-1][curPos.second-1]->getOverflowCount() == 0){
+                moveOneCell(moveCellList[j].first, curPos, 3);
+                RouteExecStatus canRoute = this->route();
+                if(canRoute == ROUTE_EXEC_DONE){
+                    unsigned newWL = evaluateWireLen();
+                    _netRank->update();
+                    if(newWL < _bestTotalWL){
+                        storeBestResult();
+                        _bestTotalWL = newWL;
+                        recover = false;
+                        bestPos = curPos;
 
-                    //vector< vector<Segment> > CurSegs;
-                    for(unsigned k=0;k<moveCell->assoNet.size();++k){
-                        vector<Segment> Segs;
-                        for (auto s : _netList[moveCell->assoNet[k]-1]->_netSegs) { Segs.push_back(*s); }
-                        BestSegs.push_back(Segs);
+                        //vector< vector<Segment> > CurSegs;
+                        for(unsigned k=0;k<moveCell->assoNet.size();++k){
+                            vector<Segment> Segs;
+                            for (auto s : _netList[moveCell->assoNet[k]-1]->_netSegs) { Segs.push_back(*s); }
+                            BestSegs.push_back(Segs);
+                        }
+                        //BestSegs = CurSegs;
+                        cout << _bestTotalWL << " is a Better Solution!!\n";
                     }
-                    //BestSegs = CurSegs;
-                    cout << _bestTotalWL << " is a Better Solution!!\n";
                 }
             }
             
             //move cell to (x-1,y) and route
             curPos = pair<unsigned,unsigned>(max(cell_row-1,(int)Ggrid::rBeg),cell_col);
-            moveOneCell(moveCellList[j].first, curPos, 3);
-            canRoute = this->route();
-            if(canRoute == ROUTE_EXEC_DONE){
-                unsigned newWL = evaluateWireLen();
-                _netRank->update();
-                if(newWL < _bestTotalWL){
-                    storeBestResult();
-                    _bestTotalWL = newWL;
-                    recover = false;
-                    bestPos = curPos;
+            if(_gridList[curPos.first-1][curPos.second-1]->getOverflowCount() == 0){
+                moveOneCell(moveCellList[j].first, curPos, 3);
+                RouteExecStatus canRoute = this->route();
+                if(canRoute == ROUTE_EXEC_DONE){
+                    unsigned newWL = evaluateWireLen();
+                    _netRank->update();
+                    if(newWL < _bestTotalWL){
+                        storeBestResult();
+                        _bestTotalWL = newWL;
+                        recover = false;
+                        bestPos = curPos;
 
-                    //vector< vector<Segment> > CurSegs;
-                    BestSegs.resize(0);
-                    for(unsigned k=0;k<moveCell->assoNet.size();++k){
-                        vector<Segment> Segs;
-                        for (auto s : _netList[moveCell->assoNet[k]-1]->_netSegs) { Segs.push_back(*s); }
-                        BestSegs.push_back(Segs);
+                        //vector< vector<Segment> > CurSegs;
+                        BestSegs.resize(0);
+                        for(unsigned k=0;k<moveCell->assoNet.size();++k){
+                            vector<Segment> Segs;
+                            for (auto s : _netList[moveCell->assoNet[k]-1]->_netSegs) { Segs.push_back(*s); }
+                            BestSegs.push_back(Segs);
+                        }
+                        //BestSegs = CurSegs;
+                        cout << _bestTotalWL << " is a Better Solution!!\n";
                     }
-                    //BestSegs = CurSegs;
-                    cout << _bestTotalWL << " is a Better Solution!!\n";
                 }
             }
 
             //move cell to (x,y+1) and route
             curPos = pair<unsigned,unsigned>(cell_row,min(cell_col+1,(int)Ggrid::cEnd));
-            moveOneCell(moveCellList[j].first, curPos, 3);
-            canRoute = this->route();
-            if(canRoute == ROUTE_EXEC_DONE){
-                unsigned newWL = evaluateWireLen();
-                _netRank->update();
-                if(newWL < _bestTotalWL){
-                    storeBestResult();
-                    _bestTotalWL = newWL;
-                    recover = false;
-                    bestPos = curPos;
+            if(_gridList[curPos.first-1][curPos.second-1]->getOverflowCount() == 0){
+                moveOneCell(moveCellList[j].first, curPos, 3);
+                RouteExecStatus canRoute = this->route();
+                if(canRoute == ROUTE_EXEC_DONE){
+                    unsigned newWL = evaluateWireLen();
+                    _netRank->update();
+                    if(newWL < _bestTotalWL){
+                        storeBestResult();
+                        _bestTotalWL = newWL;
+                        recover = false;
+                        bestPos = curPos;
 
-                    //vector< vector<Segment> > CurSegs;
-                    BestSegs.resize(0);
-                    for(unsigned k=0;k<moveCell->assoNet.size();++k){
-                        vector<Segment> Segs;
-                        for (auto s : _netList[moveCell->assoNet[k]-1]->_netSegs) { Segs.push_back(*s); }
-                        BestSegs.push_back(Segs);
+                        //vector< vector<Segment> > CurSegs;
+                        BestSegs.resize(0);
+                        for(unsigned k=0;k<moveCell->assoNet.size();++k){
+                            vector<Segment> Segs;
+                            for (auto s : _netList[moveCell->assoNet[k]-1]->_netSegs) { Segs.push_back(*s); }
+                            BestSegs.push_back(Segs);
+                        }
+                        //BestSegs = CurSegs;
+                        cout << _bestTotalWL << " is a Better Solution!!\n";
                     }
-                    //BestSegs = CurSegs;
-                    cout << _bestTotalWL << " is a Better Solution!!\n";
                 }
             }
 
             //move cell to (x,y-1) and route
             curPos = pair<unsigned,unsigned>(cell_row,max(cell_col-1,(int)Ggrid::cBeg));
-            moveOneCell(moveCellList[j].first, curPos, 3);
-            canRoute = this->route();
-            if(canRoute == ROUTE_EXEC_DONE){
-                unsigned newWL = evaluateWireLen();
-                _netRank->update();
-                if(newWL < _bestTotalWL){
-                    storeBestResult();
-                    _bestTotalWL = newWL;
-                    recover = false;
-                    bestPos = curPos;
+            if(_gridList[curPos.first-1][curPos.second-1]->getOverflowCount() == 0){
+                moveOneCell(moveCellList[j].first, curPos, 3);
+                RouteExecStatus canRoute = this->route();
+                if(canRoute == ROUTE_EXEC_DONE){
+                    unsigned newWL = evaluateWireLen();
+                    _netRank->update();
+                    if(newWL < _bestTotalWL){
+                        storeBestResult();
+                        _bestTotalWL = newWL;
+                        recover = false;
+                        bestPos = curPos;
 
-                    //vector< vector<Segment> > CurSegs;
-                    BestSegs.resize(0);
-                    for(unsigned k=0;k<moveCell->assoNet.size();++k){
-                        vector<Segment> Segs;
-                        for (auto s : _netList[moveCell->assoNet[k]-1]->_netSegs) { Segs.push_back(*s); }
-                        BestSegs.push_back(Segs);
+                        //vector< vector<Segment> > CurSegs;
+                        BestSegs.resize(0);
+                        for(unsigned k=0;k<moveCell->assoNet.size();++k){
+                            vector<Segment> Segs;
+                            for (auto s : _netList[moveCell->assoNet[k]-1]->_netSegs) { Segs.push_back(*s); }
+                            BestSegs.push_back(Segs);
+                        }
+                        //BestSegs = CurSegs;
+                        cout << _bestTotalWL << " is a Better Solution!!\n";
                     }
-                    //BestSegs = CurSegs;
-                    cout << _bestTotalWL << " is a Better Solution!!\n";
                 }
             }
             
@@ -246,6 +255,10 @@ RouteMgr::precisePnR(){
                 }
             }
         }
+    }
+
+    for(unsigned i=0;i<_instList.size();++i){
+        _instList[i]->_hasmovedbyprecise = false;
     }
 }
 

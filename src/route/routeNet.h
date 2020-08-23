@@ -141,6 +141,7 @@ public:
     void printAssoNet() const;
     void move(Pos);
     bool     _hasmovedbyfd = false;
+    bool     _hasmovedbyprecise = false;
     bool     min_layer_constraint = false;
 private:
     const unsigned  _cellId;
