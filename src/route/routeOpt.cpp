@@ -30,6 +30,8 @@ extern RouteMgr* routeMgr;
 /**************************************/
 #define FORCE_DIRECTED_BASE_RATIO 20.0
 #define FORCE_DIRECTED_INCREASE_RATIO 2.0 //force directed ratio increase per 10x max_move_count
+#define PRECISE_PnR_SKIP_RATIO 0.002
+#define PRECISE_PnR_SKIP_THRESHOLD 20
 
 /**************************************************/
 /*   Public member functions about optimization   */
@@ -107,7 +109,7 @@ RouteMgr::precisePnR(){
                 for (auto s : _netList[moveCell->assoNet[k]-1]->_netSegs) { Segs.push_back(*s); }
                 OOrigSegs.push_back(Segs);
             }
-            bool recover = true;
+            bool recover = true, skip = false;
             int cell_row = moveCell->getPos().first;
             int cell_col = moveCell->getPos().second;
             Pos curPos, bestPos;
@@ -115,7 +117,7 @@ RouteMgr::precisePnR(){
             cout << "Start with ";
             checkOverflow();
             #endif
-
+            
             //move cell to (x+1,y) and route
             curPos = pair<unsigned,unsigned>(min(cell_row+1,(int)Ggrid::rEnd),cell_col);
             if(_gridList[curPos.first-1][curPos.second-1]->getOverflowCount() == 0){
@@ -139,12 +141,14 @@ RouteMgr::precisePnR(){
                         //BestSegs = CurSegs;
                         cout << _bestTotalWL << " is a Better Solution!!\n";
                     }
+                    else if((newWL - _bestTotalWL) > PRECISE_PnR_SKIP_THRESHOLD /*PRECISE_PnR_SKIP_RATIO*_bestTotalWL*/)
+                        skip = true;
                 }
             }
             
             //move cell to (x-1,y) and route
             curPos = pair<unsigned,unsigned>(max(cell_row-1,(int)Ggrid::rBeg),cell_col);
-            if(_gridList[curPos.first-1][curPos.second-1]->getOverflowCount() == 0){
+            if(_gridList[curPos.first-1][curPos.second-1]->getOverflowCount() == 0 && skip == false){
                 moveOneCell(moveCellList[j].first, curPos, 3);
                 RouteExecStatus canRoute = this->route();
                 if(canRoute == ROUTE_EXEC_DONE){
@@ -166,12 +170,14 @@ RouteMgr::precisePnR(){
                         //BestSegs = CurSegs;
                         cout << _bestTotalWL << " is a Better Solution!!\n";
                     }
+                    else if((newWL - _bestTotalWL) > PRECISE_PnR_SKIP_THRESHOLD /*PRECISE_PnR_SKIP_RATIO*_bestTotalWL*/)
+                        skip = true;
                 }
             }
-
+            
             //move cell to (x,y+1) and route
             curPos = pair<unsigned,unsigned>(cell_row,min(cell_col+1,(int)Ggrid::cEnd));
-            if(_gridList[curPos.first-1][curPos.second-1]->getOverflowCount() == 0){
+            if(_gridList[curPos.first-1][curPos.second-1]->getOverflowCount() == 0 && skip == false){
                 moveOneCell(moveCellList[j].first, curPos, 3);
                 RouteExecStatus canRoute = this->route();
                 if(canRoute == ROUTE_EXEC_DONE){
@@ -193,12 +199,14 @@ RouteMgr::precisePnR(){
                         //BestSegs = CurSegs;
                         cout << _bestTotalWL << " is a Better Solution!!\n";
                     }
+                    else if((newWL - _bestTotalWL) > PRECISE_PnR_SKIP_THRESHOLD /*PRECISE_PnR_SKIP_RATIO*_bestTotalWL*/)
+                        skip = true;
                 }
             }
-
+            
             //move cell to (x,y-1) and route
             curPos = pair<unsigned,unsigned>(cell_row,max(cell_col-1,(int)Ggrid::cBeg));
-            if(_gridList[curPos.first-1][curPos.second-1]->getOverflowCount() == 0){
+            if(_gridList[curPos.first-1][curPos.second-1]->getOverflowCount() == 0 && skip == false){
                 moveOneCell(moveCellList[j].first, curPos, 3);
                 RouteExecStatus canRoute = this->route();
                 if(canRoute == ROUTE_EXEC_DONE){
