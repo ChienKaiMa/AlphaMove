@@ -206,6 +206,7 @@ RouteExecStatus RouteMgr::reroute(Net* n)
     }
     else {
         ++_numValidNet2;
+        _targetNetList.push_back(n);
         //cout << "Net N" << n->_netId << " Reduce wirelength by " << (origWL - newWL) << "\n";
     }
     return myStatus;

@@ -92,8 +92,13 @@ main(int argc, char** argv)
       
       routeMgr->reroute();
       routeMgr->reroute();
-      routeMgr->precisePnR();
-      //routeMgr->precisePnR();
+      if(routeMgr)
+      routeMgr->precisePnR(0);
+      routeMgr->precisePnR(0);
+      routeMgr->reroute();
+      routeMgr->precisePnR(0);
+      routeMgr->precisePnR(0);
+      //routeMgr->reroute();
       //routeMgr->mainPnR();
       routeMgr->writeCircuit(outfile);
       

@@ -89,7 +89,7 @@ public:
     /*        Placement&Routing       */
     /**********************************/
     void     mainPnR();
-    void     precisePnR();      
+    void     precisePnR(bool);      
     void     place();
     size_t   getCurMoveCnt() const { return _curMovedSet.size(); }
     void     netbasedPlace();
