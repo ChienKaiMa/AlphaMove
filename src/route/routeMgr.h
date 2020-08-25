@@ -80,6 +80,9 @@ public:
     unsigned getLayerCnt() const {
       return _laySupply.size();
     }
+    unsigned getCellCnt() const {
+      return _instList.size();
+    }
 
     unsigned evaluateWireLen() const;
     unsigned evaluateWireLen(Net*) const;

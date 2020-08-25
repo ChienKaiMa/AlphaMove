@@ -92,14 +92,15 @@ main(int argc, char** argv)
       
       routeMgr->reroute();
       routeMgr->reroute();
-      if(routeMgr)
-      routeMgr->precisePnR(0);
-      routeMgr->precisePnR(0);
-      routeMgr->reroute();
-      routeMgr->precisePnR(0);
-      routeMgr->precisePnR(0);
+      if(routeMgr->getCellCnt() > 100){
+         routeMgr->precisePnR(0);
+         routeMgr->precisePnR(0);
+         routeMgr->reroute();
+         routeMgr->precisePnR(0);
+         routeMgr->precisePnR(0);
+      }
       //routeMgr->reroute();
-      //routeMgr->mainPnR();
+      routeMgr->mainPnR();
       routeMgr->writeCircuit(outfile);
       
       #ifdef DEBUG
