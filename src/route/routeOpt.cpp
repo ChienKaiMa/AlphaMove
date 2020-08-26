@@ -80,7 +80,7 @@ RouteMgr::mainPnR()
 void 
 RouteMgr::precisePnR(bool strategy){
     cout << "Initial WL : " << _bestTotalWL << endl;
-    sort(_targetNetList.begin(),_targetNetList.end(),compareLength);
+    //sort(_targetNetList.begin(),_targetNetList.end(),compareLength);
     //Try to move cells of target nets one by one
     for(unsigned i=0;i<_targetNetList.size();++i){
         cout << "PnR on net " << _targetNetList[i]->_netId << "...\n";
