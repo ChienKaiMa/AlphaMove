@@ -80,10 +80,10 @@ RouteMgr::mainPnR()
 void 
 RouteMgr::precisePnR(bool strategy){
     cout << "Initial WL : " << _bestTotalWL << endl;
+    //sort(_targetNetList.begin(),_targetNetList.end(),compareLength);
     //Try to move cells of target nets one by one
     for(unsigned i=0;i<_targetNetList.size();++i){
         cout << "PnR on net " << _targetNetList[i]->_netId << "...\n";
-
         //Add cells of the net and their 2d congestion to moveCellList, and sort by their congestion
         vector<pair<unsigned,double>> moveCellList; //first: cell index; second: cell grid congestion
         auto ite = _targetNetList[i]->_assoCellInstMap.begin();
@@ -312,8 +312,9 @@ RouteMgr::precisePnR(bool strategy){
                     RouteExecStatus canRoute = this->route();
                     Pos nxtHPos = pair<unsigned,unsigned>(curPos.first, min(curPos.second+1,Ggrid::cEnd));
                     Pos prevHPos = pair<unsigned,unsigned>(curPos.first, max(curPos.second-1,Ggrid::cBeg));
-                    if((_gridList[nxtHPos.first-1][nxtHPos.second-1]->getOverflowCount() != 0) || (_gridList[prevHPos.first-1][prevHPos.second-1]->getOverflowCount() != 0))
+                    if((_gridList[curPos.first-1][curPos.second-1]->getOverflowCount() == 0) || (_gridList[nxtHPos.first-1][nxtHPos.second-1]->getOverflowCount() != 0) || (_gridList[prevHPos.first-1][prevHPos.second-1]->getOverflowCount() != 0)){
                         canRoute = ROUTE_EXEC_ERROR;
+                    }
                     if(canRoute == ROUTE_EXEC_DONE){
                         unsigned newWL = evaluateWireLen();
                         _netRank->update();
@@ -344,8 +345,9 @@ RouteMgr::precisePnR(bool strategy){
                     RouteExecStatus canRoute = this->route();
                     Pos nxtHPos = pair<unsigned,unsigned>(curPos.first, min(curPos.second+1,Ggrid::cEnd));
                     Pos prevHPos = pair<unsigned,unsigned>(curPos.first, max(curPos.second-1,Ggrid::cBeg));
-                    if((_gridList[nxtHPos.first-1][nxtHPos.second-1]->getOverflowCount() != 0) || (_gridList[prevHPos.first-1][prevHPos.second-1]->getOverflowCount() != 0))
+                    if((_gridList[curPos.first-1][curPos.second-1]->getOverflowCount() == 0) || (_gridList[nxtHPos.first-1][nxtHPos.second-1]->getOverflowCount() != 0) || (_gridList[prevHPos.first-1][prevHPos.second-1]->getOverflowCount() != 0)){
                         canRoute = ROUTE_EXEC_ERROR;
+                    }
                     if(canRoute == ROUTE_EXEC_DONE){
                         unsigned newWL = evaluateWireLen();
                         _netRank->update();
@@ -377,8 +379,9 @@ RouteMgr::precisePnR(bool strategy){
                     RouteExecStatus canRoute = this->route();
                     Pos nxtHPos = pair<unsigned,unsigned>(curPos.first, min(curPos.second+1,Ggrid::cEnd));
                     Pos prevHPos = pair<unsigned,unsigned>(curPos.first, max(curPos.second-1,Ggrid::cBeg));
-                    if((_gridList[nxtHPos.first-1][nxtHPos.second-1]->getOverflowCount() != 0) || (_gridList[prevHPos.first-1][prevHPos.second-1]->getOverflowCount() != 0))
+                    if((_gridList[curPos.first-1][curPos.second-1]->getOverflowCount() == 0) || (_gridList[nxtHPos.first-1][nxtHPos.second-1]->getOverflowCount() != 0) || (_gridList[prevHPos.first-1][prevHPos.second-1]->getOverflowCount() != 0)){
                         canRoute = ROUTE_EXEC_ERROR;
+                    }
                     if(canRoute == ROUTE_EXEC_DONE){
                         unsigned newWL = evaluateWireLen();
                         _netRank->update();
@@ -410,8 +413,9 @@ RouteMgr::precisePnR(bool strategy){
                     RouteExecStatus canRoute = this->route();
                     Pos nxtHPos = pair<unsigned,unsigned>(curPos.first, min(curPos.second+1,Ggrid::cEnd));
                     Pos prevHPos = pair<unsigned,unsigned>(curPos.first, max(curPos.second-1,Ggrid::cBeg));
-                    if((_gridList[nxtHPos.first-1][nxtHPos.second-1]->getOverflowCount() != 0) || (_gridList[prevHPos.first-1][prevHPos.second-1]->getOverflowCount() != 0))
+                    if((_gridList[curPos.first-1][curPos.second-1]->getOverflowCount() == 0) || (_gridList[nxtHPos.first-1][nxtHPos.second-1]->getOverflowCount() != 0) || (_gridList[prevHPos.first-1][prevHPos.second-1]->getOverflowCount() != 0)){
                         canRoute = ROUTE_EXEC_ERROR;
+                    }
                     if(canRoute == ROUTE_EXEC_DONE){
                         unsigned newWL = evaluateWireLen();
                         _netRank->update();

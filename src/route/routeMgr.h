@@ -188,6 +188,7 @@ private:
 
     //Placement Helper Function
     static bool compare(pair<unsigned,double> a, pair<unsigned,double> b) { return a.second < b.second; }
+    static bool compareLength(Net* a, Net* b) { return a->_reducedLength < b->_reducedLength; }
     unsigned moveCellNum();
 
     //Routing Helper function

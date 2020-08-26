@@ -353,6 +353,7 @@ private:
     // unordered_map< unsigned, Pos > _pinPos; // a map from instance id->Pos(current placement);
     bool                _toReroute = false; // TODO: decide whether true or false
     bool                _routable = true;
+    int                 _reducedLength = 0;
 
     //bounding box
     unsigned            _centerRow;

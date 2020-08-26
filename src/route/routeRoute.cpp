@@ -165,6 +165,7 @@ RouteExecStatus RouteMgr::reroute(Net* n)
         }
         add3DDemand(n);
         n->_routable = false;
+        n->_reducedLength = 0;
         return myStatus;
     }
     if (layerassign(n) == ROUTE_EXEC_ERROR) {
@@ -178,6 +179,7 @@ RouteExecStatus RouteMgr::reroute(Net* n)
         }
         add3DDemand(n);
         n->_routable = false;
+        n->_reducedLength = 0;
         return myStatus;
     }
     if (n->checkOverflow())
@@ -192,6 +194,7 @@ RouteExecStatus RouteMgr::reroute(Net* n)
         }
         add3DDemand(n);
         n->_routable = false;
+        n->_reducedLength = 0;
         return myStatus;
     }
     unsigned newWL = n->getWirelength();
@@ -208,11 +211,13 @@ RouteExecStatus RouteMgr::reroute(Net* n)
         add3DDemand(n);
         //cout << "Net N" << n->_netId << " has no wirelength reduction!\n";
         _targetNetList.push_back(n);
+        n->_reducedLength = (int)origWL - (int)newWL;
         return myStatus;
     }
     else {
         ++_numValidNet2;
         _targetNetList.push_back(n);
+        n->_reducedLength = origWL - newWL;
         //cout << "Net N" << n->_netId << " Reduce wirelength by " << (origWL - newWL) << "\n";
     }
     return myStatus;
