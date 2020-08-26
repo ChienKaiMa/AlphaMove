@@ -62,7 +62,13 @@ RouteMgr::route()
 
     //route2D(targetNet);
     cout << endl;
-    if (checkOverflow() == ROUTE_EXEC_ERROR) { myStatus = ROUTE_EXEC_ERROR; }
+    //if (checkOverflow() == ROUTE_EXEC_ERROR) { myStatus = ROUTE_EXEC_ERROR; }
+    for (auto n : targetNet) {
+        if (n->checkOverflow()){
+            myStatus = ROUTE_EXEC_ERROR;
+            break;
+        }
+    }
     return myStatus;
     //return layerassign(targetNet);
 }

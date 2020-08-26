@@ -100,7 +100,9 @@ main(int argc, char** argv)
          routeMgr->precisePnR(0);
       }
       //routeMgr->reroute();
-      routeMgr->mainPnR();
+      else{
+         routeMgr->mainPnR();
+      }
       routeMgr->writeCircuit(outfile);
       
       #ifdef DEBUG
