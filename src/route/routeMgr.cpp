@@ -1008,7 +1008,9 @@ RouteMgr::evaluateWireLen() const{
         newWL += alpha.size();
     }
     // newWL+=_netList.size();
+    #ifdef DEBUG
     cout << "New wirelength : " << newWL << endl;
+    #endif
     return newWL;
 }
 

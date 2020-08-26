@@ -31,7 +31,9 @@ bool netCompare(Net* n1, Net* n2) // greater than , decsending order
 RouteExecStatus
 RouteMgr::route()
 {
+    #ifdef DEBUG
     cout << "Route..." << endl;
+    #endif
     NetList targetNet = NetList();
     RouteExecStatus myStatus = ROUTE_EXEC_DONE;
     //for (auto m : _netList){
@@ -61,7 +63,7 @@ RouteMgr::route()
     //sort( targetNet.begin(), targetNet.end(), netCompare);
 
     //route2D(targetNet);
-    cout << endl;
+    //cout << endl;
     //if (checkOverflow() == ROUTE_EXEC_ERROR) { myStatus = ROUTE_EXEC_ERROR; }
     for (auto n : targetNet) {
         if (n->checkOverflow()){
@@ -95,10 +97,12 @@ RouteExecStatus RouteMgr::route2D(Net* n)
         unsigned lay1 = getPinLay(*(--it));
         unsigned lay2 = getPinLay(*(++it));
         if (!route2Pin(pos1, pos2, n, demand, lay1, lay2)) {
+            #ifdef DEBUG
             cout << "route2Pin("
             << pos1.first << " " << pos1.second << ", " 
             << pos2.first << " " << pos2.second
             << " ) failed!" << endl;
+            #endif
             n->shouldReroute(true);
             return ROUTE_EXEC_ERROR;
         }
@@ -123,17 +127,23 @@ RouteExecStatus RouteMgr::reroute()
         }*/
         reroute(_netList[i]);
         if (i % 10000 == 0) {
+            #ifdef DEBUG
             cout << i << "\n";
+            #endif
             replaceBest();
         }
     }
+    #ifdef DEBUG
     cout << "\nReroute done!\n";
+    #endif
     replaceBest();
     _netRank->update();
+    #ifdef DEBUG
     _netRank->showTopTen();
     routeMgr->printRouteSummary();
+    #endif
     myUsage.report(true, false);
-    #ifndef DEBUG
+    #ifdef DEBUG
     cout << "\nNet type:\n"
          << "Cannot route       : " << _numOverflowNet1 << "\n" 
          << "Cannot layerassign : " << _numOverflowNet2 << "\n"

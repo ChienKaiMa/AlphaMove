@@ -43,11 +43,16 @@ extern RouteMgr* routeMgr;
 void 
 RouteMgr::mainPnR()
 {
+    #ifdef DEBUG
     cout << "Initial WL : " << _bestTotalWL << endl;
+    #endif
+    cout << "\nMain PnR...\n";
     unsigned reRouteCnt = 0;
     while(true){
         this->place();
+        #ifdef DEBUG
         cout << "End of Placing..." << endl;
+        #endif
         if( getCurMoveCnt() > _maxMoveCnt ){
             cout << "Maximum cell-movements!!" << endl;
             cout << "P&R terminates..." << endl;
@@ -56,7 +61,9 @@ RouteMgr::mainPnR()
         
         RouteExecStatus canRoute = this->route();
         //RouteExecStatus canRoute = this->reroute();
+        #ifdef DEBUG
         cout << "End of Routing...\n";
+        #endif
         /*
         if (checkOverflow() && getCurMoveCnt() > reRouteCnt * 2) {
             reduceOverflow();
@@ -65,25 +72,34 @@ RouteMgr::mainPnR()
         }
         */
         _netRank->update();
+        #ifdef DEBUG
         _netRank->showTopTen();
         cout << "End of Routing..." << endl;
+        #endif
         if(canRoute == ROUTE_EXEC_DONE){
             replaceBest();
         }
         
         this->_placeStrategy = (canRoute == ROUTE_EXEC_DONE) ? FORCE_DIRECTED : CONGESTION_BASED;
+        #ifdef DEBUG
         printRouteSummary();
         myUsage.report(true, false);
+        #endif
     }
 }
 
 void 
 RouteMgr::precisePnR(bool strategy){
+    #ifdef DEBUG
     cout << "Initial WL : " << _bestTotalWL << endl;
+    #endif
+    cout << "\nPrecise PnR...\n";
     //sort(_targetNetList.begin(),_targetNetList.end(),compareLength);
     //Try to move cells of target nets one by one
     for(unsigned i=0;i<_targetNetList.size();++i){
+        #ifdef DEBUG
         cout << "PnR on net " << _targetNetList[i]->_netId << "...\n";
+        #endif
         //Add cells of the net and their 2d congestion to moveCellList, and sort by their congestion
         vector<pair<unsigned,double>> moveCellList; //first: cell index; second: cell grid congestion
         auto ite = _targetNetList[i]->_assoCellInstMap.begin();
@@ -683,7 +699,9 @@ RouteMgr::netbasedPlace(){
 
 void 
 RouteMgr::forcedirectedPlace (){
+    #ifdef DEBUG
     cout << "Force-directed placement...\n";
+    #endif
 
     vector<CellInst*> moveCells;
     vector<pair<unsigned,double>> congestionList; //first: cellInst index; second: 2d_congestion
@@ -800,10 +818,13 @@ RouteMgr::forcedirectedPlace (){
         }
         
         moveCells[i]->_hasmovedbyfd = true;
+        #ifdef DEBUG
         cout << "CellInst " << moveCells[i]->getId() << " is moved!\n";
+        #endif
         // </Koova edited>
-
+        #ifdef DEBUG
         cout << "Old position: " << moveCells[i]->getPos().first << " " << moveCells[i]->getPos().second << "\n";
+        #endif
         moveCells[i]->move(Pos(new_row,new_col));
         add2DBlkDemand(moveCells[i]);
         add3DBlkDemand(moveCells[i]);
@@ -813,11 +834,14 @@ RouteMgr::forcedirectedPlace (){
         addAdjHGgridDemand(moveCells[i]);
         //add to new cellInstList
         moveCells[i]->getGrid()->cellInstList.push_back(moveCells[i]);
-
+        #ifdef DEBUG
         cout << "New position: " << moveCells[i]->getPos().first << " " << moveCells[i]->getPos().second << "\n";
+        #endif
     }
 
+    #ifdef DEBUG
     cout << "CurMoveCnt: " << getCurMoveCnt() << "\n";
+    #endif
     for(unsigned i=0;i<_netList.size();++i){
         if(_netList[i]->_toRemoveDemand == true){
             remove2DDemand(_netList[i]);
@@ -939,10 +963,12 @@ RouteMgr::moveOneCell(unsigned id, Pos newPos, unsigned type){
     }
     
     //moveCells[i]->_hasmovedbyfd = true;
+    #ifdef DEBUG
     cout << "CellInst " << _instList[cellId-1]->getId() << " is moved!\n";
     // </Koova edited>
 
     cout << "Old position: " << _instList[cellId-1]->getPos().first << " " << _instList[cellId-1]->getPos().second << "\n";
+    #endif
     _instList[cellId-1]->move(Pos(new_row,new_col));
     add2DBlkDemand(_instList[cellId-1]);
     add3DBlkDemand(_instList[cellId-1]);
@@ -953,8 +979,10 @@ RouteMgr::moveOneCell(unsigned id, Pos newPos, unsigned type){
     //add to new cellInstList
     _instList[cellId-1]->getGrid()->cellInstList.push_back(_instList[cellId-1]);
 
+    #ifdef DEBUG
     cout << "New position: " << _instList[cellId-1]->getPos().first << " " << _instList[cellId-1]->getPos().second << "\n";
     cout << "CurMoveCnt: " << getCurMoveCnt() << "\n";
+    #endif
 }
 
 void
