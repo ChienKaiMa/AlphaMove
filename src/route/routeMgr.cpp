@@ -72,9 +72,13 @@ RouteMgr::readCircuit(const string& fileName)
         ifs >> supply; // defaultSupplyOfOneGGrid
         _laySupply[i] = supply;
     }
+    #ifdef DEBUG
     myUsage.report(true, true);cout << "\n";
+    #endif
     ifs >> buffer; // NumNonDefaultSupplyGGrid or NumMasterCell
+    #ifdef DEBUG
     cout << "Reading nondefaultSupply\n";
+    #endif
     if (buffer == "NumNonDefaultSupplyGGrid")
     {
         ifs >> tmpCnt; // nonDefaultSupplyGGridCount
@@ -104,17 +108,25 @@ RouteMgr::readCircuit(const string& fileName)
         }
         ifs >> buffer; // NumMasterCell
     }
+    #ifdef DEBUG
     myUsage.report(true, true);cout << "\n";
     cout << "genGridList\n";
+    #endif
     genGridList();
+    #ifdef DEBUG
     myUsage.report(true, true);cout << "\n";
     cout << "Init 2D supply\n";
+    #endif
     init2DSupply();
+    #ifdef DEBUG
     myUsage.report(true, true);cout << "\n";
     cout << "Init 3D supply\n";
+    #endif
     init3DSupply();
+    #ifdef DEBUG
     myUsage.report(true, true);cout << "\n";
     cout << "Reading masterCell and demand\n";
+    #endif
     // MasterCell and demand
     ifs >> tmpCnt; // masterCellCount
     _mcList.resize(tmpCnt);
@@ -150,7 +162,9 @@ RouteMgr::readCircuit(const string& fileName)
         }
         _mcList[i-1] = Laren;
     }
+    #ifdef DEBUG
     myUsage.report(true, true);cout << "\n";
+    #endif
     ifs >> buffer; // NumNeighborCellExtraDemand or NumCellInst
     if (buffer == "NumNeighborCellExtraDemand")
     {
@@ -182,8 +196,10 @@ RouteMgr::readCircuit(const string& fileName)
         }
         ifs >> buffer; // NumCellInst
     }
+    #ifdef DEBUG
     myUsage.report(true, true);cout << "\n";
     cout << "Reading CellInst...\n";
+    #endif
     // CellInst and initial placement
     ifs >> tmpCnt; // cellInstCount
     int mcNum;
@@ -206,8 +222,10 @@ RouteMgr::readCircuit(const string& fileName)
         OutputCell cell(i+1, tmpCnt1, tmpCnt2);
         _initCells.push_back(cell);
     }
+    #ifdef DEBUG
     myUsage.report(true, true);cout << "\n";
     cout << "Reading nets\n";
+    #endif
     ifs >> buffer; // NumNets
     ifs >> tmpCnt; // netCount
     _netList.resize(tmpCnt);
@@ -241,9 +259,11 @@ RouteMgr::readCircuit(const string& fileName)
         _netList[i] = brook;
         brook->avgPinLayer();
     }
+    #ifdef DEBUG
     myUsage.report(true, true);cout << "\n";
 
     cout << "Reading init route\n";
+    #endif
     // Initial routing data
     ifs >> buffer; // NumRoutes
     ifs >> _initTotalSegNum; // routeSegmentCount
@@ -265,9 +285,11 @@ RouteMgr::readCircuit(const string& fileName)
         //_initRouteSegs[i] = seg;
         _bestRouteSegs[i] = seg;
     }
+    #ifdef DEBUG
     myUsage.report(true, true); cout << "\n";
 
     cout << "initialize cell instance list of gGrids\n";
+    #endif
     initCellInstList();
     /*for(unsigned i=Ggrid::rBeg-1;i<Ggrid::rEnd;++i){
         for(unsigned j=Ggrid::cBeg-1;j<Ggrid::cEnd;++j){
@@ -278,39 +300,53 @@ RouteMgr::readCircuit(const string& fileName)
             cout << "\n";
         }
     }*/
+    #ifdef DEBUG
     myUsage.report(true, true);cout << "\n";
     cout << "adding 2D demand\n";
+    #endif
     for(auto& m : _netList){
         add2DDemand(m);
     }
+    #ifdef DEBUG
     myUsage.report(true, true);cout << "\n";
     cout << "adding 3D demand\n";
+    #endif
     for(auto& m : _netList){
         add3DDemand(m);
     }
+    #ifdef DEBUG
     myUsage.report(true, true);cout << "\n";
     cout << "adding 2D Blkg demand\n";
+    #endif
     for(auto& m : _instList){
         add2DBlkDemand(m);
     }
+    #ifdef DEBUG
     myUsage.report(true, true);cout << "\n";
     cout << "adding 3D Blkg demand\n";
+    #endif
     for(auto& m : _instList){
         add3DBlkDemand(m);
     }
+    #ifdef DEBUG
     myUsage.report(true, true);cout << "\n";
     cout << "adding sameGGrid/adjHGrid demand\n";
+    #endif
     initNeighborDemand();
+    #ifdef DEBUG
     myUsage.report(true, true);cout << "\n";
     cout << "initialize associated cell instances of nets\n";
+    #endif
     for(auto& m : _netList){
         m->initAssoCellInst();
         
         //cout << "Net " << m->_netId << "\n";
         //m->printAssoCellInst();
     }
+    #ifdef DEBUG
     myUsage.report(true, true);cout << "\n";
     cout << "initialize min_layer_constraint\n";
+    #endif
     for(unsigned i=0;i<_netList.size();++i){
         if(_netList[i]->getMinLayCons() == _laySupply.size()){
             auto ite = _netList[i]->_assoCellInstMap.begin();
@@ -325,13 +361,17 @@ RouteMgr::readCircuit(const string& fileName)
         cout << "Cell " << i+1 << " min layer constraint = " << _instList[i]->min_layer_constraint << "\n";
     }
     #endif
+    #ifdef DEBUG
     myUsage.report(true, true);cout << "\n";
     cout << "initialize net rank\n";
+    #endif
     _netRank = new NetRank;
     _netRank->init();
+    #ifdef DEBUG
     myUsage.report(true, true);cout << "\n";
     cout << "evaluate wire length\n";
     _netRank->showTopTen();
+    #endif
     _initTotalWL = evaluateWireLen();
     myUsage.report(true, true);cout << "\n";
     _bestTotalWL = _initTotalWL;
