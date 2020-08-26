@@ -80,7 +80,7 @@ RouteMgr::mainPnR()
 void 
 RouteMgr::precisePnR(bool strategy){
     cout << "Initial WL : " << _bestTotalWL << endl;
-    //sort(_targetNetList.begin(),_targetNetList.end(),compareLength);
+    sort(_targetNetList.begin(),_targetNetList.end(),compareLength);
     //Try to move cells of target nets one by one
     for(unsigned i=0;i<_targetNetList.size();++i){
         cout << "PnR on net " << _targetNetList[i]->_netId << "...\n";
@@ -312,7 +312,7 @@ RouteMgr::precisePnR(bool strategy){
                     RouteExecStatus canRoute = this->route();
                     Pos nxtHPos = pair<unsigned,unsigned>(curPos.first, min(curPos.second+1,Ggrid::cEnd));
                     Pos prevHPos = pair<unsigned,unsigned>(curPos.first, max(curPos.second-1,Ggrid::cBeg));
-                    if((_gridList[curPos.first-1][curPos.second-1]->getOverflowCount() == 0) || (_gridList[nxtHPos.first-1][nxtHPos.second-1]->getOverflowCount() != 0) || (_gridList[prevHPos.first-1][prevHPos.second-1]->getOverflowCount() != 0)){
+                    if((_gridList[curPos.first-1][curPos.second-1]->getOverflowCount() != 0) || (_gridList[nxtHPos.first-1][nxtHPos.second-1]->getOverflowCount() != 0) || (_gridList[prevHPos.first-1][prevHPos.second-1]->getOverflowCount() != 0)){
                         canRoute = ROUTE_EXEC_ERROR;
                     }
                     if(canRoute == ROUTE_EXEC_DONE){
@@ -345,7 +345,7 @@ RouteMgr::precisePnR(bool strategy){
                     RouteExecStatus canRoute = this->route();
                     Pos nxtHPos = pair<unsigned,unsigned>(curPos.first, min(curPos.second+1,Ggrid::cEnd));
                     Pos prevHPos = pair<unsigned,unsigned>(curPos.first, max(curPos.second-1,Ggrid::cBeg));
-                    if((_gridList[curPos.first-1][curPos.second-1]->getOverflowCount() == 0) || (_gridList[nxtHPos.first-1][nxtHPos.second-1]->getOverflowCount() != 0) || (_gridList[prevHPos.first-1][prevHPos.second-1]->getOverflowCount() != 0)){
+                    if((_gridList[curPos.first-1][curPos.second-1]->getOverflowCount() != 0) || (_gridList[nxtHPos.first-1][nxtHPos.second-1]->getOverflowCount() != 0) || (_gridList[prevHPos.first-1][prevHPos.second-1]->getOverflowCount() != 0)){
                         canRoute = ROUTE_EXEC_ERROR;
                     }
                     if(canRoute == ROUTE_EXEC_DONE){
@@ -379,7 +379,7 @@ RouteMgr::precisePnR(bool strategy){
                     RouteExecStatus canRoute = this->route();
                     Pos nxtHPos = pair<unsigned,unsigned>(curPos.first, min(curPos.second+1,Ggrid::cEnd));
                     Pos prevHPos = pair<unsigned,unsigned>(curPos.first, max(curPos.second-1,Ggrid::cBeg));
-                    if((_gridList[curPos.first-1][curPos.second-1]->getOverflowCount() == 0) || (_gridList[nxtHPos.first-1][nxtHPos.second-1]->getOverflowCount() != 0) || (_gridList[prevHPos.first-1][prevHPos.second-1]->getOverflowCount() != 0)){
+                    if((_gridList[curPos.first-1][curPos.second-1]->getOverflowCount() != 0) || (_gridList[nxtHPos.first-1][nxtHPos.second-1]->getOverflowCount() != 0) || (_gridList[prevHPos.first-1][prevHPos.second-1]->getOverflowCount() != 0)){
                         canRoute = ROUTE_EXEC_ERROR;
                     }
                     if(canRoute == ROUTE_EXEC_DONE){
@@ -413,7 +413,7 @@ RouteMgr::precisePnR(bool strategy){
                     RouteExecStatus canRoute = this->route();
                     Pos nxtHPos = pair<unsigned,unsigned>(curPos.first, min(curPos.second+1,Ggrid::cEnd));
                     Pos prevHPos = pair<unsigned,unsigned>(curPos.first, max(curPos.second-1,Ggrid::cBeg));
-                    if((_gridList[curPos.first-1][curPos.second-1]->getOverflowCount() == 0) || (_gridList[nxtHPos.first-1][nxtHPos.second-1]->getOverflowCount() != 0) || (_gridList[prevHPos.first-1][prevHPos.second-1]->getOverflowCount() != 0)){
+                    if((_gridList[curPos.first-1][curPos.second-1]->getOverflowCount() != 0) || (_gridList[nxtHPos.first-1][nxtHPos.second-1]->getOverflowCount() != 0) || (_gridList[prevHPos.first-1][prevHPos.second-1]->getOverflowCount() != 0)){
                         canRoute = ROUTE_EXEC_ERROR;
                     }
                     if(canRoute == ROUTE_EXEC_DONE){
