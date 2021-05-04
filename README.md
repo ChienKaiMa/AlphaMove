@@ -1,6 +1,9 @@
 # AlphaMove
 Solution to 2020 CAD contest Problem B: Routing with Cell Movement
 
+## Notice
+Notice that our codes still have bugs, and we didn't implement optimization methods like partitioning or advanced routing algorithms.  Feel free to modify our program to create a new cell_move_router, but make sure you put your own creativity in it and remember to thank all the people that help created this work.
+
 ## Usage
 Clone the repo and make to build the executable.
 Linux (Ubuntu version 16.04 LTS):
